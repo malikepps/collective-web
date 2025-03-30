@@ -59,30 +59,47 @@ export default function OnboardingFlow() {
       } else {
         console.log('User is authenticated but not onboarded, continuing with onboarding');
       }
-    } else {
-      // Check localStorage for authenticated user
-      const storedUser = localStorage.getItem('auth_user');
-      if (storedUser) {
-        try {
-          const userData = JSON.parse(storedUser);
-          console.log('Found stored user in localStorage:', userData);
-          
-          if (userData.isOnboarded) {
-            console.log('Stored user is already onboarded, redirecting to home');
-            router.push('/home');
-            return;
-          } else {
-            console.log('Stored user is not onboarded, continuing with onboarding');
-          }
-        } catch (error) {
-          console.error('Error parsing stored user data:', error);
+    } 
+    
+    // Check localStorage for existing user data (this is set in PhoneNumberEntry)
+    const existingUserData = localStorage.getItem('existing_user_data');
+    if (existingUserData) {
+      try {
+        const userData = JSON.parse(existingUserData);
+        console.log('Found existing user data in localStorage:', userData);
+        
+        if (userData.isOnboarded) {
+          console.log('Existing user is already onboarded, redirecting to home');
+          router.push('/home');
+          return;
         }
-      } else {
-        console.log('No user detected after verification, continuing with new user onboarding');
+      } catch (error) {
+        console.error('Error parsing existing user data:', error);
       }
     }
     
-    // If the user is authenticated but not onboarded, continue with onboarding
+    // Check localStorage for authenticated user (fallback)
+    const storedUser = localStorage.getItem('auth_user');
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        console.log('Found stored auth user in localStorage:', userData);
+        
+        if (userData.isOnboarded) {
+          console.log('Stored user is already onboarded, redirecting to home');
+          router.push('/home');
+          return;
+        } else {
+          console.log('Stored user is not onboarded, continuing with onboarding');
+        }
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+      }
+    } else {
+      console.log('No user detected after verification, continuing with new user onboarding');
+    }
+    
+    // If we reach here, the user is either new or not fully onboarded
     setCurrentState(OnboardingState.DISPLAY_NAME);
   };
   

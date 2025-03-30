@@ -236,9 +236,41 @@ export default function VerificationCodeEntry({
       // Show success message
       showSuccessMessage('Verification successful');
       
-      // Get existing user data if available
-      const userData = localStorage.getItem('existing_user_data');
-      console.log('Existing user data from localStorage:', userData);
+      // Get existing user data and update localStorage with any new information from auth
+      // This ensures the onboarding flow has the most up-to-date information
+      const existingUserData = localStorage.getItem('existing_user_data');
+      const authUserData = localStorage.getItem('auth_user');
+      
+      console.log('Existing user data from localStorage:', existingUserData);
+      console.log('Auth user data from localStorage:', authUserData);
+      
+      // If we have auth data after confirmation, make sure it's synchronized with existing_user_data
+      if (authUserData) {
+        try {
+          const authUser = JSON.parse(authUserData);
+          
+          // If we also had existing user data, update it with the auth status
+          if (existingUserData) {
+            try {
+              const existingUser = JSON.parse(existingUserData);
+              
+              // Update existing user data with any auth information that's more recent
+              const updatedUserData = {
+                ...existingUser,
+                isOnboarded: authUser.isOnboarded || existingUser.isOnboarded || false
+              };
+              
+              // Save back to localStorage
+              localStorage.setItem('existing_user_data', JSON.stringify(updatedUserData));
+              console.log('Updated existing_user_data with auth information:', updatedUserData);
+            } catch (e) {
+              console.error('Error updating existing user data:', e);
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing auth user data:', e);
+        }
+      }
       
       // Proceed to the next step
       onSuccess();

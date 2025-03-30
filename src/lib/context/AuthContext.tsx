@@ -156,6 +156,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const verifyPhoneNumber = async (phoneNumber: string) => {
     if (typeof window !== 'undefined') {
       try {
+        // Check if we've recently attempted verification to implement rate limiting
+        const lastAttemptTime = localStorage.getItem('last_phone_verification_attempt');
+        if (lastAttemptTime) {
+          const cooldownPeriod = 60000; // 1 minute cooldown in milliseconds
+          const timeElapsed = Date.now() - Number(lastAttemptTime);
+          
+          if (timeElapsed < cooldownPeriod) {
+            const secondsToWait = Math.ceil((cooldownPeriod - timeElapsed) / 1000);
+            throw new Error(`Please wait ${secondsToWait} seconds before requesting another code.`);
+          }
+        }
+        
+        // Store current attempt time
+        localStorage.setItem('last_phone_verification_attempt', Date.now().toString());
+        
         // Clean up any existing reCAPTCHA instances
         cleanupRecaptcha();
         
@@ -189,6 +204,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             throw new Error('reCAPTCHA verification failed. Please try again.');
           } else if (error.message.includes('quota')) {
             throw new Error('SMS quota exceeded. Please try again later.');
+          } else if (error.message.includes('too-many-requests')) {
+            // Add exponential backoff for too many requests
+            const attemptCount = Number(localStorage.getItem('phone_verification_attempts') || '0') + 1;
+            localStorage.setItem('phone_verification_attempts', attemptCount.toString());
+            
+            // Backoff time increases with each attempt (2^n minutes, capped at 30 minutes)
+            const backoffMinutes = Math.min(Math.pow(2, attemptCount), 30);
+            throw new Error(`Too many verification attempts. Please try again in ${backoffMinutes} minutes.`);
           }
         }
         
@@ -202,11 +225,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Confirming code:', code);
       
+      // Check if we've recently attempted verification to implement rate limiting
+      const lastAttemptTime = localStorage.getItem('last_code_verification_attempt');
+      if (lastAttemptTime) {
+        const cooldownPeriod = 30000; // 30 seconds cooldown in milliseconds
+        const timeElapsed = Date.now() - Number(lastAttemptTime);
+        
+        if (timeElapsed < cooldownPeriod) {
+          const secondsToWait = Math.ceil((cooldownPeriod - timeElapsed) / 1000);
+          throw new Error(`Please wait ${secondsToWait} seconds before trying again.`);
+        }
+      }
+      
+      // Store current attempt time
+      localStorage.setItem('last_code_verification_attempt', Date.now().toString());
+      
       // Get credential from verification ID and code
       const credential = PhoneAuthProvider.credential(verificationId, code);
       
       // Sign in with credential
       const userCredential = await signInWithCredential(auth, credential);
+      
+      // After successful authentication, clear the attempt counters
+      localStorage.removeItem('phone_verification_attempts');
+      localStorage.removeItem('code_verification_attempts');
       
       // After successful authentication, check if the user already exists in Firestore
       if (userCredential.user) {
@@ -218,35 +260,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const userData = userDoc.data();
           console.log('Found user document:', userData);
           
+          // Check if user is already onboarded
+          const isOnboarded = userData.is_onboarded || false;
+          console.log('User onboarded status:', isOnboarded);
+          
           // Update the user state with onboarded status
           const extendedUser: ExtendedUser = {
             ...userCredential.user,
-            isOnboarded: userData.is_onboarded || false
+            isOnboarded
           };
           setUser(extendedUser);
           
-          // Store user info in localStorage for development persistence
-          if (process.env.NODE_ENV === 'development') {
-            const storageData = {
-              uid: userCredential.user.uid,
-              displayName: userData.display_name || '',
-              phoneNumber: userData.phone_number || '',
-              isOnboarded: userData.is_onboarded || false,
-              photoURL: userData.profile_image_url || null,
-              firstName: userData.first_name || '',
-              lastName: userData.last_name || '',
-            };
-            
-            localStorage.setItem('auth_user', JSON.stringify(storageData));
-          }
+          // Store user info in localStorage for persistence (not just in development)
+          const storageData = {
+            uid: userCredential.user.uid,
+            displayName: userData.display_name || '',
+            phoneNumber: userData.phone_number || '',
+            isOnboarded,
+            photoURL: userData.profile_image_url || null,
+            firstName: userData.first_name || '',
+            lastName: userData.last_name || '',
+          };
+          
+          localStorage.setItem('auth_user', JSON.stringify(storageData));
+          
+          // Also update existing_user_data if this is an existing user
+          // This ensures all parts of the app have consistent data
+          localStorage.setItem('existing_user_data', JSON.stringify({
+            firstName: userData.first_name || '',
+            displayName: userData.display_name || '',
+            isOnboarded,
+            uid: userCredential.user.uid
+          }));
+          
+          console.log('Updated localStorage with user data and onboarded status:', isOnboarded);
+          
+          // Return early so the caller knows authentication was successful
+          return;
         } else {
           console.log('No user document found, will create during onboarding');
           // Set basic user data
           setUser(userCredential.user);
+          
+          // Clear existing user data to ensure onboarding happens
+          localStorage.removeItem('existing_user_data');
         }
       }
     } catch (error) {
       console.error('Error confirming code:', error);
+      
+      // Handle too many attempts error specifically
+      if (error instanceof Error && error.message.includes('too-many-requests')) {
+        // Add exponential backoff for too many attempts
+        const attemptCount = Number(localStorage.getItem('code_verification_attempts') || '0') + 1;
+        localStorage.setItem('code_verification_attempts', attemptCount.toString());
+        
+        // Backoff time increases with each attempt (2^n minutes, capped at 30 minutes)
+        const backoffMinutes = Math.min(Math.pow(2, attemptCount), 30);
+        throw new Error(`Too many verification attempts. Please try again in ${backoffMinutes} minutes.`);
+      }
+      
       throw error;
     }
   };
