@@ -33,16 +33,25 @@ export default function OnboardingFlow() {
   const [displayName, setDisplayName] = useState<string>('');
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const router = useRouter();
-  const { createUserProfile } = useAuth();
+  const { createUserProfile, user, loading } = useAuth();
   
   // Handle phone entry success
-  const handlePhoneSuccess = (verificationId: string) => {
+  const handlePhoneSuccess = (verificationId: string, phoneNumber: string) => {
     setVerificationId(verificationId);
+    setPhoneNumber(phoneNumber);
     setCurrentState(OnboardingState.CODE_VERIFICATION);
   };
   
   // Handle verification code success
   const handleVerificationSuccess = () => {
+    // Check if the user is already authenticated and onboarded
+    if (user && user.isOnboarded) {
+      // If user is already fully onboarded, redirect to home
+      router.push('/');
+      return;
+    }
+    
+    // If the user is authenticated but not onboarded, continue with onboarding
     setCurrentState(OnboardingState.DISPLAY_NAME);
   };
   
@@ -102,6 +111,13 @@ export default function OnboardingFlow() {
         break;
     }
   };
+  
+  // Redirect to home if user is already authenticated and onboarded
+  useEffect(() => {
+    if (!loading && user && user.isOnboarded) {
+      router.push('/');
+    }
+  }, [user, loading, router]);
   
   // Redirect to home if onboarding is completed
   useEffect(() => {

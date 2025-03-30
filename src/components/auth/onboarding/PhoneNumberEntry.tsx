@@ -129,21 +129,18 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
       
       console.log('Sending verification to:', formattedNumber);
       
-      // For development, show special message
+      // For development, skip firebase verification and use fake code
       if (process.env.NODE_ENV === 'development') {
-        showSuccessMessage('Development mode: Using fake code 123456');
+        showSuccessMessage('Development mode: Using code 123456');
         
-        // In development, we can move forward despite Firebase errors
-        const fakeVerificationId = await verifyPhoneNumber(formattedNumber).catch(err => {
-          console.log('Ignoring Firebase error in development mode:', err.message);
-          return '123456'; // Fake ID for development
-        });
+        // Store phone number in localStorage for dev mode authentication simulation
+        localStorage.setItem('current_phone_number', formattedNumber);
         
         // Short delay to show the loading state
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Pass the verification ID to the parent component
-        onSuccess(fakeVerificationId, formattedNumber);
+        // Pass the verification ID to the parent component with fake ID
+        onSuccess('123456', formattedNumber);
         return;
       }
       
@@ -241,7 +238,7 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
       </Head>
       <div className="flex flex-col h-screen bg-[#121212] overflow-hidden max-w-md mx-auto" ref={containerRef}>
         {/* Main content container - centered vertically */}
-        <div className="flex-1 flex flex-col items-center justify-center">
+        <div className="flex-1 flex flex-col items-center justify-center overflow-hidden">
           <div className="w-full flex flex-col items-center space-y-8">
             {/* Title - centered */}
             <motion.h1 

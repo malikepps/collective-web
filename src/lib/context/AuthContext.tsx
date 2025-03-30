@@ -162,8 +162,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (process.env.NODE_ENV === 'development' && code.length === 6) {
         console.log('Development mode: Accepting any 6-digit code');
         
-        // In development, don't create a user document yet
-        // We'll create it only when createUserProfile is called
+        // In development, we need to simulate authentication
+        // First, check if a user with this phone number exists
+        // This would normally happen automatically with Firebase auth
+        // But since we're bypassing Firebase in dev mode, we need to handle it
+        const phoneNumberToCheck = localStorage.getItem('current_phone_number');
+        
+        if (phoneNumberToCheck) {
+          // In a real app, we would query Firestore to check if the user exists
+          // For development, we'll just simulate user authentication
+          // You can add logic here to check localStorage or any other method to determine
+          // if this should be treated as an existing user or new user
+          console.log('Development mode: Simulating authentication for', phoneNumberToCheck);
+          
+          // This would fetch the user data from Firestore in a real app
+        }
+        
         return;
       }
       
