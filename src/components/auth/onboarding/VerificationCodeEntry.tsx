@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '@/lib/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
@@ -27,14 +26,11 @@ export default function VerificationCodeEntry({
   const [showSuccess, setShowSuccess] = useState(false);
   const [resendCount, setResendCount] = useState(30);
   const [isResendDisabled, setIsResendDisabled] = useState(true);
-  const [verificationCooldown, setVerificationCooldown] = useState<number | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>(Array(6).fill(null));
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [existingUser, setExistingUser] = useState<{firstName: string, displayName: string, isOnboarded: boolean} | null>(null);
   const router = useRouter();
-  
-  const { confirmCode, verifyPhoneNumber } = useAuth();
   
   // Check for existing user data in localStorage
   useEffect(() => {
@@ -53,32 +49,6 @@ export default function VerificationCodeEntry({
       } catch (e) {
         console.error('Error parsing stored user data:', e);
       }
-    }
-  }, []);
-  
-  // Check for existing verification cooldown
-  useEffect(() => {
-    const lastAttemptTime = localStorage.getItem('last_code_verification_attempt');
-    if (lastAttemptTime) {
-      const cooldownPeriod = 30000; // 30 seconds
-      const updateTimer = () => {
-        const timeElapsed = Date.now() - Number(lastAttemptTime);
-        const remainingTime = cooldownPeriod - timeElapsed;
-        
-        if (remainingTime > 0) {
-          setVerificationCooldown(Math.ceil(remainingTime / 1000));
-        } else {
-          setVerificationCooldown(null);
-          clearInterval(interval);
-        }
-      };
-      
-      // Check immediately
-      updateTimer();
-      
-      // Then set up interval
-      const interval = setInterval(updateTimer, 1000);
-      return () => clearInterval(interval);
     }
   }, []);
   
@@ -176,44 +146,6 @@ export default function VerificationCodeEntry({
     }
   };
   
-  // Handle input autocomplete
-  useEffect(() => {
-    // Safari and Chrome specific code to handle autocomplete suggestions
-    const handleInputChange = (event: Event) => {
-      const input = event.target as HTMLInputElement;
-      const value = input.value || '';
-      
-      if (value.length === 6 && /^\d{6}$/.test(value)) {
-        // This is likely an autocomplete event with the full code
-        const digits = value.split('');
-        
-        const newCodeDigits = [...codeDigits];
-        digits.forEach((digit, i) => {
-          newCodeDigits[i] = digit;
-        });
-        
-        setCodeDigits(newCodeDigits);
-        setTimeout(() => verifyCode(value), 300);
-      }
-    };
-    
-    // Add event listeners to all input fields for autocomplete detection
-    inputRefs.current.forEach(input => {
-      if (input) {
-        input.addEventListener('input', handleInputChange);
-      }
-    });
-    
-    return () => {
-      // Cleanup event listeners
-      inputRefs.current.forEach(input => {
-        if (input) {
-          input.removeEventListener('input', handleInputChange);
-        }
-      });
-    };
-  }, [codeDigits]);
-  
   // Initialize the code if in development mode
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
@@ -233,7 +165,7 @@ export default function VerificationCodeEntry({
   const verifyCode = async (code?: string) => {
     const verificationCode = code || codeDigits.join('');
     
-    if (verificationCode.length !== 6 || isLoading || verificationCooldown !== null) return;
+    if (verificationCode.length !== 6 || isLoading) return;
     
     setIsLoading(true);
     setError(null);
@@ -241,49 +173,76 @@ export default function VerificationCodeEntry({
     try {
       console.log('Verifying code:', verificationCode);
       
-      // Using the Auth Context confirmCode function
-      await confirmCode(verificationId, verificationCode);
+      // Direct Firebase Authentication
+      const auth = getAuth();
       
-      // Show success message and handle redirection
-      showSuccessMessage('Verification successful!');
+      // Create credential from verification ID and code
+      const credential = PhoneAuthProvider.credential(verificationId, verificationCode);
       
-      // Get auth user data stored in localStorage
-      const authUserData = localStorage.getItem('auth_user');
+      // Sign in with credential
+      const userCredential = await signInWithCredential(auth, credential);
+      console.log('User authenticated:', userCredential.user.uid);
       
-      if (authUserData) {
-        try {
-          const userData = JSON.parse(authUserData);
-          
-          // For existing (onboarded) users, redirect to home
-          if (userData.isOnboarded) {
-            setTimeout(() => {
-              router.push('/home');
-            }, 1000);
-            return;
-          }
-        } catch (e) {
-          console.error('Error parsing auth user data:', e);
-        }
+      // Check if user exists in Firestore
+      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+      
+      if (userDoc.exists()) {
+        // Existing user - mark as onboarded and update last login
+        const userData = userDoc.data();
+        
+        // Update the user document
+        await updateDoc(doc(db, 'users', userCredential.user.uid), {
+          last_login: serverTimestamp(),
+          is_onboarded: true, // Ensure user is marked as onboarded
+          updated_at: serverTimestamp()
+        });
+        
+        // Save user data to localStorage
+        localStorage.setItem('auth_user', JSON.stringify({
+          uid: userCredential.user.uid,
+          displayName: userData.display_name || '',
+          phoneNumber: userCredential.user.phoneNumber || '',
+          isOnboarded: true,
+          photoURL: userData.profile_image_url || null,
+          firstName: userData.first_name || '',
+          lastName: userData.last_name || '',
+        }));
+        
+        // Show success message
+        showSuccessMessage('Verification successful! Redirecting...');
+        
+        // Redirect to home page for existing users
+        setTimeout(() => {
+          router.push('/home');
+        }, 1000);
+      } else {
+        // New user - proceed with onboarding
+        localStorage.setItem('auth_user', JSON.stringify({
+          uid: userCredential.user.uid,
+          phoneNumber: userCredential.user.phoneNumber || '',
+          isOnboarded: false
+        }));
+        
+        // Show success message
+        showSuccessMessage('Verification successful!');
+        
+        // Continue with onboarding flow
+        setTimeout(() => {
+          onSuccess();
+        }, 1000);
       }
-      
-      // For new users, proceed with onboarding
-      setTimeout(() => {
-        onSuccess();
-      }, 1000);
     } catch (err) {
       console.error('Verification error:', err);
       
       let errorMessage = 'Invalid verification code. Please try again.';
       if (err instanceof Error) {
-        // Format user-friendly error messages based on Firebase error codes
-        if (err.message.includes('too-many-requests')) {
-          errorMessage = 'Too many verification attempts. Please try again in a few minutes.';
-        } else if (err.message.includes('invalid-verification-code')) {
+        if (err.message.includes('auth/invalid-verification-code')) {
           errorMessage = 'The verification code you entered is incorrect. Please try again.';
-        } else if (err.message.includes('code-expired')) {
+        } else if (err.message.includes('auth/code-expired')) {
           errorMessage = 'The verification code has expired. Please request a new code.';
+        } else if (err.message.includes('auth/too-many-requests')) {
+          errorMessage = 'Too many verification attempts. Please try again later.';
         } else {
-          // Use the Firebase error message
           errorMessage = err.message;
         }
       }
@@ -308,10 +267,27 @@ export default function VerificationCodeEntry({
     setError(null);
     
     try {
-      // Call Firebase to resend verification code
-      await verifyPhoneNumber(phoneNumber);
-      showSuccessMessage('Code sent!');
+      // Create a new instance of RecaptchaVerifier
+      const auth = getAuth();
+      const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'invisible',
+        callback: () => {
+          console.log('reCAPTCHA resolved for resend');
+        }
+      });
+      
+      // Send the SMS verification
+      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
+      
+      // Store the new verification ID
+      localStorage.setItem('new_verification_id', confirmationResult.verificationId);
+      
+      // Set success message
+      showSuccessMessage('Code resent!');
       startResendTimer();
+      
+      // Clean up recaptcha
+      recaptchaVerifier.clear();
     } catch (err) {
       console.error('Resend error:', err);
       setError('Failed to send verification code. Please try again.');

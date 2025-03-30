@@ -173,11 +173,12 @@ export default function OnboardingPage() {
     <>
       <Head>
         <title>Collective | Onboarding</title>
-        <meta name="description" content="Join Collective - Connect with communities" />
+        <meta name="description" content="Join Collective - the community platform for changemakers" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
       
-      {/* Add FirebaseVerifier for debugging */}
-      <FirebaseVerifier />
+      {/* Fixed reCAPTCHA container div that will always be available */}
+      <div id="recaptcha-container" style={{ position: 'fixed', bottom: '10px', right: '10px', zIndex: 1 }}></div>
       
       <div className="min-h-screen bg-[#1D1D1D] overflow-hidden relative">
         {/* Global recaptcha container */}

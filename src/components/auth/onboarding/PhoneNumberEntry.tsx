@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '@/lib/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import Head from 'next/head';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { useRouter } from 'next/router';
 import { getAuth, signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
-import RecaptchaContainer from '../RecaptchaContainer';
 
 interface PhoneNumberEntryProps {
   onSuccess: (verificationId: string, phoneNumber: string) => void;
@@ -41,22 +39,10 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
   const [checkboxChecked, setCheckboxChecked] = useState(true);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countryCodes[0]);
-  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [keyboardFocused, setKeyboardFocused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  
-  // Create a ref for the recaptcha verifier
-  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
-  
-  const { verifyPhoneNumber } = useAuth();
-  
-  // Handle receiving the RecaptchaVerifier from the RecaptchaContainer
-  const handleVerifierCreated = (verifier: RecaptchaVerifier) => {
-    console.log('Received recaptcha verifier from container');
-    recaptchaVerifierRef.current = verifier;
-  };
   
   // Format phone number for display as (xxx) xxx-xxxx
   const formatPhoneNumberForDisplay = (text: string) => {
@@ -119,6 +105,15 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
     return `${progress * 100}%`;
   };
   
+  // Start the pulsating animation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setGlowOpacity((prev) => (prev === 0.5 ? 0.95 : 0.5));
+    }, 1500);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
   // Handle verification
   const sendVerificationCode = async () => {
     if (!isPhoneNumberValid || isLoading) return;
@@ -131,11 +126,6 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
       const formattedNumber = `${selectedCountry.code}${phoneNumber}`;
       
       console.log('Sending verification to:', formattedNumber);
-      
-      // Check if verifier exists
-      if (!recaptchaVerifierRef.current) {
-        throw new Error('reCAPTCHA not initialized. Please refresh the page and try again.');
-      }
       
       // Check if user exists in Firestore
       const usersRef = collection(db, 'users');
@@ -159,14 +149,31 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
         localStorage.removeItem('existing_user_data');
       }
       
-      // Send verification code using the reCAPTCHA verifier
+      // Initialize reCAPTCHA verifier only when needed
       const auth = getAuth();
+      
+      // Create a new instance of RecaptchaVerifier
+      const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'invisible',
+        callback: (response: any) => {
+          console.log('reCAPTCHA solved, response token:', response);
+          // reCAPTCHA solved, continue with verification
+        },
+        'expired-callback': () => {
+          // Response expired. Ask user to solve reCAPTCHA again.
+          setError('reCAPTCHA expired. Please try again.');
+          setIsLoading(false);
+        }
+      });
+      
+      // Use signInWithPhoneNumber with the reCAPTCHA verifier
       const confirmationResult = await signInWithPhoneNumber(
-        auth, 
-        formattedNumber, 
-        recaptchaVerifierRef.current
+        auth,
+        formattedNumber,
+        recaptchaVerifier
       );
       
+      // Show success message
       setSuccessMessage('Verification code sent');
       setShowSuccess(true);
       
@@ -178,6 +185,9 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
       
       // Pass the verification ID to the parent component
       onSuccess(confirmationResult.verificationId, formattedNumber);
+      
+      // Clear reCAPTCHA after use
+      recaptchaVerifier.clear();
     } catch (err) {
       console.error('Error sending verification code:', err);
       
@@ -185,12 +195,14 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
         let errorMessage = err.message;
         
         // Provide better error messages
-        if (errorMessage.includes('invalid-app-credential')) {
+        if (errorMessage.includes('auth/invalid-app-credential')) {
           errorMessage = 'The reCAPTCHA verification failed. Please refresh the page and try again.';
-        } else if (errorMessage.includes('missing-app-credential')) {
-          errorMessage = 'reCAPTCHA verification failed. Please try again in a moment.';
-        } else if (errorMessage.includes('quota-exceeded')) {
+        } else if (errorMessage.includes('auth/missing-app-credential') || errorMessage.includes('auth/argument-error')) {
+          errorMessage = 'There was an issue with verification. Please refresh the page and try again.';
+        } else if (errorMessage.includes('auth/too-many-requests')) {
           errorMessage = 'Too many verification attempts. Please try again later.';
+        } else if (errorMessage.includes('auth/quota-exceeded')) {
+          errorMessage = 'SMS quota exceeded. Please try again later.';
         }
         
         setError(errorMessage);
@@ -431,9 +443,6 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
           tabIndex={-1}
           autoFocus={true}
         />
-
-        {/* Use our dedicated RecaptchaContainer component */}
-        <RecaptchaContainer onVerifierCreated={handleVerifierCreated} />
       </div>
     </>
   );
