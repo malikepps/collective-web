@@ -126,14 +126,14 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
   };
   
   return (
-    <div className="bg-card p-4 text-white mt-1">
+    <div className="bg-card p-4 text-white rounded-[15px]">
       {/* Header with filter button */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-white font-marfa font-semibold text-2xl">Collective</h2>
         
         <button 
           onClick={onShowFilterSheet}
-          className="bg-white/20 rounded-lg px-3 py-1.5 flex items-center"
+          className="bg-white/20 rounded-lg px-2 h-8 flex items-center"
         >
           <span className="text-white/70 text-xs font-marfa mr-1">Filter</span>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white/70" viewBox="0 0 20 20" fill="currentColor">

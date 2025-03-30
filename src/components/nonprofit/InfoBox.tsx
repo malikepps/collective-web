@@ -30,10 +30,10 @@ const InfoBox: React.FC<InfoBoxProps> = ({
   };
   
   return (
-    <div className="bg-card p-6 text-white">
+    <div className="bg-card p-6 text-white rounded-[15px]">
       {/* Top buttons row */}
       <div className="flex items-center space-x-2 mb-4">
-        <button className="bg-white/20 rounded-lg px-3 h-8 flex items-center">
+        <button className="bg-white/20 rounded-lg px-2 h-8 flex items-center">
           <span className="mr-1">📍</span>
           <span className="text-white/70 text-xs font-marfa">
             {organization.location || "No location"}
@@ -43,7 +43,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
         {organization.linkInBio && (
           <button 
             onClick={onShowLinks}
-            className="bg-white/20 rounded-lg px-3 h-8 flex items-center"
+            className="bg-white/20 rounded-lg px-2 h-8 flex items-center"
           >
             <span className="mr-1">🔗</span>
             <span className="text-white/70 text-xs font-marfa">links</span>
@@ -52,7 +52,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
         
         <button 
           onClick={onShowMission}
-          className="bg-white/20 rounded-lg px-3 h-8 flex items-center"
+          className="bg-white/20 rounded-lg px-2 h-8 flex items-center"
         >
           <span className="text-white/70 text-xs font-marfa">mission</span>
           <span className="text-white/70 text-xs ml-1">→</span>

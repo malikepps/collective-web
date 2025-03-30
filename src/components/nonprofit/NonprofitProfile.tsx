@@ -83,7 +83,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
       <MediaSection organization={organization} />
       
       {/* Content Sections */}
-      <div className="pb-20 -mt-4">
+      <div className="pb-20 pt-3">
         {/* Info Box */}
         <InfoBox 
           organization={organization}
@@ -93,13 +93,15 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
         />
         
         {/* Collective Section */}
-        <CollectiveSection
-          organization={organization}
-          onShowFilterSheet={handleShowFilterSheet}
-        />
+        <div className="mt-3">
+          <CollectiveSection
+            organization={organization}
+            onShowFilterSheet={handleShowFilterSheet}
+          />
+        </div>
         
         {/* Posts Section - placeholder */}
-        <div className="bg-card p-4 text-white mt-1">
+        <div className="bg-card p-4 text-white mt-3 rounded-[15px]">
           <h2 className="text-white font-semibold text-2xl mb-4">Posts</h2>
           <div className="flex items-center justify-center h-32">
             <p className="text-white/50">Posts will appear here</p>
