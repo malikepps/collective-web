@@ -38,7 +38,7 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
       
       {/* Sheet */}
       <div 
-        className="relative w-full max-w-md bg-[#111214] rounded-t-2xl p-4 pb-10"
+        className="relative w-full max-w-md bg-[#111214] ios-sheet-top p-4 pb-10"
         onClick={e => e.stopPropagation()}
       >
         {/* Drag indicator */}
@@ -76,14 +76,14 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
         <div className="flex space-x-4 px-4">
           <button
             onClick={clearFilter}
-            className="flex-1 py-3 bg-white/20 rounded-lg font-marfa font-medium text-white"
+            className="flex-1 py-3 bg-white/20 ios-rounded-sm font-marfa font-medium text-white"
           >
             Clear All
           </button>
           
           <button
             onClick={applyFilter}
-            className="flex-1 py-3 bg-blue-500 rounded-lg font-marfa font-medium text-white"
+            className="flex-1 py-3 bg-blue-500 ios-rounded-sm font-marfa font-medium text-white"
           >
             Apply
           </button>

@@ -30,10 +30,10 @@ const InfoBox: React.FC<InfoBoxProps> = ({
   };
   
   return (
-    <div className="bg-card p-6 text-white rounded-[15px]">
+    <div className="bg-card p-6 text-white continuous-corner">
       {/* Top buttons row */}
       <div className="flex items-center space-x-2 mb-4">
-        <button className="bg-white/20 rounded-lg px-2 h-8 flex items-center">
+        <button className="bg-white/20 ios-rounded-sm px-2 h-8 flex items-center">
           <span className="mr-1">📍</span>
           <span className="text-white/70 text-xs font-marfa">
             {organization.location || "No location"}
@@ -43,7 +43,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
         {organization.linkInBio && (
           <button 
             onClick={onShowLinks}
-            className="bg-white/20 rounded-lg px-2 h-8 flex items-center"
+            className="bg-white/20 ios-rounded-sm px-2 h-8 flex items-center"
           >
             <span className="mr-1">🔗</span>
             <span className="text-white/70 text-xs font-marfa">links</span>
@@ -52,7 +52,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
         
         <button 
           onClick={onShowMission}
-          className="bg-white/20 rounded-lg px-2 h-8 flex items-center"
+          className="bg-white/20 ios-rounded-sm px-2 h-8 flex items-center"
         >
           <span className="text-white/70 text-xs font-marfa">mission</span>
           <span className="text-white/70 text-xs ml-1">→</span>
@@ -68,7 +68,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
       <div className="space-y-2">
         <button 
           onClick={onShowMembershipOptions}
-          className="w-full h-11 rounded-lg font-marfa font-semibold text-base transition-all duration-200 hover:opacity-90 relative overflow-hidden"
+          className="w-full h-11 ios-rounded-sm font-marfa font-semibold text-base transition-all duration-200 hover:opacity-90 relative overflow-hidden"
           style={{ 
             backgroundColor: theme?.primaryColor ? `#${theme.primaryColor}` : '#ADD3FF',
             color: buttonTextColor()
@@ -80,7 +80,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
         </button>
         
         <button 
-          className="bg-white/20 w-full h-11 rounded-lg font-marfa font-semibold text-base"
+          className="bg-white/20 w-full h-11 ios-rounded-sm font-marfa font-semibold text-base"
           style={{ 
             color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#ADD3FF' 
           }}

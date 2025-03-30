@@ -64,7 +64,7 @@ const LinksSheet: React.FC<LinksSheetProps> = ({
       
       {/* Sheet */}
       <div 
-        className="relative w-full max-w-md bg-[#111214] rounded-t-2xl p-4 pb-10 max-h-[60vh] overflow-auto"
+        className="relative w-full max-w-md bg-[#111214] ios-sheet-top p-4 pb-10 max-h-[60vh] overflow-auto"
         onClick={e => e.stopPropagation()}
       >
         {/* Drag indicator */}
@@ -127,7 +127,7 @@ const LinkRow: React.FC<{ title: string; url: string }> = ({ title, url }) => {
   return (
     <button 
       onClick={handleClick}
-      className="w-full flex items-center justify-between p-3 bg-[#1D1D1D] rounded-lg"
+      className="w-full flex items-center justify-between p-3 bg-[#1D1D1D] ios-rounded-sm"
     >
       <div className="flex items-center">
         <span className="text-white mr-3">🔗</span>

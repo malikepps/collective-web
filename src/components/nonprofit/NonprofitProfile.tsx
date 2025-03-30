@@ -61,7 +61,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
       <div className="fixed top-12 left-4 z-10">
         <button 
           onClick={() => router.back()}
-          className="bg-black/50 w-10 h-10 rounded-full flex items-center justify-center"
+          className="bg-black/50 w-10 h-10 rounded-full flex items-center justify-center overflow-hidden"
         >
           <span className="text-white">←</span>
         </button>
@@ -101,7 +101,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
         </div>
         
         {/* Posts Section - placeholder */}
-        <div className="bg-card p-4 text-white mt-3 rounded-[15px]">
+        <div className="bg-card p-4 text-white mt-3 continuous-corner">
           <h2 className="text-white font-semibold text-2xl mb-4">Posts</h2>
           <div className="flex items-center justify-center h-32">
             <p className="text-white/50">Posts will appear here</p>

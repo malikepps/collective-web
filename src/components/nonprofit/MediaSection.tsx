@@ -11,7 +11,8 @@ const MediaSection: React.FC<MediaSectionProps> = ({ organization }) => {
   return (
     <div className="relative">
       {/* Video content with rounded bottom corners */}
-      <div className="w-full h-[39vh] bg-black rounded-b-[15px] overflow-hidden">
+      <div className="w-full h-[39vh] bg-black overflow-hidden">
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-black" style={{ borderTopLeftRadius: '15px', borderTopRightRadius: '15px' }}></div>
         {organization.hero_video_url ? (
           <LoopingVideoPlayer
             videoURL={organization.hero_video_url}
@@ -30,10 +31,7 @@ const MediaSection: React.FC<MediaSectionProps> = ({ organization }) => {
       </div>
       
       {/* Gradient overlay - matches iOS app's fade */}
-      <div 
-        className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/70 to-transparent"
-        style={{ borderBottomLeftRadius: '15px', borderBottomRightRadius: '15px' }}
-      />
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/70 to-transparent ios-sheet-top" />
       
       {/* Organization info - positioning matches iOS app */}
       <div className="absolute bottom-4 left-6 flex flex-col">
