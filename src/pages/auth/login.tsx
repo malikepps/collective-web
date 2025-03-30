@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { useAuth } from '@/lib/context/AuthContext';
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, PhoneAuthProvider, signInWithCredential } from 'firebase/auth';
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase/config';
 
 export default function PhoneLogin() {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -10,8 +12,6 @@ export default function PhoneLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  
-  const { verifyPhoneNumber, confirmCode } = useAuth();
   
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,9 +23,22 @@ export default function PhoneLogin() {
         ? phoneNumber 
         : `+1${phoneNumber}`;
       
-      const id = await verifyPhoneNumber(formattedNumber);
-      setVerificationId(id);
+      // Initialize reCAPTCHA verifier
+      const auth = getAuth();
+      const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'invisible',
+        callback: () => {
+          console.log('reCAPTCHA resolved');
+        }
+      });
+      
+      // Send verification code
+      const confirmationResult = await signInWithPhoneNumber(auth, formattedNumber, recaptchaVerifier);
+      setVerificationId(confirmationResult.verificationId);
       setStep(2);
+      
+      // Clean up reCAPTCHA
+      recaptchaVerifier.clear();
     } catch (err) {
       setError('Failed to send verification code. Please try again.');
       console.error(err);
@@ -40,9 +53,40 @@ export default function PhoneLogin() {
     setError('');
     
     try {
-      await confirmCode(verificationId, verificationCode);
-      // Redirect to home page after successful login
-      router.push('/');
+      // Create credential
+      const auth = getAuth();
+      const credential = PhoneAuthProvider.credential(verificationId, verificationCode);
+      
+      // Sign in with credential
+      const userCredential = await signInWithCredential(auth, credential);
+      
+      // Check if user exists in Firestore
+      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+      
+      if (userDoc.exists()) {
+        // Update last login
+        await updateDoc(doc(db, 'users', userCredential.user.uid), {
+          last_login: serverTimestamp(),
+          updated_at: serverTimestamp()
+        });
+        
+        // Store user data in localStorage
+        localStorage.setItem('auth_user', JSON.stringify({
+          uid: userCredential.user.uid,
+          displayName: userDoc.data().display_name || '',
+          phoneNumber: userCredential.user.phoneNumber || '',
+          isOnboarded: userDoc.data().is_onboarded || false,
+          photoURL: userDoc.data().profile_image_url || null,
+          firstName: userDoc.data().first_name || '',
+          lastName: userDoc.data().last_name || '',
+        }));
+        
+        // Redirect to home page after successful login
+        router.push('/');
+      } else {
+        // New user - redirect to onboarding
+        router.push('/onboarding');
+      }
     } catch (err) {
       setError('Invalid verification code. Please try again.');
       console.error(err);

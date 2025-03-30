@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/lib/context/AuthContext';
 import Image from 'next/image';
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, PhoneAuthProvider, signInWithCredential } from 'firebase/auth';
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase/config';
 
 export default function Login() {
-  const { user, loading, verifyPhoneNumber, confirmCode } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
@@ -12,12 +15,27 @@ export default function Login() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier | null>(null);
 
   useEffect(() => {
     // If user is already logged in, redirect to home
     if (!loading && user) {
       router.push('/');
     }
+    
+    // Initialize reCAPTCHA
+    const auth = getAuth();
+    const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      size: 'invisible',
+    });
+    setRecaptchaVerifier(verifier);
+    
+    return () => {
+      // Clean up reCAPTCHA
+      if (verifier) {
+        verifier.clear();
+      }
+    };
   }, [user, loading, router]);
 
   const handleSendCode = async (e: React.FormEvent) => {
@@ -33,8 +51,13 @@ export default function Login() {
     }
 
     try {
-      const verificationId = await verifyPhoneNumber(formattedNumber);
-      setVerificationId(verificationId);
+      if (!recaptchaVerifier) {
+        throw new Error('reCAPTCHA not initialized');
+      }
+      
+      const auth = getAuth();
+      const confirmationResult = await signInWithPhoneNumber(auth, formattedNumber, recaptchaVerifier);
+      setVerificationId(confirmationResult.verificationId);
       setIsVerifying(false);
     } catch (error) {
       setError('Could not send verification code. Please check your phone number and try again.');
@@ -49,19 +72,46 @@ export default function Login() {
     setIsConfirming(true);
 
     try {
-      // Make sure verificationId is not null before passing to confirmCode
+      // Make sure verificationId is not null before proceeding
       if (!verificationId) {
         throw new Error('Missing verification ID. Please try again.');
       }
       
-      await confirmCode(verificationId, verificationCode);
+      const auth = getAuth();
+      const credential = PhoneAuthProvider.credential(verificationId, verificationCode);
+      const userCredential = await signInWithCredential(auth, credential);
       
-      // Check if user is onboarded
-      if (user && user.isOnboarded) {
-        // If user is already onboarded, redirect to home
-        router.push('/');
+      // Check if user exists in Firestore
+      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        
+        // Update last login time
+        await updateDoc(doc(db, 'users', userCredential.user.uid), {
+          last_login: serverTimestamp(),
+          updated_at: serverTimestamp()
+        });
+        
+        // Store user data in localStorage
+        localStorage.setItem('auth_user', JSON.stringify({
+          uid: userCredential.user.uid,
+          displayName: userData.display_name || '',
+          phoneNumber: userCredential.user.phoneNumber || '',
+          isOnboarded: userData.is_onboarded || false,
+          photoURL: userData.profile_image_url || null,
+          firstName: userData.first_name || '',
+          lastName: userData.last_name || '',
+        }));
+        
+        // Redirect based on onboarded status
+        if (userData.is_onboarded) {
+          router.push('/');
+        } else {
+          router.push('/onboarding');
+        }
       } else {
-        // If user is new or not onboarded, redirect to onboarding flow
+        // If user is new, redirect to onboarding flow
         router.push('/onboarding');
       }
     } catch (error) {
@@ -86,6 +136,8 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      <div id="recaptcha-container"></div>
+      
       <div className="w-full max-w-md bg-card rounded-lg shadow-xl p-6 sm:p-8">
         <div className="text-center mb-8">
           <div className="mx-auto mb-4 w-20 h-20 relative">
