@@ -70,7 +70,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
           onClick={onShowMembershipOptions}
           className="w-full h-11 ios-rounded-sm font-marfa font-semibold text-base transition-all duration-200 hover:opacity-90 relative overflow-hidden"
           style={{ 
-            backgroundColor: theme?.primaryColor ? `#${theme.primaryColor}` : '#ADD3FF',
+            backgroundColor: theme?.primaryColor || '#ADD3FF',
             color: buttonTextColor()
           }}
         >

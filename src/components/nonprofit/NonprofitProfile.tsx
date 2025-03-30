@@ -93,7 +93,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
         />
         
         {/* Collective Section */}
-        <div className="mt-3">
+        <div className="mt-2">
           <CollectiveSection
             organization={organization}
             onShowFilterSheet={handleShowFilterSheet}
@@ -101,7 +101,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
         </div>
         
         {/* Posts Section - placeholder */}
-        <div className="bg-card p-4 text-white mt-3 continuous-corner">
+        <div className="bg-card p-4 text-white mt-2 continuous-corner">
           <h2 className="text-white font-semibold text-2xl mb-4">Posts</h2>
           <div className="flex items-center justify-center h-32">
             <p className="text-white/50">Posts will appear here</p>
