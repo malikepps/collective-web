@@ -3,6 +3,9 @@ import { useAuth } from '@/lib/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { getAuth, PhoneAuthProvider, signInWithCredential } from 'firebase/auth';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase/config';
 
 interface VerificationCodeEntryProps {
   verificationId: string;
@@ -238,93 +241,69 @@ export default function VerificationCodeEntry({
     try {
       console.log('Verifying code:', verificationCode);
       
-      // Call Firebase to confirm the verification code
-      await confirmCode(verificationId, verificationCode);
+      // DIRECT FIREBASE AUTHENTICATION - Skip all middleware
+      const auth = getAuth();
+      
+      // Create credential from verification ID and code
+      const credential = PhoneAuthProvider.credential(verificationId, verificationCode);
+      
+      // Sign in with credential directly
+      const userCredential = await signInWithCredential(auth, credential);
+      
+      // Get user document from Firestore
+      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+      
+      if (userDoc.exists()) {
+        // Existing user - update onboarded status
+        const userData = userDoc.data();
+        
+        // Always mark existing users as onboarded
+        if (!userData.is_onboarded) {
+          await updateDoc(doc(db, 'users', userCredential.user.uid), {
+            is_onboarded: true,
+            last_login: serverTimestamp(),
+            updated_at: serverTimestamp()
+          });
+        } else {
+          // Just update last login time
+          await updateDoc(doc(db, 'users', userCredential.user.uid), {
+            last_login: serverTimestamp()
+          });
+        }
+        
+        // Save user info to localStorage
+        localStorage.setItem('auth_user', JSON.stringify({
+          uid: userCredential.user.uid,
+          displayName: userData.display_name || '',
+          phoneNumber: userCredential.user.phoneNumber || '',
+          isOnboarded: true,
+          photoURL: userData.profile_image_url || null,
+          firstName: userData.first_name || '',
+          lastName: userData.last_name || '',
+        }));
+      } else {
+        // New user - will be created during onboarding
+        localStorage.setItem('auth_user', JSON.stringify({
+          uid: userCredential.user.uid,
+          phoneNumber: userCredential.user.phoneNumber || '',
+          isOnboarded: false
+        }));
+      }
       
       // Show success message
       showSuccessMessage('Verification successful!');
       
-      // DIRECT REDIRECT - skip all checks and callbacks
-      console.log('Verification successful - redirecting directly to home page');
-      
-      // Wait for UI feedback then redirect
-      setTimeout(() => {
-        router.push('/home');
-      }, 1000);
-      
-      return;
-      
-      // The code below is unreachable but kept for reference
-      /*
-      // Get existing user data and update localStorage with any new information from auth
-      // This ensures the onboarding flow has the most up-to-date information
-      const existingUserData = localStorage.getItem('existing_user_data');
-      const authUserData = localStorage.getItem('auth_user');
-      
-      console.log('Existing user data from localStorage:', existingUserData);
-      console.log('Auth user data from localStorage:', authUserData);
-      
-      // If we have auth data after confirmation, make sure it's synchronized with existing_user_data
-      if (authUserData) {
-        try {
-          const authUser = JSON.parse(authUserData || '{}');
-          
-          // If we also had existing user data, update it with the auth status
-          if (existingUserData) {
-            try {
-              const existingUser = JSON.parse(existingUserData || '{}');
-              
-              // Update existing user data with any auth information that's more recent
-              const updatedUserData = {
-                ...existingUser,
-                isOnboarded: authUser.isOnboarded || existingUser.isOnboarded || false
-              };
-              
-              // Save back to localStorage
-              localStorage.setItem('existing_user_data', JSON.stringify(updatedUserData));
-              console.log('Updated existing_user_data with auth information:', updatedUserData);
-              
-              // If the user is already onboarded, redirect directly to home
-              if (updatedUserData.isOnboarded) {
-                console.log('User is already onboarded, redirecting to home page');
-                setTimeout(() => {
-                  router.push('/home');
-                }, 1000);
-                return;
-              }
-            } catch (e) {
-              console.error('Error updating existing user data:', e);
-            }
-          } else if (authUser.isOnboarded) {
-            // If we don't have existing user data but auth user is onboarded
-            console.log('Auth user is already onboarded, redirecting to home page');
-            setTimeout(() => {
-              router.push('/home');
-            }, 1000);
-            return;
-          }
-        } catch (e) {
-          console.error('Error parsing auth user data:', e);
-        }
-      } else if (existingUserData) {
-        // Check existing user data if no auth data is available
-        try {
-          const existingUser = JSON.parse(existingUserData || '{}');
-          if (existingUser.isOnboarded) {
-            console.log('Existing user is already onboarded, redirecting to home page');
-            setTimeout(() => {
-              router.push('/home');
-            }, 1000);
-            return;
-          }
-        } catch (e) {
-          console.error('Error parsing existing user data:', e);
-        }
+      // If user exists, always redirect to home
+      if (userDoc.exists()) {
+        setTimeout(() => {
+          router.push('/home');
+        }, 1000);
+      } else {
+        // For new users, continue with onboarding
+        setTimeout(() => {
+          onSuccess();
+        }, 1000);
       }
-      
-      // If we get here, the user isn't onboarded, so proceed to the next step
-      onSuccess();
-      */
     } catch (err) {
       console.error('Verification error:', err);
       

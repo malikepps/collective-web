@@ -5,6 +5,7 @@ import Head from 'next/head';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { useRouter } from 'next/router';
+import { getAuth, signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
 
 interface PhoneNumberEntryProps {
   onSuccess: (verificationId: string, phoneNumber: string) => void;
@@ -161,8 +162,9 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
       
       console.log('Sending verification to:', formattedNumber);
       
-      // Check if user already exists before proceeding
+      // DIRECT FIREBASE AUTHENTICATION - Skip all middleware and context layers
       try {
+        // Check if user already exists in Firestore
         const usersCollectionRef = collection(db, 'users');
         const q = query(usersCollectionRef, where('phone_number', '==', formattedNumber));
         const querySnapshot = await getDocs(q);
@@ -173,65 +175,91 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
           const userData = userDoc.data();
           console.log('Found existing user:', userData);
           
-          // If user is already onboarded, skip verification completely
-          const isOnboarded = userData.is_onboarded || false;
-          console.log('User is onboarded:', isOnboarded);
-          
-          if (isOnboarded) {
-            // Store the user's UID in localStorage to pass to AuthContext
-            localStorage.setItem('auth_user', JSON.stringify({
-              uid: userDoc.id,
-              displayName: userData.display_name || '',
-              phoneNumber: formattedNumber,
-              isOnboarded: true,
-              photoURL: userData.profile_image_url || null,
-              firstName: userData.first_name || '',
-              lastName: userData.last_name || '',
-            }));
-            
-            // Store as existing user data too for consistency
-            localStorage.setItem('existing_user_data', JSON.stringify({
-              firstName: userData.first_name || '',
-              displayName: userData.display_name || '',
-              isOnboarded: true,
-              uid: userDoc.id
-            }));
-            
-            // Show success message and redirect directly to home
-            showSuccessMessage('Welcome back! Redirecting...');
-            setTimeout(() => {
-              router.push('/home');
-            }, 1500);
-            return;
-          }
-          
-          // Store user data in localStorage for next screen
+          // Save user data to localStorage for persistence
           localStorage.setItem('existing_user_data', JSON.stringify({
             firstName: userData.first_name || '',
             displayName: userData.display_name || '',
-            isOnboarded: userData.is_onboarded || false,
+            isOnboarded: true, // Always treat existing users as onboarded
             uid: userDoc.id
           }));
+          
+          localStorage.setItem('auth_user', JSON.stringify({
+            uid: userDoc.id,
+            displayName: userData.display_name || '',
+            phoneNumber: formattedNumber,
+            isOnboarded: true,
+            photoURL: userData.profile_image_url || null,
+            firstName: userData.first_name || '',
+            lastName: userData.last_name || '',
+          }));
+          
+          // DIRECT AUTHENTICATION WITH FIREBASE
+          const auth = getAuth();
+          
+          // Clean up any existing reCAPTCHA verifiers
+          try {
+            const recaptchaElements = document.querySelectorAll('.grecaptcha-badge, iframe[title*="recaptcha"]');
+            recaptchaElements.forEach(element => {
+              element.remove();
+            });
+          } catch (e) {
+            console.error('Error cleaning up reCAPTCHA:', e);
+          }
+          
+          // Setup reCAPTCHA verifier
+          const recaptchaContainer = document.getElementById('recaptcha-container');
+          if (!recaptchaContainer) {
+            throw new Error('Recaptcha container not found');
+          }
+          
+          const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            size: 'invisible',
+          });
+          
+          // Send verification code directly with Firebase
+          const confirmationResult = await signInWithPhoneNumber(auth, formattedNumber, verifier);
+          
+          // Show success for existing users
+          showSuccessMessage('Verification code sent');
+          
+          // Pass verification ID directly to parent
+          onSuccess(confirmationResult.verificationId, formattedNumber);
+          return;
         } else {
-          // Clear existing user data if no match found
-          localStorage.removeItem('existing_user_data');
+          // New user flow
+          const auth = getAuth();
+          
+          // Clean up any existing reCAPTCHA verifiers
+          try {
+            const recaptchaElements = document.querySelectorAll('.grecaptcha-badge, iframe[title*="recaptcha"]');
+            recaptchaElements.forEach(element => {
+              element.remove();
+            });
+          } catch (e) {
+            console.error('Error cleaning up reCAPTCHA:', e);
+          }
+          
+          // Setup reCAPTCHA verifier
+          const recaptchaContainer = document.getElementById('recaptcha-container');
+          if (!recaptchaContainer) {
+            throw new Error('Recaptcha container not found');
+          }
+          
+          const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            size: 'invisible',
+          });
+          
+          // Send verification code directly with Firebase
+          const confirmationResult = await signInWithPhoneNumber(auth, formattedNumber, verifier);
+          
+          // Pass verification ID to parent
+          showSuccessMessage('Verification code sent');
+          onSuccess(confirmationResult.verificationId, formattedNumber);
         }
       } catch (err) {
-        console.error('Error checking for existing user:', err);
-        // Continue with verification even if check fails
+        console.error('Firebase authentication error:', err);
+        throw err;
       }
-      
-      // Production flow - call the verifyPhoneNumber function from AuthContext
-      const verificationId = await verifyPhoneNumber(formattedNumber);
-      
-      // Store phone number in localStorage for verification
-      localStorage.setItem('current_phone_number', formattedNumber);
-      
-      // Show success message
-      showSuccessMessage('Verification code sent');
-      
-      // Pass the verification ID to the parent component
-      onSuccess(verificationId, formattedNumber);
     } catch (err) {
       console.error('Verification error:', err);
       
