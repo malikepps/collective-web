@@ -8,6 +8,7 @@ import OrganizationDetailsView from './OrganizationDetailsView';
 import MembershipOptionsView from './MembershipOptionsView';
 import CollectiveSection from './CollectiveSection';
 import FilterBottomSheet from './FilterBottomSheet';
+import { FAIcon, Icon, IconStyle } from '@/lib/components/icons';
 
 interface NonprofitProfileProps {
   organization: Organization;
@@ -63,7 +64,12 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
           onClick={() => router.back()}
           className="bg-black/50 w-10 h-10 rounded-full flex items-center justify-center overflow-hidden"
         >
-          <span className="text-white">←</span>
+          <FAIcon 
+            icon={Icon.BACK} 
+            size={20} 
+            primaryColor="ffffff" 
+            style={IconStyle.CLASSIC}
+          />
         </button>
       </div>
       
@@ -80,10 +86,12 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
       </div>
       
       {/* Media Section */}
-      <MediaSection organization={organization} />
+      <div className="mt-1">
+        <MediaSection organization={organization} />
+      </div>
       
       {/* Content Sections */}
-      <div className="pb-20 pt-3">
+      <div className="pb-20 pt-1">
         {/* Info Box */}
         <InfoBox 
           organization={organization}
@@ -93,7 +101,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
         />
         
         {/* Collective Section */}
-        <div className="mt-2">
+        <div className="mt-1">
           <CollectiveSection
             organization={organization}
             onShowFilterSheet={handleShowFilterSheet}
@@ -101,7 +109,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
         </div>
         
         {/* Posts Section - placeholder */}
-        <div className="bg-card p-4 text-white mt-2 continuous-corner">
+        <div className="bg-card p-4 text-white mt-1 continuous-corner">
           <h2 className="text-white font-semibold text-2xl mb-4">Posts</h2>
           <div className="flex items-center justify-center h-32">
             <p className="text-white/50">Posts will appear here</p>
