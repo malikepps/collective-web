@@ -32,6 +32,7 @@ export enum Icon {
   SHARE = 'share',
   LIKE = 'heart',
   COMMENT = 'comment',
+  COMMENTS = 'comments',
   BOOKMARK = 'bookmark',
   CAMERA = 'camera',
   GALLERY = 'image',
@@ -61,6 +62,30 @@ export enum Icon {
   // Misc
   STAR = 'star',
   SOLAR_SYSTEM = 'solar-system',
+  
+  // Additional icons
+  CIRCLE_UP = 'circle-up',
+  ARROW_UP_RIGHT = 'arrow-up-right',
+  ROCKET = 'rocket',
+  FIRE = 'fire',
+  COMMENT_DOTS = 'comment-dots',
+  HEART_CIRCLE = 'heart-circle',
+  INFO_CIRCLE = 'info-circle',
+  CHECK_DOUBLE = 'check-double',
+  CERTIFICATE = 'certificate',
+  FLAG = 'flag',
+  CLOCK = 'clock',
+  TICKET = 'ticket',
+  GIFT = 'gift',
+  PERCENT = 'percent',
+  MONEY_CHECK_DOLLAR = 'money-check-dollar',
+  CREDIT_CARD = 'credit-card',
+  CIRCLE_DOLLAR = 'circle-dollar',
+  BADGE_CHECK = 'badge-check',
+  CIRCLE_EXCLAMATION = 'circle-exclamation',
+  CIRCLE_CHECK = 'circle-check',
+  CIRCLE_XMARK = 'circle-xmark',
+  EARTH_AMERICAS = 'earth-americas',
 }
 
 // Helper function to create color from hex string
@@ -99,8 +124,7 @@ export const loadFontAwesomeCSS = (): void => {
   style.textContent = `
     @font-face {
       font-family: 'FontAwesome6Pro-Solid';
-      src: url('/fonts/fa-solid-900.woff2') format('woff2'),
-           url('/fonts/fa-solid-900.ttf') format('truetype');
+      src: url('/fonts/fa-solid-900.woff2') format('woff2');
       font-weight: 900;
       font-style: normal;
       font-display: block;
@@ -108,8 +132,7 @@ export const loadFontAwesomeCSS = (): void => {
     
     @font-face {
       font-family: 'FontAwesome6Pro-Regular';
-      src: url('/fonts/fa-regular-400.woff2') format('woff2'),
-           url('/fonts/fa-regular-400.ttf') format('truetype');
+      src: url('/fonts/fa-regular-400.woff2') format('woff2');
       font-weight: 400;
       font-style: normal;
       font-display: block;
@@ -117,8 +140,7 @@ export const loadFontAwesomeCSS = (): void => {
     
     @font-face {
       font-family: 'FontAwesome6Brands-Regular';
-      src: url('/fonts/fa-brands-400.woff2') format('woff2'),
-           url('/fonts/fa-brands-400.ttf') format('truetype');
+      src: url('/fonts/fa-brands-400.woff2') format('woff2');
       font-weight: 400;
       font-style: normal;
       font-display: block;
@@ -126,18 +148,122 @@ export const loadFontAwesomeCSS = (): void => {
     
     @font-face {
       font-family: 'FontAwesome6Duotone-Solid';
-      src: url('/fonts/fa-duotone-900.woff2') format('woff2'),
-           url('/fonts/fa-duotone-900.ttf') format('truetype');
+      src: url('/fonts/fa-duotone-900.woff2') format('woff2');
       font-weight: 900;
       font-style: normal;
       font-display: block;
+    }
+    
+    @font-face {
+      font-family: 'FontAwesome6Duotone-Regular';
+      src: url('/fonts/fa-duotone-regular-400.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    
+    /* Marfa fonts */
+    @font-face {
+      font-family: 'Marfa';
+      src: url('/fonts/ABCMarfa-Regular-Trial.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'Marfa';
+      src: url('/fonts/ABCMarfa-Medium-Trial.woff2') format('woff2');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'Marfa';
+      src: url('/fonts/ABCMarfa-Semibold-Trial.woff2') format('woff2');
+      font-weight: 600;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'Marfa';
+      src: url('/fonts/ABCMarfa-Bold-Trial.woff2') format('woff2');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'Marfa';
+      src: url('/fonts/ABCMarfa-Black-Trial.woff2') format('woff2');
+      font-weight: 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'Marfa';
+      src: url('/fonts/ABCMarfa-Light-Trial.woff2') format('woff2');
+      font-weight: 300;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'Marfa';
+      src: url('/fonts/ABCMarfa-Thin-Trial.woff2') format('woff2');
+      font-weight: 100;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'Marfa';
+      src: url('/fonts/ABCMarfa-RegularItalic-Trial.woff2') format('woff2');
+      font-weight: 400;
+      font-style: italic;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'Marfa';
+      src: url('/fonts/ABCMarfa-MediumItalic-Trial.woff2') format('woff2');
+      font-weight: 500;
+      font-style: italic;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'Marfa';
+      src: url('/fonts/ABCMarfa-SemiboldItalic-Trial.woff2') format('woff2');
+      font-weight: 600;
+      font-style: italic;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'Marfa';
+      src: url('/fonts/ABCMarfa-LightItalic-Trial.woff2') format('woff2');
+      font-weight: 300;
+      font-style: italic;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'Marfa';
+      src: url('/fonts/ABCMarfa-ThinItalic-Trial.woff2') format('woff2');
+      font-weight: 100;
+      font-style: italic;
+      font-display: swap;
     }
   `;
   
   // Append to head
   document.head.appendChild(style);
   
-  console.log('FontAwesome CSS loaded');
+  console.log('FontAwesome and Marfa fonts CSS loaded');
 };
 
 // Debug function to print available fonts (for development purposes)

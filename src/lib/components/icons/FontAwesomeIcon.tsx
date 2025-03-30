@@ -62,6 +62,29 @@ const ICON_UNICODE_MAP: Record<string, string> = {
   // Misc
   'star': '\uf005',
   'solar-system': '\ue02f',
+  
+  // Additional icons
+  'circle-up': '\uf35b',
+  'arrow-up-right': '\uf14c',
+  'rocket': '\uf135',
+  'fire': '\uf06d',
+  'comment-dots': '\uf4ad',
+  'heart-circle': '\uf4c7',
+  'info-circle': '\uf05a',
+  'check-double': '\uf560',
+  'certificate': '\uf0a3',
+  'flag': '\uf024',
+  'clock': '\uf017',
+  'ticket': '\uf145',
+  'gift': '\uf06b',
+  'percent': '\uf295',
+  'money-check-dollar': '\uf53d',
+  'credit-card': '\uf09d',
+  'circle-dollar': '\uf2e8',
+  'badge-check': '\uf336',
+  'circle-check': '\uf058',
+  'circle-xmark': '\uf057',
+  'earth-americas': '\uf57d',
 };
 
 // For duotone icons - mapping to secondary layer unicode
@@ -72,6 +95,28 @@ const DUOTONE_SECONDARY_CODE_MAP: Record<string, string> = {
   'heart': '\u{10f004}',
   'circle-info': '\u{10f05a}',
   'check-circle': '\u{10f058}',
+  'rocket': '\u{10f135}',
+  'fire': '\u{10f06d}',
+  'comment-dots': '\u{10f4ad}',
+  'heart-circle': '\u{10f4c7}',
+  'info-circle': '\u{10f05a}',
+  'check-double': '\u{10f560}',
+  'certificate': '\u{10f0a3}',
+  'flag': '\u{10f024}',
+  'clock': '\u{10f017}',
+  'ticket': '\u{10f145}',
+  'gift': '\u{10f06b}',
+  'percent': '\u{10f295}',
+  'money-check-dollar': '\u{10f53d}',
+  'credit-card': '\u{10f09d}',
+  'circle-dollar': '\u{10f2e8}',
+  'badge-check': '\u{10f336}',
+  'circle-check': '\u{10f058}',
+  'circle-xmark': '\u{10f057}',
+  'earth-americas': '\u{10f57d}',
+  'circle-exclamation': '\u{10f06a}',
+  'circle-up': '\u{10f35b}',
+  'arrow-up-right': '\u{10f14c}',
 };
 
 interface FontAwesomeIconProps {
@@ -120,6 +165,11 @@ const FontAwesomeIcon: React.FC<FontAwesomeIconProps> = ({
     }
   };
 
+  // Get duotone secondary font family
+  const getDuotoneSecondaryFontFamily = () => {
+    return '"Font Awesome 6 Duotone Regular", "FontAwesome6Duotone-Regular"';
+  };
+
   // Basic styling for the icon
   const iconStyle: React.CSSProperties = {
     fontFamily: getFontFamily(),
@@ -142,6 +192,7 @@ const FontAwesomeIcon: React.FC<FontAwesomeIconProps> = ({
           {/* Secondary layer */}
           <span style={{
             ...iconStyle,
+            fontFamily: getDuotoneSecondaryFontFamily(),
             color: secondary,
             position: 'absolute',
             top: 0,
