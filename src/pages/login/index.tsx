@@ -49,6 +49,11 @@ export default function Login() {
     setIsConfirming(true);
 
     try {
+      // Make sure verificationId is not null before passing to confirmCode
+      if (!verificationId) {
+        throw new Error('Missing verification ID. Please try again.');
+      }
+      
       await confirmCode(verificationId, verificationCode);
       
       // Check if user is onboarded
