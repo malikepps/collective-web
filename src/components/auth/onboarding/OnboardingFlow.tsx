@@ -44,6 +44,8 @@ export default function OnboardingFlow() {
   
   // Handle verification code success
   const handleVerificationSuccess = () => {
+    console.log('Verification successful');
+    
     // Check if the user is already authenticated and onboarded
     if (user) {
       console.log('User authenticated:', user);
@@ -58,7 +60,26 @@ export default function OnboardingFlow() {
         console.log('User is authenticated but not onboarded, continuing with onboarding');
       }
     } else {
-      console.log('No user detected after verification, continuing with new user onboarding');
+      // Check localStorage for authenticated user
+      const storedUser = localStorage.getItem('auth_user');
+      if (storedUser) {
+        try {
+          const userData = JSON.parse(storedUser);
+          console.log('Found stored user in localStorage:', userData);
+          
+          if (userData.isOnboarded) {
+            console.log('Stored user is already onboarded, redirecting to home');
+            router.push('/');
+            return;
+          } else {
+            console.log('Stored user is not onboarded, continuing with onboarding');
+          }
+        } catch (error) {
+          console.error('Error parsing stored user data:', error);
+        }
+      } else {
+        console.log('No user detected after verification, continuing with new user onboarding');
+      }
     }
     
     // If the user is authenticated but not onboarded, continue with onboarding
@@ -125,13 +146,17 @@ export default function OnboardingFlow() {
   // Redirect to home if user is already authenticated and onboarded
   useEffect(() => {
     if (!loading) {
+      console.log('Auth loading complete, checking user state');
+      
       if (user) {
         console.log('Detected user on page load:', user);
-        console.log('User is onboarded status:', user.isOnboarded);
+        console.log('User onboarded status:', user.isOnboarded);
         
         if (user.isOnboarded) {
           console.log('User is already onboarded, redirecting to home');
           router.push('/');
+        } else {
+          console.log('User exists but not onboarded, staying on onboarding flow');
         }
       } else {
         // Handle development mode persistence via localStorage
@@ -139,14 +164,19 @@ export default function OnboardingFlow() {
         if (storedUser) {
           try {
             const userData = JSON.parse(storedUser);
-            console.log('Found stored user in localStorage:', userData);
+            console.log('Found stored user in localStorage on page load:', userData);
+            
             if (userData.isOnboarded) {
               console.log('Stored user is onboarded, redirecting to home');
               router.push('/');
+            } else {
+              console.log('Stored user exists but not onboarded, staying on flow');
             }
           } catch (e) {
             console.error('Error parsing stored user data:', e);
           }
+        } else {
+          console.log('No authenticated user found, starting with phone entry');
         }
       }
     }

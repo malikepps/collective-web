@@ -206,16 +206,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const confirmCode = async (verificationId: string, code: string) => {
     try {
-      // Temporarily use development mode for all environments
+      console.log('Confirming code:', code);
+      
+      // Always accept code 123456 in any environment for testing
       // This is a workaround for the Firebase SMS region issue
-      if (code.length === 6) {
-        console.log('Development mode: Accepting code', code);
+      if (code === '123456') {
+        console.log('Using test code 123456');
         
         // Check if a user with this phone number exists in Firestore
         const phoneNumberToCheck = localStorage.getItem('current_phone_number');
+        console.log('Checking phone number:', phoneNumberToCheck);
         
         if (phoneNumberToCheck) {
-          console.log('Checking for existing user with phone:', phoneNumberToCheck);
+          console.log('Looking for existing user with phone:', phoneNumberToCheck);
           
           try {
             // Using Firestore v9 API to query for users with matching phone number
@@ -230,7 +233,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               const userDoc = querySnapshot.docs[0];
               const userData = userDoc.data();
               
-              console.log('Found existing user:', userData);
+              console.log('Found existing user in Firestore:', userData);
               console.log('User is onboarded:', userData.is_onboarded);
               
               // Simulate the user being signed in and onboarded
@@ -269,36 +272,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               };
               
               // Store user in localStorage for persistence between page reloads
-              localStorage.setItem('auth_user', JSON.stringify({
+              const storageData = {
                 uid: userDoc.id,
                 displayName: userData.display_name || '',
                 phoneNumber: userData.phone_number || '',
                 isOnboarded: userData.is_onboarded || false,
                 photoURL: userData.profile_image_url || null,
-              }));
+                firstName: userData.first_name || '',
+                lastName: userData.last_name || '',
+              };
+              
+              console.log('Storing user data in localStorage:', storageData);
+              localStorage.setItem('auth_user', JSON.stringify(storageData));
               
               setUser(extendedUser);
-              console.log('User authentication simulated successfully');
+              console.log('User authentication simulated successfully, user state updated');
               return;
             } else {
               console.log('No existing user found with phone:', phoneNumberToCheck);
+              localStorage.removeItem('auth_user');
             }
           } catch (error) {
             console.error('Error checking for existing user:', error);
           }
+        } else {
+          console.log('No phone number found in localStorage');
         }
         
         // If no existing user was found or there was an error,
-        // continue with the normal flow
+        // continue with the normal flow for a new user
+        console.log('Proceeding as a new user');
         return;
       }
       
-      // Normal flow for production
+      // Normal flow for production with real Firebase verification
+      console.log('Using real Firebase verification');
       const credential = PhoneAuthProvider.credential(verificationId, code);
       const userCredential = await signInWithCredential(auth, credential);
       
       // After successful authentication, check if the user already exists in Firestore
       if (userCredential.user) {
+        console.log('Firebase auth successful, user:', userCredential.user.uid);
+        
         const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
         
         if (userDoc.exists()) {
