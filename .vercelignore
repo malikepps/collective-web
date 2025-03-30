@@ -3,6 +3,7 @@
 firestore.rules
 firestore.indexes.json
 storage.rules
+firebase.json
 
 # Guide files
 collective-web-guide/
