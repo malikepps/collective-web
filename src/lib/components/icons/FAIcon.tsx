@@ -25,13 +25,11 @@ const FAIcon: React.FC<FAIconProps> = ({
   style = IconStyle.CLASSIC,
   className,
 }) => {
-  // Convert Icon enum to string if needed
-  const iconName = typeof icon === 'string' ? icon : icon.toString();
-  
+  // We can directly pass the icon since both string and enum values are strings
   return (
     <span className={className}>
       <FontAwesomeIcon
-        icon={iconName}
+        icon={icon}
         size={size}
         isActive={isActive}
         primaryColor={primaryColor}

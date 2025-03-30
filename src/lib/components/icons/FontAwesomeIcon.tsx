@@ -120,7 +120,7 @@ const DUOTONE_SECONDARY_CODE_MAP: Record<string, string> = {
 };
 
 interface FontAwesomeIconProps {
-  icon: string;
+  icon: string | { toString(): string };
   size?: number;
   isActive?: boolean;
   primaryColor?: string;
@@ -145,10 +145,13 @@ const FontAwesomeIcon: React.FC<FontAwesomeIconProps> = ({
   const primary = isActive ? hexToColor(primaryColor) : '#808080';
   const secondary = isActive && secondaryColor ? hexToColor(secondaryColor) : '#808080';
   
+  // Convert icon to string if it's an enum
+  const iconName = typeof icon === 'string' ? icon : icon.toString();
+  
   // Get the Unicode character for the icon
-  const unicode = ICON_UNICODE_MAP[icon];
+  const unicode = ICON_UNICODE_MAP[iconName];
   if (!unicode) {
-    console.warn(`Icon not found: ${icon}`);
+    console.warn(`Icon not found: ${iconName}`);
     return <span style={{ color: primary, fontSize: `${size}px` }}>?</span>;
   }
   
@@ -183,7 +186,7 @@ const FontAwesomeIcon: React.FC<FontAwesomeIconProps> = ({
   
   // If it's a duotone icon and we have a secondary color
   if (style === IconStyle.DUOTONE && secondaryColor) {
-    const secondaryUnicode = DUOTONE_SECONDARY_CODE_MAP[icon];
+    const secondaryUnicode = DUOTONE_SECONDARY_CODE_MAP[iconName];
     
     // If we have a specific secondary unicode for duotone
     if (secondaryUnicode) {
