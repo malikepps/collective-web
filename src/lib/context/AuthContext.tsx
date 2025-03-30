@@ -77,7 +77,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(firebaseUser);
         }
       } else {
-        setUser(null);
+        // No Firebase user, check localStorage for development mode
+        const storedUser = localStorage.getItem('auth_user');
+        if (storedUser && process.env.NODE_ENV === 'development') {
+          try {
+            console.log('Found stored user in localStorage');
+            const userData = JSON.parse(storedUser);
+            
+            // Create a simulated ExtendedUser from localStorage data
+            const simulatedUser: ExtendedUser = {
+              uid: userData.uid,
+              displayName: userData.displayName || '',
+              phoneNumber: userData.phoneNumber || '',
+              isOnboarded: userData.isOnboarded || false,
+              email: '',
+              emailVerified: false,
+              isAnonymous: false,
+              providerData: [],
+              metadata: {
+                creationTime: '',
+                lastSignInTime: new Date().toString(),
+              },
+              refreshToken: '',
+              tenantId: null,
+              photoURL: userData.photoURL || null,
+              providerId: 'phone',
+              getIdToken: async () => '',
+              getIdTokenResult: async () => ({
+                claims: {},
+                token: '',
+                authTime: '',
+                issuedAtTime: '',
+                expirationTime: '',
+                signInProvider: null,
+                signInSecondFactor: null,
+              }),
+              reload: async () => {},
+              delete: async () => {},
+              toJSON: () => ({})
+            };
+            
+            console.log('Setting simulated user from localStorage:', simulatedUser);
+            setUser(simulatedUser);
+          } catch (error) {
+            console.error('Error parsing stored user data:', error);
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
       }
       setLoading(false);
     });
@@ -175,13 +223,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const q = query(usersCollectionRef, where('phone_number', '==', phoneNumberToCheck));
             const querySnapshot = await getDocs(q);
             
+            console.log('Query results:', querySnapshot.empty ? 'No users found' : `Found ${querySnapshot.size} users`);
+            
             if (!querySnapshot.empty) {
               // User exists, we should retrieve their data and set it in the state
               const userDoc = querySnapshot.docs[0];
               const userData = userDoc.data();
               
-              // In a real implementation, we'd now sign the user in with Firebase Auth
               console.log('Found existing user:', userData);
+              console.log('User is onboarded:', userData.is_onboarded);
               
               // Simulate the user being signed in and onboarded
               const extendedUser: ExtendedUser = {
@@ -218,8 +268,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 toJSON: () => ({})
               };
               
+              // Store user in localStorage for persistence between page reloads
+              localStorage.setItem('auth_user', JSON.stringify({
+                uid: userDoc.id,
+                displayName: userData.display_name || '',
+                phoneNumber: userData.phone_number || '',
+                isOnboarded: userData.is_onboarded || false,
+                photoURL: userData.profile_image_url || null,
+              }));
+              
               setUser(extendedUser);
+              console.log('User authentication simulated successfully');
               return;
+            } else {
+              console.log('No existing user found with phone:', phoneNumberToCheck);
             }
           } catch (error) {
             console.error('Error checking for existing user:', error);
@@ -241,14 +303,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (userDoc.exists()) {
           const userData = userDoc.data();
+          console.log('Found user document:', userData);
+          
           // If the user already exists and is onboarded, update the user state
           if (userData.is_onboarded) {
+            console.log('User is already onboarded, updating state');
             const extendedUser: ExtendedUser = {
               ...userCredential.user,
               isOnboarded: true
             };
             setUser(extendedUser);
+          } else {
+            console.log('User exists but not fully onboarded');
           }
+        } else {
+          console.log('No user document found, will create during onboarding');
         }
       }
     } catch (error) {

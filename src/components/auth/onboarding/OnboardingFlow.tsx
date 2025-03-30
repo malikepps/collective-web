@@ -45,10 +45,20 @@ export default function OnboardingFlow() {
   // Handle verification code success
   const handleVerificationSuccess = () => {
     // Check if the user is already authenticated and onboarded
-    if (user && user.isOnboarded) {
-      // If user is already fully onboarded, redirect to home
-      router.push('/');
-      return;
+    if (user) {
+      console.log('User authenticated:', user);
+      console.log('User is onboarded:', user.isOnboarded);
+      
+      if (user.isOnboarded) {
+        // If user is already fully onboarded, redirect to home
+        console.log('User is already onboarded, redirecting to home page');
+        router.push('/');
+        return;
+      } else {
+        console.log('User is authenticated but not onboarded, continuing with onboarding');
+      }
+    } else {
+      console.log('No user detected after verification, continuing with new user onboarding');
     }
     
     // If the user is authenticated but not onboarded, continue with onboarding
@@ -114,8 +124,31 @@ export default function OnboardingFlow() {
   
   // Redirect to home if user is already authenticated and onboarded
   useEffect(() => {
-    if (!loading && user && user.isOnboarded) {
-      router.push('/');
+    if (!loading) {
+      if (user) {
+        console.log('Detected user on page load:', user);
+        console.log('User is onboarded status:', user.isOnboarded);
+        
+        if (user.isOnboarded) {
+          console.log('User is already onboarded, redirecting to home');
+          router.push('/');
+        }
+      } else {
+        // Handle development mode persistence via localStorage
+        const storedUser = localStorage.getItem('auth_user');
+        if (storedUser) {
+          try {
+            const userData = JSON.parse(storedUser);
+            console.log('Found stored user in localStorage:', userData);
+            if (userData.isOnboarded) {
+              console.log('Stored user is onboarded, redirecting to home');
+              router.push('/');
+            }
+          } catch (e) {
+            console.error('Error parsing stored user data:', e);
+          }
+        }
+      }
     }
   }, [user, loading, router]);
   
