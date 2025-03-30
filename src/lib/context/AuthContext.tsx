@@ -8,7 +8,7 @@ import {
   RecaptchaVerifier
 } from 'firebase/auth';
 import { auth, db, storage } from '@/lib/firebase/config';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // Enhanced User interface with isOnboarded property
@@ -170,10 +170,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('Checking for existing user with phone:', phoneNumberToCheck);
           
           try {
-            // In an actual implementation, we'd query Firestore
-            // Query Firestore to check if a user with this phone number exists
-            const usersRef = db.collection('users');
-            const querySnapshot = await usersRef.where('phone_number', '==', phoneNumberToCheck).get();
+            // Using Firestore v9 API to query for users with matching phone number
+            const usersCollectionRef = collection(db, 'users');
+            const q = query(usersCollectionRef, where('phone_number', '==', phoneNumberToCheck));
+            const querySnapshot = await getDocs(q);
             
             if (!querySnapshot.empty) {
               // User exists, we should retrieve their data and set it in the state
