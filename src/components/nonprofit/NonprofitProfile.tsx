@@ -65,7 +65,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
           className="bg-black/50 w-10 h-10 rounded-full flex items-center justify-center overflow-hidden"
         >
           <FAIcon 
-            icon={Icon.BACK} 
+            icon="chevron-left" 
             size={20} 
             primaryColor="ffffff" 
             style={IconStyle.CLASSIC}
@@ -86,7 +86,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
       </div>
       
       {/* Media Section */}
-      <div className="mt-1">
+      <div className="mt-6">
         <MediaSection organization={organization} />
       </div>
       
