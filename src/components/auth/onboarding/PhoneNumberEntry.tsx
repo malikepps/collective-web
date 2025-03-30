@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import Head from 'next/head';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase/config';
 
 interface PhoneNumberEntryProps {
   onSuccess: (verificationId: string, phoneNumber: string) => void;
@@ -128,6 +130,34 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
       const formattedNumber = `${selectedCountry.code}${phoneNumber}`;
       
       console.log('Sending verification to:', formattedNumber);
+      
+      // Check if user already exists before proceeding
+      try {
+        const usersCollectionRef = collection(db, 'users');
+        const q = query(usersCollectionRef, where('phone_number', '==', formattedNumber));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          // User exists, get their information
+          const userDoc = querySnapshot.docs[0];
+          const userData = userDoc.data();
+          console.log('Found existing user:', userData);
+          
+          // Store user data in localStorage for next screen
+          localStorage.setItem('existing_user_data', JSON.stringify({
+            firstName: userData.first_name || '',
+            displayName: userData.display_name || '',
+            isOnboarded: userData.is_onboarded || false,
+            uid: userDoc.id
+          }));
+        } else {
+          // Clear existing user data if no match found
+          localStorage.removeItem('existing_user_data');
+        }
+      } catch (err) {
+        console.error('Error checking for existing user:', err);
+        // Continue with verification even if check fails
+      }
       
       // TEMPORARY FIX: Always use development mode due to Firebase SMS region issues
       // This will bypass the actual Firebase SMS verification

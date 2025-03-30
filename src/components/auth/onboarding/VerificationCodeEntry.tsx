@@ -26,8 +26,23 @@ export default function VerificationCodeEntry({
   const inputRefs = useRef<(HTMLInputElement | null)[]>(Array(6).fill(null));
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [existingUser, setExistingUser] = useState<{firstName: string, displayName: string} | null>(null);
   
   const { confirmCode, verifyPhoneNumber } = useAuth();
+  
+  // Check for existing user data in localStorage
+  useEffect(() => {
+    const storedUserData = localStorage.getItem('existing_user_data');
+    if (storedUserData) {
+      try {
+        const userData = JSON.parse(storedUserData);
+        setExistingUser(userData);
+        console.log('Found existing user data:', userData);
+      } catch (e) {
+        console.error('Error parsing stored user data:', e);
+      }
+    }
+  }, []);
   
   // Format the phone number for display
   const formatPhoneNumber = (phone: string) => {
@@ -317,22 +332,38 @@ export default function VerificationCodeEntry({
             Enter code
           </motion.h1>
           
-          {/* Verification info */}
+          {/* Personalized greeting or standard verification info */}
           <motion.p
-            className="text-white/70 font-marfa font-light mb-8"
+            className="text-white/70 font-marfa font-light mb-2"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            Enter the 6-digit code sent to {formatPhoneNumber(phoneNumber)}
+            {existingUser ? (
+              <>Welcome back, <span className="text-white">{existingUser.firstName || existingUser.displayName}</span></>
+            ) : (
+              <>Enter the 6-digit code sent to {formatPhoneNumber(phoneNumber)}</>
+            )}
           </motion.p>
+          
+          {/* Additional verification info */}
+          {existingUser && (
+            <motion.p
+              className="text-white/60 font-marfa font-light mb-8 text-sm"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              Enter the 6-digit code sent to {formatPhoneNumber(phoneNumber)}
+            </motion.p>
+          )}
           
           {/* Verification code input */}
           <motion.div
             className="flex justify-between mb-8"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            transition={{ duration: 0.5, delay: existingUser ? 0.3 : 0.2 }}
           >
             {codeDigits.map((digit, index) => (
               <div 
