@@ -6,6 +6,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { useRouter } from 'next/router';
 import { getAuth, signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
+import RecaptchaContainer from '../RecaptchaContainer';
 
 interface PhoneNumberEntryProps {
   onSuccess: (verificationId: string, phoneNumber: string) => void;
@@ -50,6 +51,12 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
   
   const { verifyPhoneNumber } = useAuth();
+  
+  // Handle receiving the RecaptchaVerifier from the RecaptchaContainer
+  const handleVerifierCreated = (verifier: RecaptchaVerifier) => {
+    console.log('Received recaptcha verifier from container');
+    recaptchaVerifierRef.current = verifier;
+  };
   
   // Format phone number for display as (xxx) xxx-xxxx
   const formatPhoneNumberForDisplay = (text: string) => {
@@ -112,15 +119,6 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
     return `${progress * 100}%`;
   };
   
-  // Clean up recaptcha on component unmount
-  useEffect(() => {
-    return () => {
-      if (recaptchaVerifierRef.current) {
-        recaptchaVerifierRef.current.clear();
-      }
-    };
-  }, []);
-  
   // Handle verification
   const sendVerificationCode = async () => {
     if (!isPhoneNumberValid || isLoading) return;
@@ -134,19 +132,10 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
       
       console.log('Sending verification to:', formattedNumber);
       
-      // Clean up any existing recaptcha
-      if (recaptchaVerifierRef.current) {
-        recaptchaVerifierRef.current.clear();
-        recaptchaVerifierRef.current = null;
+      // Check if verifier exists
+      if (!recaptchaVerifierRef.current) {
+        throw new Error('reCAPTCHA not initialized. Please refresh the page and try again.');
       }
-      
-      // Create new recaptcha verifier
-      const auth = getAuth();
-      const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'invisible',
-      });
-      
-      recaptchaVerifierRef.current = recaptchaVerifier;
       
       // Check if user exists in Firestore
       const usersRef = collection(db, 'users');
@@ -170,8 +159,13 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
         localStorage.removeItem('existing_user_data');
       }
       
-      // Send verification code
-      const confirmationResult = await signInWithPhoneNumber(auth, formattedNumber, recaptchaVerifier);
+      // Send verification code using the reCAPTCHA verifier
+      const auth = getAuth();
+      const confirmationResult = await signInWithPhoneNumber(
+        auth, 
+        formattedNumber, 
+        recaptchaVerifierRef.current
+      );
       
       setSuccessMessage('Verification code sent');
       setShowSuccess(true);
@@ -188,7 +182,18 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
       console.error('Error sending verification code:', err);
       
       if (err instanceof Error) {
-        setError(err.message);
+        let errorMessage = err.message;
+        
+        // Provide better error messages
+        if (errorMessage.includes('invalid-app-credential')) {
+          errorMessage = 'The reCAPTCHA verification failed. Please refresh the page and try again.';
+        } else if (errorMessage.includes('missing-app-credential')) {
+          errorMessage = 'reCAPTCHA verification failed. Please try again in a moment.';
+        } else if (errorMessage.includes('quota-exceeded')) {
+          errorMessage = 'Too many verification attempts. Please try again later.';
+        }
+        
+        setError(errorMessage);
       } else {
         setError('An error occurred while sending verification code');
       }
@@ -427,12 +432,8 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
           autoFocus={true}
         />
 
-        {/* Recaptcha container - styled for maximum compatibility */}
-        <div 
-          id="recaptcha-container" 
-          className="fixed bottom-0 right-0 w-20 h-20 overflow-hidden z-50"
-          style={{ opacity: 0.1 }}
-        ></div>
+        {/* Use our dedicated RecaptchaContainer component */}
+        <RecaptchaContainer onVerifierCreated={handleVerifierCreated} />
       </div>
     </>
   );
