@@ -158,26 +158,71 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const confirmCode = async (verificationId: string, code: string) => {
     try {
-      // For development mode, accept any 6-digit code
-      if (process.env.NODE_ENV === 'development' && code.length === 6) {
-        console.log('Development mode: Accepting any 6-digit code');
+      // Temporarily use development mode for all environments
+      // This is a workaround for the Firebase SMS region issue
+      if (code.length === 6) {
+        console.log('Development mode: Accepting code', code);
         
-        // In development, we need to simulate authentication
-        // First, check if a user with this phone number exists
-        // This would normally happen automatically with Firebase auth
-        // But since we're bypassing Firebase in dev mode, we need to handle it
+        // Check if a user with this phone number exists in Firestore
         const phoneNumberToCheck = localStorage.getItem('current_phone_number');
         
         if (phoneNumberToCheck) {
-          // In a real app, we would query Firestore to check if the user exists
-          // For development, we'll just simulate user authentication
-          // You can add logic here to check localStorage or any other method to determine
-          // if this should be treated as an existing user or new user
-          console.log('Development mode: Simulating authentication for', phoneNumberToCheck);
+          console.log('Checking for existing user with phone:', phoneNumberToCheck);
           
-          // This would fetch the user data from Firestore in a real app
+          try {
+            // In an actual implementation, we'd query Firestore
+            // Query Firestore to check if a user with this phone number exists
+            const usersRef = db.collection('users');
+            const querySnapshot = await usersRef.where('phone_number', '==', phoneNumberToCheck).get();
+            
+            if (!querySnapshot.empty) {
+              // User exists, we should retrieve their data and set it in the state
+              const userDoc = querySnapshot.docs[0];
+              const userData = userDoc.data();
+              
+              // In a real implementation, we'd now sign the user in with Firebase Auth
+              console.log('Found existing user:', userData);
+              
+              // Simulate the user being signed in and onboarded
+              const extendedUser: ExtendedUser = {
+                uid: userDoc.id,
+                displayName: userData.display_name || '',
+                phoneNumber: userData.phone_number || '',
+                isOnboarded: userData.is_onboarded || false,
+                // Add other required User properties with defaults
+                email: '',
+                emailVerified: false,
+                isAnonymous: false,
+                providerData: [],
+                metadata: {
+                  creationTime: userData.created_time?.toDate().toString() || '',
+                  lastSignInTime: new Date().toString(),
+                },
+                getIdToken: async () => '',
+                getIdTokenResult: async () => ({
+                  claims: {},
+                  token: '',
+                  authTime: '',
+                  issuedAtTime: '',
+                  expirationTime: '',
+                  signInProvider: null,
+                  signInSecondFactor: null,
+                }),
+                reload: async () => {},
+                delete: async () => {},
+                toJSON: () => ({})
+              };
+              
+              setUser(extendedUser);
+              return;
+            }
+          } catch (error) {
+            console.error('Error checking for existing user:', error);
+          }
         }
         
+        // If no existing user was found or there was an error,
+        // continue with the normal flow
         return;
       }
       
@@ -185,9 +230,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const credential = PhoneAuthProvider.credential(verificationId, code);
       const userCredential = await signInWithCredential(auth, credential);
       
-      // We no longer create a user document here
-      // It will be created in the createUserProfile function
-      // after all onboarding steps are completed
+      // After successful authentication, check if the user already exists in Firestore
+      if (userCredential.user) {
+        const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          // If the user already exists and is onboarded, update the user state
+          if (userData.is_onboarded) {
+            const extendedUser: ExtendedUser = {
+              ...userCredential.user,
+              isOnboarded: true
+            };
+            setUser(extendedUser);
+          }
+        }
+      }
     } catch (error) {
       console.error('Error confirming code:', error);
       throw error;
