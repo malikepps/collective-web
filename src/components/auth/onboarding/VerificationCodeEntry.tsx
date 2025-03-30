@@ -23,6 +23,7 @@ export default function VerificationCodeEntry({
   const [showSuccess, setShowSuccess] = useState(false);
   const [resendCount, setResendCount] = useState(30);
   const [isResendDisabled, setIsResendDisabled] = useState(true);
+  const [verificationCooldown, setVerificationCooldown] = useState<number | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>(Array(6).fill(null));
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -41,6 +42,32 @@ export default function VerificationCodeEntry({
       } catch (e) {
         console.error('Error parsing stored user data:', e);
       }
+    }
+  }, []);
+  
+  // Check for existing verification cooldown
+  useEffect(() => {
+    const lastAttemptTime = localStorage.getItem('last_code_verification_attempt');
+    if (lastAttemptTime) {
+      const cooldownPeriod = 30000; // 30 seconds
+      const updateTimer = () => {
+        const timeElapsed = Date.now() - Number(lastAttemptTime);
+        const remainingTime = cooldownPeriod - timeElapsed;
+        
+        if (remainingTime > 0) {
+          setVerificationCooldown(Math.ceil(remainingTime / 1000));
+        } else {
+          setVerificationCooldown(null);
+          clearInterval(interval);
+        }
+      };
+      
+      // Check immediately
+      updateTimer();
+      
+      // Then set up interval
+      const interval = setInterval(updateTimer, 1000);
+      return () => clearInterval(interval);
     }
   }, []);
   
@@ -195,7 +222,7 @@ export default function VerificationCodeEntry({
   const verifyCode = async (code?: string) => {
     const verificationCode = code || codeDigits.join('');
     
-    if (verificationCode.length !== 6 || isLoading) return;
+    if (verificationCode.length !== 6 || isLoading || verificationCooldown !== null) return;
     
     setIsLoading(true);
     setError(null);
@@ -220,8 +247,55 @@ export default function VerificationCodeEntry({
       
       let errorMessage = 'Invalid verification code. Please try again.';
       if (err instanceof Error) {
-        // Show the actual error message from Firebase
-        errorMessage = err.message;
+        // Format user-friendly error messages based on Firebase error codes
+        if (err.message.includes('too-many-requests')) {
+          errorMessage = 'Too many verification attempts. For security reasons, please try again in a few minutes.';
+          
+          // Store the last attempt time
+          localStorage.setItem('last_code_verification_attempt', Date.now().toString());
+          
+          // Start the cooldown timer
+          setVerificationCooldown(30);
+          
+          // Set up interval to update countdown
+          const interval = setInterval(() => {
+            setVerificationCooldown(prev => {
+              if (prev === null || prev <= 1) {
+                clearInterval(interval);
+                return null;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+        } else if (err.message.includes('invalid-verification-code')) {
+          errorMessage = 'The verification code you entered is incorrect. Please try again.';
+        } else if (err.message.includes('code-expired')) {
+          errorMessage = 'The verification code has expired. Please request a new code.';
+        } else if (err.message.includes('quota-exceeded')) {
+          errorMessage = 'Our verification service is temporarily unavailable. Please try again later.';
+        } else if (err.message.includes('wait')) {
+          // Extract wait time from error message for display
+          const waitMatch = err.message.match(/wait (\d+) seconds/);
+          if (waitMatch && waitMatch[1]) {
+            const seconds = parseInt(waitMatch[1], 10);
+            setVerificationCooldown(seconds);
+            
+            // Set up interval to update countdown
+            const interval = setInterval(() => {
+              setVerificationCooldown(prev => {
+                if (prev === null || prev <= 1) {
+                  clearInterval(interval);
+                  return null;
+                }
+                return prev - 1;
+              });
+            }, 1000);
+          }
+          errorMessage = `Please wait before trying again. You can try again in ${verificationCooldown || 30} seconds.`;
+        } else {
+          // Use the Firebase error message
+          errorMessage = err.message;
+        }
       }
       
       setError(errorMessage);
@@ -375,7 +449,8 @@ export default function VerificationCodeEntry({
                 key={index} 
                 className={`relative w-12 h-14 flex items-center justify-center cursor-text rounded-lg
                   ${focusedIndex === index ? 'border-2 border-white' : 'border border-white/30'}
-                  ${digit ? 'bg-[#2A2A2A]' : 'bg-[#1F1F1F]'}`}
+                  ${digit ? 'bg-[#2A2A2A]' : 'bg-[#1F1F1F]'}
+                  ${verificationCooldown !== null ? 'opacity-70' : 'opacity-100'}`}
                 onClick={() => handleBoxClick(index)}
               >
                 <input
@@ -392,6 +467,7 @@ export default function VerificationCodeEntry({
                   onPaste={index === 0 ? handlePaste : undefined}
                   onFocus={() => setFocusedIndex(index)}
                   onBlur={() => setFocusedIndex(null)}
+                  disabled={verificationCooldown !== null || isLoading}
                 />
                 <div className="text-white text-2xl font-marfa">{digit}</div>
               </div>
@@ -446,6 +522,18 @@ export default function VerificationCodeEntry({
             </motion.div>
           )}
         </AnimatePresence>
+        
+        {/* Display countdown indicator if in cooldown */}
+        {verificationCooldown !== null && (
+          <motion.div 
+            className="mt-4 text-white/70 text-center"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <p>Please wait {verificationCooldown}s before trying again</p>
+          </motion.div>
+        )}
         
         {/* Hidden field for autocomplete */}
         <input 
