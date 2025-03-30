@@ -198,6 +198,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   creationTime: userData.created_time?.toDate().toString() || '',
                   lastSignInTime: new Date().toString(),
                 },
+                // Add missing required properties
+                refreshToken: '',
+                tenantId: null,
+                photoURL: userData.profile_image_url || null,
+                providerId: 'phone',
                 getIdToken: async () => '',
                 getIdTokenResult: async () => ({
                   claims: {},
