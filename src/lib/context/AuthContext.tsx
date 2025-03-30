@@ -264,10 +264,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const isOnboarded = userData.is_onboarded || false;
           console.log('User onboarded status:', isOnboarded);
           
-          // Update the user state with onboarded status
+          // FORCE UPDATE - set the user as onboarded if they have a document
+          // This ensures existing users are always treated as onboarded
+          if (!isOnboarded) {
+            console.log('Updating user document to set as onboarded');
+            // Update the user document to mark as onboarded
+            await updateDoc(doc(db, 'users', userCredential.user.uid), {
+              is_onboarded: true,
+              updated_at: serverTimestamp()
+            });
+          }
+          
+          // Update the user state with onboarded status = TRUE for existing users
           const extendedUser: ExtendedUser = {
             ...userCredential.user,
-            isOnboarded
+            isOnboarded: true // Always treat existing users as onboarded
           };
           setUser(extendedUser);
           
@@ -276,7 +287,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             uid: userCredential.user.uid,
             displayName: userData.display_name || '',
             phoneNumber: userData.phone_number || '',
-            isOnboarded,
+            isOnboarded: true, // Always set to true for existing users
             photoURL: userData.profile_image_url || null,
             firstName: userData.first_name || '',
             lastName: userData.last_name || '',
@@ -289,11 +300,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           localStorage.setItem('existing_user_data', JSON.stringify({
             firstName: userData.first_name || '',
             displayName: userData.display_name || '',
-            isOnboarded,
+            isOnboarded: true, // Always set to true for existing users
             uid: userCredential.user.uid
           }));
           
-          console.log('Updated localStorage with user data and onboarded status:', isOnboarded);
+          console.log('Updated localStorage with user data and forced onboarded status:');
           
           // Return early so the caller knows authentication was successful
           return;

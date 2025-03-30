@@ -242,7 +242,17 @@ export default function VerificationCodeEntry({
       await confirmCode(verificationId, verificationCode);
       
       // Show success message
-      showSuccessMessage('Verification successful');
+      showSuccessMessage('Verification successful!');
+      
+      // DIRECT REDIRECT - skip all checks and callbacks
+      console.log('Verification successful - redirecting directly to home page');
+      
+      // Wait for UI feedback then redirect
+      setTimeout(() => {
+        router.push('/home');
+      }, 1000);
+      
+      return;
       
       // Get existing user data and update localStorage with any new information from auth
       // This ensures the onboarding flow has the most up-to-date information
