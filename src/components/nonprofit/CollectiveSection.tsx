@@ -126,7 +126,7 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
   };
   
   return (
-    <div className="bg-card rounded-[15px] p-4 mt-2 text-white">
+    <div className="bg-card p-4 text-white mt-1">
       {/* Header with filter button */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-white font-marfa font-semibold text-2xl">Collective</h2>
@@ -153,7 +153,7 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
         </div>
       ) : (
         <div className="overflow-x-auto pb-2">
-          <div className="flex space-x-3">
+          <div className="flex space-x-3 px-2">
             {filteredMembers().map((member) => (
               <div key={member.id} className="flex flex-col items-center">
                 <PersonCircleView 

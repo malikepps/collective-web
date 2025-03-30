@@ -86,13 +86,12 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
         }}
       >
         {member.photoURL ? (
-          // With photo
+          // With photo - using img element instead of Image component for Firebase URLs
           <div className="relative w-full h-full">
-            <Image
+            <img
               src={member.photoURL}
               alt={member.name}
-              fill
-              style={{ objectFit: 'cover' }}
+              className="w-full h-full object-cover"
             />
             
             {/* Add border gradient if needed */}

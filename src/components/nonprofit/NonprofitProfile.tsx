@@ -56,7 +56,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   };
   
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-black">
       {/* Back button - fixed position */}
       <div className="fixed top-12 left-4 z-10">
         <button 
@@ -83,7 +83,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
       <MediaSection organization={organization} />
       
       {/* Content Sections */}
-      <div className="px-4 pb-20 -mt-4">
+      <div className="pb-20 -mt-4">
         {/* Info Box */}
         <InfoBox 
           organization={organization}
@@ -99,7 +99,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
         />
         
         {/* Posts Section - placeholder */}
-        <div className="bg-card rounded-[15px] p-4 mt-2 text-white">
+        <div className="bg-card p-4 text-white mt-1">
           <h2 className="text-white font-semibold text-2xl mb-4">Posts</h2>
           <div className="flex items-center justify-center h-32">
             <p className="text-white/50">Posts will appear here</p>

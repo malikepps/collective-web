@@ -39,11 +39,10 @@ const OrganizationDetailsView: React.FC<OrganizationDetailsProps> = ({
           {/* Organization logo and name in same line */}
           <div className="flex items-center mb-8 mt-4">
             <div className="relative w-[60px] h-[60px] rounded-full overflow-hidden mr-4">
-              <Image
+              <img
                 src={organization.photoURL || '/placeholder-avatar.jpg'}
                 alt={organization.name}
-                fill
-                style={{ objectFit: 'cover' }}
+                className="w-full h-full object-cover"
               />
             </div>
             
