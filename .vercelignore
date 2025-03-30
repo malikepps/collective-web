@@ -1,0 +1,10 @@
+# Firebase configuration files that are not needed for Next.js
+.firebaserc
+firestore.rules
+firestore.indexes.json
+storage.rules
+
+# Guide files
+collective-web-guide/
+implementation_plan.txt
+onboarding-implementation-plan.txt 
