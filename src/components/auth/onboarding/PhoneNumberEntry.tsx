@@ -173,31 +173,45 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
           const userData = userDoc.data();
           console.log('Found existing user:', userData);
           
-          // Check if user is already onboarded
+          // If user is already onboarded, skip verification completely
           const isOnboarded = userData.is_onboarded || false;
           console.log('User is onboarded:', isOnboarded);
+          
+          if (isOnboarded) {
+            // Store the user's UID in localStorage to pass to AuthContext
+            localStorage.setItem('auth_user', JSON.stringify({
+              uid: userDoc.id,
+              displayName: userData.display_name || '',
+              phoneNumber: formattedNumber,
+              isOnboarded: true,
+              photoURL: userData.profile_image_url || null,
+              firstName: userData.first_name || '',
+              lastName: userData.last_name || '',
+            }));
+            
+            // Store as existing user data too for consistency
+            localStorage.setItem('existing_user_data', JSON.stringify({
+              firstName: userData.first_name || '',
+              displayName: userData.display_name || '',
+              isOnboarded: true,
+              uid: userDoc.id
+            }));
+            
+            // Show success message and redirect directly to home
+            showSuccessMessage('Welcome back! Redirecting...');
+            setTimeout(() => {
+              router.push('/home');
+            }, 1500);
+            return;
+          }
           
           // Store user data in localStorage for next screen
           localStorage.setItem('existing_user_data', JSON.stringify({
             firstName: userData.first_name || '',
             displayName: userData.display_name || '',
-            isOnboarded: isOnboarded,
+            isOnboarded: userData.is_onboarded || false,
             uid: userDoc.id
           }));
-          
-          // If user is already onboarded, redirect directly to home page
-          // This skips verification for existing onboarded users
-          if (isOnboarded) {
-            showSuccessMessage('Welcome back!');
-            
-            // Short delay to show success message before redirect
-            setTimeout(() => {
-              console.log('Redirecting existing onboarded user to home page');
-              router.push('/home');
-            }, 1500);
-            
-            return;
-          }
         } else {
           // Clear existing user data if no match found
           localStorage.removeItem('existing_user_data');

@@ -254,6 +254,8 @@ export default function VerificationCodeEntry({
       
       return;
       
+      // The code below is unreachable but kept for reference
+      /*
       // Get existing user data and update localStorage with any new information from auth
       // This ensures the onboarding flow has the most up-to-date information
       const existingUserData = localStorage.getItem('existing_user_data');
@@ -265,12 +267,12 @@ export default function VerificationCodeEntry({
       // If we have auth data after confirmation, make sure it's synchronized with existing_user_data
       if (authUserData) {
         try {
-          const authUser = JSON.parse(authUserData);
+          const authUser = JSON.parse(authUserData || '{}');
           
           // If we also had existing user data, update it with the auth status
           if (existingUserData) {
             try {
-              const existingUser = JSON.parse(existingUserData);
+              const existingUser = JSON.parse(existingUserData || '{}');
               
               // Update existing user data with any auth information that's more recent
               const updatedUserData = {
@@ -307,7 +309,7 @@ export default function VerificationCodeEntry({
       } else if (existingUserData) {
         // Check existing user data if no auth data is available
         try {
-          const existingUser = JSON.parse(existingUserData);
+          const existingUser = JSON.parse(existingUserData || '{}');
           if (existingUser.isOnboarded) {
             console.log('Existing user is already onboarded, redirecting to home page');
             setTimeout(() => {
@@ -322,6 +324,7 @@ export default function VerificationCodeEntry({
       
       // If we get here, the user isn't onboarded, so proceed to the next step
       onSuccess();
+      */
     } catch (err) {
       console.error('Verification error:', err);
       
