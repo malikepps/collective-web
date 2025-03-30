@@ -203,25 +203,17 @@ export default function VerificationCodeEntry({
     try {
       console.log('Verifying code:', verificationCode);
       
-      // TEMPORARY FIX: Always accept 123456 in any environment
-      if (verificationCode === '123456') {
-        showSuccessMessage('Code accepted');
-        
-        // Short delay to show the loading state
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Get existing user data if available
-        const userData = localStorage.getItem('existing_user_data');
-        console.log('Existing user data from localStorage:', userData);
-        
-        // Proceed to the next step
-        onSuccess();
-        return;
-      }
-      
-      // Production flow - only reached if not using 123456
+      // Call Firebase to confirm the verification code
       await confirmCode(verificationId, verificationCode);
+      
+      // Show success message
       showSuccessMessage('Verification successful');
+      
+      // Get existing user data if available
+      const userData = localStorage.getItem('existing_user_data');
+      console.log('Existing user data from localStorage:', userData);
+      
+      // Proceed to the next step
       onSuccess();
     } catch (err) {
       console.error('Verification error:', err);
@@ -252,15 +244,7 @@ export default function VerificationCodeEntry({
     setError(null);
     
     try {
-      // For development, don't actually call Firebase
-      if (process.env.NODE_ENV === 'development') {
-        showSuccessMessage('Development mode: Code resent');
-        startResendTimer();
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return;
-      }
-      
-      // Production flow
+      // Call Firebase to resend verification code
       await verifyPhoneNumber(phoneNumber);
       showSuccessMessage('Code sent!');
       startResendTimer();

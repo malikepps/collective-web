@@ -159,26 +159,17 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
         // Continue with verification even if check fails
       }
       
-      // TEMPORARY FIX: Always use development mode due to Firebase SMS region issues
-      // This will bypass the actual Firebase SMS verification
-      // Remove this when Firebase phone auth is properly configured
-      showSuccessMessage('Using verification code 123456');
+      // Production flow - call the verifyPhoneNumber function from AuthContext
+      const verificationId = await verifyPhoneNumber(formattedNumber);
       
-      // Store phone number in localStorage for dev mode authentication simulation
+      // Store phone number in localStorage for verification
       localStorage.setItem('current_phone_number', formattedNumber);
       
-      // Short delay to show the loading state
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Show success message
+      showSuccessMessage('Verification code sent');
       
-      // Pass the verification ID to the parent component with fake ID
-      onSuccess('123456', formattedNumber);
-      return;
-      
-      /* Original production code - commented out until SMS service is enabled
-      // Production flow - call the verifyPhoneNumber function
-      const verificationId = await verifyPhoneNumber(formattedNumber);
+      // Pass the verification ID to the parent component
       onSuccess(verificationId, formattedNumber);
-      */
     } catch (err) {
       console.error('Verification error:', err);
       
@@ -484,7 +475,8 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
         {/* Recaptcha container - styled for maximum compatibility */}
         <div 
           id="recaptcha-container" 
-          className="fixed bottom-0 right-0 w-10 h-10 overflow-hidden z-50"
+          className="fixed bottom-0 right-0 w-20 h-20 overflow-hidden z-50"
+          style={{ opacity: 0.1 }}
         ></div>
       </div>
     </>

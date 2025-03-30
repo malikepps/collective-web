@@ -174,12 +174,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         setRecaptchaVerifierInstance(verifier);
         
-        // For testing in development, allow these verification codes to always succeed
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Development mode: Using fake verification');
-          return '123456'; // Return a fake verification ID for development
-        }
-        
         // Send the SMS verification
         const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, verifier);
         return confirmationResult.verificationId;
@@ -208,106 +202,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Confirming code:', code);
       
-      // Always accept code 123456 in any environment for testing
-      // This is a workaround for the Firebase SMS region issue
-      if (code === '123456') {
-        console.log('Using test code 123456');
-        
-        // Check if a user with this phone number exists in Firestore
-        const phoneNumberToCheck = localStorage.getItem('current_phone_number');
-        console.log('Checking phone number:', phoneNumberToCheck);
-        
-        if (phoneNumberToCheck) {
-          console.log('Looking for existing user with phone:', phoneNumberToCheck);
-          
-          try {
-            // Using Firestore v9 API to query for users with matching phone number
-            const usersCollectionRef = collection(db, 'users');
-            const q = query(usersCollectionRef, where('phone_number', '==', phoneNumberToCheck));
-            const querySnapshot = await getDocs(q);
-            
-            console.log('Query results:', querySnapshot.empty ? 'No users found' : `Found ${querySnapshot.size} users`);
-            
-            if (!querySnapshot.empty) {
-              // User exists, we should retrieve their data and set it in the state
-              const userDoc = querySnapshot.docs[0];
-              const userData = userDoc.data();
-              
-              console.log('Found existing user in Firestore:', userData);
-              console.log('User is onboarded:', userData.is_onboarded);
-              
-              // Simulate the user being signed in and onboarded
-              const extendedUser: ExtendedUser = {
-                uid: userDoc.id,
-                displayName: userData.display_name || '',
-                phoneNumber: userData.phone_number || '',
-                isOnboarded: userData.is_onboarded || false,
-                // Add other required User properties with defaults
-                email: '',
-                emailVerified: false,
-                isAnonymous: false,
-                providerData: [],
-                metadata: {
-                  creationTime: userData.created_time?.toDate().toString() || '',
-                  lastSignInTime: new Date().toString(),
-                },
-                // Add missing required properties
-                refreshToken: '',
-                tenantId: null,
-                photoURL: userData.profile_image_url || null,
-                providerId: 'phone',
-                getIdToken: async () => '',
-                getIdTokenResult: async () => ({
-                  claims: {},
-                  token: '',
-                  authTime: '',
-                  issuedAtTime: '',
-                  expirationTime: '',
-                  signInProvider: null,
-                  signInSecondFactor: null,
-                }),
-                reload: async () => {},
-                delete: async () => {},
-                toJSON: () => ({})
-              };
-              
-              // Store user in localStorage for persistence between page reloads
-              const storageData = {
-                uid: userDoc.id,
-                displayName: userData.display_name || '',
-                phoneNumber: userData.phone_number || '',
-                isOnboarded: userData.is_onboarded || false,
-                photoURL: userData.profile_image_url || null,
-                firstName: userData.first_name || '',
-                lastName: userData.last_name || '',
-              };
-              
-              console.log('Storing user data in localStorage:', storageData);
-              localStorage.setItem('auth_user', JSON.stringify(storageData));
-              
-              setUser(extendedUser);
-              console.log('User authentication simulated successfully, user state updated');
-              return;
-            } else {
-              console.log('No existing user found with phone:', phoneNumberToCheck);
-              localStorage.removeItem('auth_user');
-            }
-          } catch (error) {
-            console.error('Error checking for existing user:', error);
-          }
-        } else {
-          console.log('No phone number found in localStorage');
-        }
-        
-        // If no existing user was found or there was an error,
-        // continue with the normal flow for a new user
-        console.log('Proceeding as a new user');
-        return;
-      }
-      
-      // Normal flow for production with real Firebase verification
-      console.log('Using real Firebase verification');
+      // Get credential from verification ID and code
       const credential = PhoneAuthProvider.credential(verificationId, code);
+      
+      // Sign in with credential
       const userCredential = await signInWithCredential(auth, credential);
       
       // After successful authentication, check if the user already exists in Firestore
@@ -320,19 +218,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const userData = userDoc.data();
           console.log('Found user document:', userData);
           
-          // If the user already exists and is onboarded, update the user state
-          if (userData.is_onboarded) {
-            console.log('User is already onboarded, updating state');
-            const extendedUser: ExtendedUser = {
-              ...userCredential.user,
-              isOnboarded: true
+          // Update the user state with onboarded status
+          const extendedUser: ExtendedUser = {
+            ...userCredential.user,
+            isOnboarded: userData.is_onboarded || false
+          };
+          setUser(extendedUser);
+          
+          // Store user info in localStorage for development persistence
+          if (process.env.NODE_ENV === 'development') {
+            const storageData = {
+              uid: userCredential.user.uid,
+              displayName: userData.display_name || '',
+              phoneNumber: userData.phone_number || '',
+              isOnboarded: userData.is_onboarded || false,
+              photoURL: userData.profile_image_url || null,
+              firstName: userData.first_name || '',
+              lastName: userData.last_name || '',
             };
-            setUser(extendedUser);
-          } else {
-            console.log('User exists but not fully onboarded');
+            
+            localStorage.setItem('auth_user', JSON.stringify(storageData));
           }
         } else {
           console.log('No user document found, will create during onboarding');
+          // Set basic user data
+          setUser(userCredential.user);
         }
       }
     } catch (error) {

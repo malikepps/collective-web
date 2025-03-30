@@ -180,6 +180,9 @@ export default function OnboardingPage() {
       <FirebaseVerifier />
       
       <div className="min-h-screen bg-[#1D1D1D] overflow-hidden relative">
+        {/* Global recaptcha container */}
+        <div id="recaptcha-container" className="fixed bottom-4 right-4 z-50 opacity-10" style={{ width: '20px', height: '20px' }}></div>
+        
         <AnimatePresence mode="wait">
           {currentStep === OnboardingStep.PHONE_NUMBER && (
             <motion.div
