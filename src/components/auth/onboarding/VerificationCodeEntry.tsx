@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 
 interface VerificationCodeEntryProps {
   verificationId: string;
@@ -27,7 +28,8 @@ export default function VerificationCodeEntry({
   const inputRefs = useRef<(HTMLInputElement | null)[]>(Array(6).fill(null));
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [existingUser, setExistingUser] = useState<{firstName: string, displayName: string} | null>(null);
+  const [existingUser, setExistingUser] = useState<{firstName: string, displayName: string, isOnboarded: boolean} | null>(null);
+  const router = useRouter();
   
   const { confirmCode, verifyPhoneNumber } = useAuth();
   
@@ -39,6 +41,12 @@ export default function VerificationCodeEntry({
         const userData = JSON.parse(storedUserData);
         setExistingUser(userData);
         console.log('Found existing user data:', userData);
+        
+        // If user is already onboarded, we can redirect immediately
+        // This is a fallback in case the PhoneNumberEntry redirect didn't happen
+        if (userData.isOnboarded) {
+          console.log('Existing user is already onboarded, will redirect after verification');
+        }
       } catch (e) {
         console.error('Error parsing stored user data:', e);
       }
@@ -263,16 +271,46 @@ export default function VerificationCodeEntry({
               // Save back to localStorage
               localStorage.setItem('existing_user_data', JSON.stringify(updatedUserData));
               console.log('Updated existing_user_data with auth information:', updatedUserData);
+              
+              // If the user is already onboarded, redirect directly to home
+              if (updatedUserData.isOnboarded) {
+                console.log('User is already onboarded, redirecting to home page');
+                setTimeout(() => {
+                  router.push('/home');
+                }, 1000);
+                return;
+              }
             } catch (e) {
               console.error('Error updating existing user data:', e);
             }
+          } else if (authUser.isOnboarded) {
+            // If we don't have existing user data but auth user is onboarded
+            console.log('Auth user is already onboarded, redirecting to home page');
+            setTimeout(() => {
+              router.push('/home');
+            }, 1000);
+            return;
           }
         } catch (e) {
           console.error('Error parsing auth user data:', e);
         }
+      } else if (existingUserData) {
+        // Check existing user data if no auth data is available
+        try {
+          const existingUser = JSON.parse(existingUserData);
+          if (existingUser.isOnboarded) {
+            console.log('Existing user is already onboarded, redirecting to home page');
+            setTimeout(() => {
+              router.push('/home');
+            }, 1000);
+            return;
+          }
+        } catch (e) {
+          console.error('Error parsing existing user data:', e);
+        }
       }
       
-      // Proceed to the next step
+      // If we get here, the user isn't onboarded, so proceed to the next step
       onSuccess();
     } catch (err) {
       console.error('Verification error:', err);

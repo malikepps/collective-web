@@ -73,6 +73,15 @@ export default function OnboardingFlow() {
           router.push('/home');
           return;
         }
+        
+        // If user exists but still needs to complete onboarding, 
+        // consider starting from where they left off
+        if (userData.displayName) {
+          console.log('User has a display name, skipping to profile photo step');
+          setDisplayName(userData.displayName);
+          setCurrentState(OnboardingState.PROFILE_PHOTO);
+          return;
+        }
       } catch (error) {
         console.error('Error parsing existing user data:', error);
       }

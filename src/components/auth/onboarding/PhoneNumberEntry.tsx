@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Head from 'next/head';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { useRouter } from 'next/router';
 
 interface PhoneNumberEntryProps {
   onSuccess: (verificationId: string, phoneNumber: string) => void;
@@ -38,9 +39,11 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
   const [checkboxChecked, setCheckboxChecked] = useState(true);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countryCodes[0]);
+  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [keyboardFocused, setKeyboardFocused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   
   const { verifyPhoneNumber } = useAuth();
   
@@ -118,12 +121,39 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
     }
   }, []);
   
+  // Check for existing cooldown
+  useEffect(() => {
+    const lastAttemptTime = localStorage.getItem('last_phone_verification_attempt');
+    if (lastAttemptTime) {
+      const cooldownPeriod = 60000; // 1 minute
+      const updateTimer = () => {
+        const timeElapsed = Date.now() - Number(lastAttemptTime);
+        const remainingTime = cooldownPeriod - timeElapsed;
+        
+        if (remainingTime > 0) {
+          setCooldownSeconds(Math.ceil(remainingTime / 1000));
+        } else {
+          setCooldownSeconds(null);
+          clearInterval(interval);
+        }
+      };
+      
+      // Check immediately
+      updateTimer();
+      
+      // Then set up interval
+      const interval = setInterval(updateTimer, 1000);
+      return () => clearInterval(interval);
+    }
+  }, []);
+  
   // Handle verification error properly
   const sendVerificationCode = async () => {
-    if (!isPhoneNumberValid || isLoading) return;
+    if (!isPhoneNumberValid || isLoading || cooldownSeconds !== null) return;
     
-    setIsLoading(true);
+    // Clear previous error
     setError(null);
+    setIsLoading(true);
     
     try {
       // Format phone number for API use
@@ -143,13 +173,31 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
           const userData = userDoc.data();
           console.log('Found existing user:', userData);
           
+          // Check if user is already onboarded
+          const isOnboarded = userData.is_onboarded || false;
+          console.log('User is onboarded:', isOnboarded);
+          
           // Store user data in localStorage for next screen
           localStorage.setItem('existing_user_data', JSON.stringify({
             firstName: userData.first_name || '',
             displayName: userData.display_name || '',
-            isOnboarded: userData.is_onboarded || false,
+            isOnboarded: isOnboarded,
             uid: userDoc.id
           }));
+          
+          // If user is already onboarded, redirect directly to home page
+          // This skips verification for existing onboarded users
+          if (isOnboarded) {
+            showSuccessMessage('Welcome back!');
+            
+            // Short delay to show success message before redirect
+            setTimeout(() => {
+              console.log('Redirecting existing onboarded user to home page');
+              router.push('/home');
+            }, 1500);
+            
+            return;
+          }
         } else {
           // Clear existing user data if no match found
           localStorage.removeItem('existing_user_data');
@@ -181,6 +229,47 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
         if (errorMessage.includes('operation-not-allowed') || 
             errorMessage.includes('region enabled')) {
           errorMessage = 'SMS verification is not available in your region. Please try again later.';
+        } else if (errorMessage.includes('too-many-requests')) {
+          errorMessage = 'Too many verification attempts. For security reasons, please try again in a few minutes.';
+          
+          // Store the last attempt time to implement backoff
+          localStorage.setItem('last_phone_verification_attempt', Date.now().toString());
+          
+          // Start countdown
+          setCooldownSeconds(60);
+          
+          // Set up interval to update countdown
+          const interval = setInterval(() => {
+            setCooldownSeconds(prev => {
+              if (prev === null || prev <= 1) {
+                clearInterval(interval);
+                return null;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+        } else if (errorMessage.includes('invalid-phone-number')) {
+          errorMessage = 'Please enter a valid phone number with country code.';
+        } else if (errorMessage.includes('quota-exceeded')) {
+          errorMessage = 'Our verification service is temporarily unavailable. Please try again later.';
+        } else if (errorMessage.includes('wait')) {
+          // Extract wait time from error message for display
+          const waitMatch = errorMessage.match(/wait (\d+) seconds/);
+          if (waitMatch && waitMatch[1]) {
+            const seconds = parseInt(waitMatch[1], 10);
+            setCooldownSeconds(seconds);
+            
+            // Set up interval to update countdown
+            const interval = setInterval(() => {
+              setCooldownSeconds(prev => {
+                if (prev === null || prev <= 1) {
+                  clearInterval(interval);
+                  return null;
+                }
+                return prev - 1;
+              });
+            }, 1000);
+          }
         }
         
         setError(errorMessage);
@@ -260,6 +349,30 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
     setShowCountryDropdown(false);
     // Focus back on the input field after selection
     inputRef.current?.focus();
+  };
+  
+  // Continue button should show timer if in cooldown
+  const renderContinueButtonContent = () => {
+    if (isLoading) {
+      return (
+        <svg className="animate-spin h-10 w-10 text-white absolute z-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      );
+    }
+    
+    if (cooldownSeconds !== null) {
+      return (
+        <div className="text-white text-lg absolute z-10">{cooldownSeconds}s</div>
+      );
+    }
+    
+    return (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white absolute z-10" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+      </svg>
+    );
   };
   
   return (
@@ -347,8 +460,8 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
             <div className="w-full px-5 flex justify-end">
               <motion.button
                 onClick={sendVerificationCode}
-                disabled={!isPhoneNumberValid || isLoading}
-                className={`w-21 h-21 rounded-full flex items-center justify-center relative overflow-hidden`}
+                disabled={!isPhoneNumberValid || isLoading || cooldownSeconds !== null}
+                className={`w-21 h-21 rounded-full flex items-center justify-center relative overflow-hidden ${!isPhoneNumberValid || cooldownSeconds !== null ? 'opacity-70' : 'opacity-100'}`}
                 style={{ width: '5.25rem', height: '5.25rem' }}
                 whileTap={{ scale: 0.95 }}
                 initial={{ opacity: 0 }}
@@ -357,23 +470,13 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
               >
                 {/* Button glow effect */}
                 <motion.div 
-                  className={`absolute inset-0 rounded-full ${isPhoneNumberValid ? 'bg-green-500' : 'bg-[#1F1F1F]'}`}
-                  animate={{ opacity: isPhoneNumberValid ? glowOpacity : 1 }}
+                  className={`absolute inset-0 rounded-full ${isPhoneNumberValid && cooldownSeconds === null ? 'bg-green-500' : 'bg-[#1F1F1F]'}`}
+                  animate={{ opacity: isPhoneNumberValid && cooldownSeconds === null ? glowOpacity : 1 }}
                   transition={{ duration: 0.5 }}
                 />
                 
-                {/* Arrow icon - larger size */}
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white absolute z-10" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-                
-                {/* Loading spinner */}
-                {isLoading && (
-                  <svg className="animate-spin h-10 w-10 text-white absolute z-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                )}
+                {/* Button content */}
+                {renderContinueButtonContent()}
               </motion.button>
             </div>
             
