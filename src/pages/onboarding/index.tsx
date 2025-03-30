@@ -142,7 +142,7 @@ export default function OnboardingPage() {
       console.log('User document created successfully');
       
       // Redirect to home page
-      router.push('/');
+      router.push('/home');
     } catch (error) {
       console.error('Error creating user:', error);
       setIsCreatingUser(false);

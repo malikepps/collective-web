@@ -54,7 +54,7 @@ export default function OnboardingFlow() {
       if (user.isOnboarded) {
         // If user is already fully onboarded, redirect to home
         console.log('User is already onboarded, redirecting to home page');
-        router.push('/');
+        router.push('/home');
         return;
       } else {
         console.log('User is authenticated but not onboarded, continuing with onboarding');
@@ -69,7 +69,7 @@ export default function OnboardingFlow() {
           
           if (userData.isOnboarded) {
             console.log('Stored user is already onboarded, redirecting to home');
-            router.push('/');
+            router.push('/home');
             return;
           } else {
             console.log('Stored user is not onboarded, continuing with onboarding');
@@ -117,7 +117,7 @@ export default function OnboardingFlow() {
       setCurrentState(OnboardingState.COMPLETED);
       
       // Redirect to home page
-      router.push('/');
+      router.push('/home');
     } catch (error) {
       console.error('Error creating user profile:', error);
     }
@@ -154,7 +154,7 @@ export default function OnboardingFlow() {
         
         if (user.isOnboarded) {
           console.log('User is already onboarded, redirecting to home');
-          router.push('/');
+          router.push('/home');
         } else {
           console.log('User exists but not onboarded, staying on onboarding flow');
         }
@@ -168,7 +168,7 @@ export default function OnboardingFlow() {
             
             if (userData.isOnboarded) {
               console.log('Stored user is onboarded, redirecting to home');
-              router.push('/');
+              router.push('/home');
             } else {
               console.log('Stored user exists but not onboarded, staying on flow');
             }
@@ -185,7 +185,7 @@ export default function OnboardingFlow() {
   // Redirect to home if onboarding is completed
   useEffect(() => {
     if (currentState === OnboardingState.COMPLETED) {
-      router.push('/');
+      router.push('/home');
     }
   }, [currentState, router]);
   
