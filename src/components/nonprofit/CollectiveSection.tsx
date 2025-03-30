@@ -35,7 +35,7 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
               name: userDoc.data().display_name || 'Unknown User',
               photoURL: userDoc.data().photo_url,
               role: 'staff'
-            };
+            } as Member;
           }
           return null;
         });
@@ -52,7 +52,7 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
                 name: userDoc.data().display_name || 'Unknown User',
                 photoURL: userDoc.data().photo_url,
                 role: 'member'
-              };
+              } as Member;
             }
             return null;
           });
