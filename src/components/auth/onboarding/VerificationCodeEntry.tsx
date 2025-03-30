@@ -241,69 +241,35 @@ export default function VerificationCodeEntry({
     try {
       console.log('Verifying code:', verificationCode);
       
-      // DIRECT FIREBASE AUTHENTICATION - Skip all middleware
-      const auth = getAuth();
+      // Using the Auth Context confirmCode function
+      await confirmCode(verificationId, verificationCode);
       
-      // Create credential from verification ID and code
-      const credential = PhoneAuthProvider.credential(verificationId, verificationCode);
-      
-      // Sign in with credential directly
-      const userCredential = await signInWithCredential(auth, credential);
-      
-      // Get user document from Firestore
-      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
-      
-      if (userDoc.exists()) {
-        // Existing user - update onboarded status
-        const userData = userDoc.data();
-        
-        // Always mark existing users as onboarded
-        if (!userData.is_onboarded) {
-          await updateDoc(doc(db, 'users', userCredential.user.uid), {
-            is_onboarded: true,
-            last_login: serverTimestamp(),
-            updated_at: serverTimestamp()
-          });
-        } else {
-          // Just update last login time
-          await updateDoc(doc(db, 'users', userCredential.user.uid), {
-            last_login: serverTimestamp()
-          });
-        }
-        
-        // Save user info to localStorage
-        localStorage.setItem('auth_user', JSON.stringify({
-          uid: userCredential.user.uid,
-          displayName: userData.display_name || '',
-          phoneNumber: userCredential.user.phoneNumber || '',
-          isOnboarded: true,
-          photoURL: userData.profile_image_url || null,
-          firstName: userData.first_name || '',
-          lastName: userData.last_name || '',
-        }));
-      } else {
-        // New user - will be created during onboarding
-        localStorage.setItem('auth_user', JSON.stringify({
-          uid: userCredential.user.uid,
-          phoneNumber: userCredential.user.phoneNumber || '',
-          isOnboarded: false
-        }));
-      }
-      
-      // Show success message
+      // Show success message and handle redirection
       showSuccessMessage('Verification successful!');
       
-      // If user exists, always redirect to home
-      if (userDoc.exists()) {
-        setTimeout(() => {
-          router.push('/home');
-        }, 1000);
-      } else {
-        // For new users, continue with onboarding
-        setTimeout(() => {
-          onSuccess();
-        }, 1000);
+      // Get auth user data stored in localStorage
+      const authUserData = localStorage.getItem('auth_user');
+      
+      if (authUserData) {
+        try {
+          const userData = JSON.parse(authUserData);
+          
+          // For existing (onboarded) users, redirect to home
+          if (userData.isOnboarded) {
+            setTimeout(() => {
+              router.push('/home');
+            }, 1000);
+            return;
+          }
+        } catch (e) {
+          console.error('Error parsing auth user data:', e);
+        }
       }
+      
+      // For new users, proceed with onboarding
+      setTimeout(() => {
+        onSuccess();
+      }, 1000);
     } catch (err) {
       console.error('Verification error:', err);
       
@@ -311,49 +277,11 @@ export default function VerificationCodeEntry({
       if (err instanceof Error) {
         // Format user-friendly error messages based on Firebase error codes
         if (err.message.includes('too-many-requests')) {
-          errorMessage = 'Too many verification attempts. For security reasons, please try again in a few minutes.';
-          
-          // Store the last attempt time
-          localStorage.setItem('last_code_verification_attempt', Date.now().toString());
-          
-          // Start the cooldown timer
-          setVerificationCooldown(30);
-          
-          // Set up interval to update countdown
-          const interval = setInterval(() => {
-            setVerificationCooldown(prev => {
-              if (prev === null || prev <= 1) {
-                clearInterval(interval);
-                return null;
-              }
-              return prev - 1;
-            });
-          }, 1000);
+          errorMessage = 'Too many verification attempts. Please try again in a few minutes.';
         } else if (err.message.includes('invalid-verification-code')) {
           errorMessage = 'The verification code you entered is incorrect. Please try again.';
         } else if (err.message.includes('code-expired')) {
           errorMessage = 'The verification code has expired. Please request a new code.';
-        } else if (err.message.includes('quota-exceeded')) {
-          errorMessage = 'Our verification service is temporarily unavailable. Please try again later.';
-        } else if (err.message.includes('wait')) {
-          // Extract wait time from error message for display
-          const waitMatch = err.message.match(/wait (\d+) seconds/);
-          if (waitMatch && waitMatch[1]) {
-            const seconds = parseInt(waitMatch[1], 10);
-            setVerificationCooldown(seconds);
-            
-            // Set up interval to update countdown
-            const interval = setInterval(() => {
-              setVerificationCooldown(prev => {
-                if (prev === null || prev <= 1) {
-                  clearInterval(interval);
-                  return null;
-                }
-                return prev - 1;
-              });
-            }, 1000);
-          }
-          errorMessage = `Please wait before trying again. You can try again in ${verificationCooldown || 30} seconds.`;
         } else {
           // Use the Firebase error message
           errorMessage = err.message;

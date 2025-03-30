@@ -46,6 +46,9 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   
+  // Create a ref for the recaptcha verifier
+  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
+  
   const { verifyPhoneNumber } = useAuth();
   
   // Format phone number for display as (xxx) xxx-xxxx
@@ -109,52 +112,21 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
     return `${progress * 100}%`;
   };
   
-  // Ensure recaptcha container is visible
+  // Clean up recaptcha on component unmount
   useEffect(() => {
-    // Make sure recaptcha container is visible but not disturbing the layout
-    const recaptchaContainer = document.getElementById('recaptcha-container');
-    if (recaptchaContainer) {
-      recaptchaContainer.style.position = 'fixed';
-      recaptchaContainer.style.bottom = '0';
-      recaptchaContainer.style.right = '0';
-      recaptchaContainer.style.zIndex = '1000';
-      recaptchaContainer.style.opacity = '0.01'; // Nearly invisible but functional
-    }
+    return () => {
+      if (recaptchaVerifierRef.current) {
+        recaptchaVerifierRef.current.clear();
+      }
+    };
   }, []);
   
-  // Check for existing cooldown
-  useEffect(() => {
-    const lastAttemptTime = localStorage.getItem('last_phone_verification_attempt');
-    if (lastAttemptTime) {
-      const cooldownPeriod = 60000; // 1 minute
-      const updateTimer = () => {
-        const timeElapsed = Date.now() - Number(lastAttemptTime);
-        const remainingTime = cooldownPeriod - timeElapsed;
-        
-        if (remainingTime > 0) {
-          setCooldownSeconds(Math.ceil(remainingTime / 1000));
-        } else {
-          setCooldownSeconds(null);
-          clearInterval(interval);
-        }
-      };
-      
-      // Check immediately
-      updateTimer();
-      
-      // Then set up interval
-      const interval = setInterval(updateTimer, 1000);
-      return () => clearInterval(interval);
-    }
-  }, []);
-  
-  // Handle verification error properly
+  // Handle verification
   const sendVerificationCode = async () => {
-    if (!isPhoneNumberValid || isLoading || cooldownSeconds !== null) return;
+    if (!isPhoneNumberValid || isLoading) return;
     
-    // Clear previous error
-    setError(null);
     setIsLoading(true);
+    setError(null);
     
     try {
       // Format phone number for API use
@@ -162,215 +134,68 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
       
       console.log('Sending verification to:', formattedNumber);
       
-      // DIRECT FIREBASE AUTHENTICATION - Skip all middleware and context layers
-      try {
-        // Check if user already exists in Firestore
-        const usersCollectionRef = collection(db, 'users');
-        const q = query(usersCollectionRef, where('phone_number', '==', formattedNumber));
-        const querySnapshot = await getDocs(q);
-        
-        if (!querySnapshot.empty) {
-          // User exists, get their information
-          const userDoc = querySnapshot.docs[0];
-          const userData = userDoc.data();
-          console.log('Found existing user:', userData);
-          
-          // Save user data to localStorage for persistence
-          localStorage.setItem('existing_user_data', JSON.stringify({
-            firstName: userData.first_name || '',
-            displayName: userData.display_name || '',
-            isOnboarded: true, // Always treat existing users as onboarded
-            uid: userDoc.id
-          }));
-          
-          localStorage.setItem('auth_user', JSON.stringify({
-            uid: userDoc.id,
-            displayName: userData.display_name || '',
-            phoneNumber: formattedNumber,
-            isOnboarded: true,
-            photoURL: userData.profile_image_url || null,
-            firstName: userData.first_name || '',
-            lastName: userData.last_name || '',
-          }));
-          
-          // DIRECT AUTHENTICATION WITH FIREBASE
-          const auth = getAuth();
-          
-          // Clean up any existing reCAPTCHA verifiers
-          try {
-            const recaptchaElements = document.querySelectorAll('.grecaptcha-badge, iframe[title*="recaptcha"]');
-            recaptchaElements.forEach(element => {
-              element.remove();
-            });
-          } catch (e) {
-            console.error('Error cleaning up reCAPTCHA:', e);
-          }
-          
-          // Setup reCAPTCHA verifier
-          const recaptchaContainer = document.getElementById('recaptcha-container');
-          if (!recaptchaContainer) {
-            throw new Error('Recaptcha container not found');
-          }
-          
-          const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-            size: 'invisible',
-          });
-          
-          // Send verification code directly with Firebase
-          const confirmationResult = await signInWithPhoneNumber(auth, formattedNumber, verifier);
-          
-          // Show success for existing users
-          showSuccessMessage('Verification code sent');
-          
-          // Pass verification ID directly to parent
-          onSuccess(confirmationResult.verificationId, formattedNumber);
-          return;
-        } else {
-          // New user flow
-          const auth = getAuth();
-          
-          // Clean up any existing reCAPTCHA verifiers
-          try {
-            const recaptchaElements = document.querySelectorAll('.grecaptcha-badge, iframe[title*="recaptcha"]');
-            recaptchaElements.forEach(element => {
-              element.remove();
-            });
-          } catch (e) {
-            console.error('Error cleaning up reCAPTCHA:', e);
-          }
-          
-          // Setup reCAPTCHA verifier
-          const recaptchaContainer = document.getElementById('recaptcha-container');
-          if (!recaptchaContainer) {
-            throw new Error('Recaptcha container not found');
-          }
-          
-          const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-            size: 'invisible',
-          });
-          
-          // Send verification code directly with Firebase
-          const confirmationResult = await signInWithPhoneNumber(auth, formattedNumber, verifier);
-          
-          // Pass verification ID to parent
-          showSuccessMessage('Verification code sent');
-          onSuccess(confirmationResult.verificationId, formattedNumber);
-        }
-      } catch (err) {
-        console.error('Firebase authentication error:', err);
-        throw err;
+      // Clean up any existing recaptcha
+      if (recaptchaVerifierRef.current) {
+        recaptchaVerifierRef.current.clear();
+        recaptchaVerifierRef.current = null;
       }
-    } catch (err) {
-      console.error('Verification error:', err);
       
-      // Display appropriate error message
-      if (err instanceof Error) {
-        let errorMessage = err.message;
+      // Create new recaptcha verifier
+      const auth = getAuth();
+      const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'invisible',
+      });
+      
+      recaptchaVerifierRef.current = recaptchaVerifier;
+      
+      // Check if user exists in Firestore
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('phone_number', '==', formattedNumber));
+      const snapshot = await getDocs(q);
+      
+      if (!snapshot.empty) {
+        // User exists
+        const userDoc = snapshot.docs[0];
+        const userData = userDoc.data();
         
-        // Handle specific Firebase errors with more user-friendly messages
-        if (errorMessage.includes('operation-not-allowed') || 
-            errorMessage.includes('region enabled')) {
-          errorMessage = 'SMS verification is not available in your region. Please try again later.';
-        } else if (errorMessage.includes('too-many-requests')) {
-          errorMessage = 'Too many verification attempts. For security reasons, please try again in a few minutes.';
-          
-          // Store the last attempt time to implement backoff
-          localStorage.setItem('last_phone_verification_attempt', Date.now().toString());
-          
-          // Start countdown
-          setCooldownSeconds(60);
-          
-          // Set up interval to update countdown
-          const interval = setInterval(() => {
-            setCooldownSeconds(prev => {
-              if (prev === null || prev <= 1) {
-                clearInterval(interval);
-                return null;
-              }
-              return prev - 1;
-            });
-          }, 1000);
-        } else if (errorMessage.includes('invalid-phone-number')) {
-          errorMessage = 'Please enter a valid phone number with country code.';
-        } else if (errorMessage.includes('quota-exceeded')) {
-          errorMessage = 'Our verification service is temporarily unavailable. Please try again later.';
-        } else if (errorMessage.includes('wait')) {
-          // Extract wait time from error message for display
-          const waitMatch = errorMessage.match(/wait (\d+) seconds/);
-          if (waitMatch && waitMatch[1]) {
-            const seconds = parseInt(waitMatch[1], 10);
-            setCooldownSeconds(seconds);
-            
-            // Set up interval to update countdown
-            const interval = setInterval(() => {
-              setCooldownSeconds(prev => {
-                if (prev === null || prev <= 1) {
-                  clearInterval(interval);
-                  return null;
-                }
-                return prev - 1;
-              });
-            }, 1000);
-          }
-        }
-        
-        setError(errorMessage);
+        // Store user data for verification component
+        localStorage.setItem('existing_user_data', JSON.stringify({
+          firstName: userData.first_name || '',
+          displayName: userData.display_name || '',
+          isOnboarded: userData.is_onboarded || false,
+          uid: userDoc.id
+        }));
       } else {
-        setError('Failed to send verification code. Please try again.');
+        // New user
+        localStorage.removeItem('existing_user_data');
+      }
+      
+      // Send verification code
+      const confirmationResult = await signInWithPhoneNumber(auth, formattedNumber, recaptchaVerifier);
+      
+      setSuccessMessage('Verification code sent');
+      setShowSuccess(true);
+      
+      // Hide success message after 2 seconds
+      setTimeout(() => {
+        setShowSuccess(false);
+        setSuccessMessage(null);
+      }, 2000);
+      
+      // Pass the verification ID to the parent component
+      onSuccess(confirmationResult.verificationId, formattedNumber);
+    } catch (err) {
+      console.error('Error sending verification code:', err);
+      
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An error occurred while sending verification code');
       }
     } finally {
       setIsLoading(false);
     }
   };
-  
-  const showSuccessMessage = (message: string) => {
-    setSuccessMessage(message);
-    setShowSuccess(true);
-    
-    // Hide after 2 seconds
-    setTimeout(() => {
-      setShowSuccess(false);
-      setSuccessMessage(null);
-    }, 2000);
-  };
-  
-  // Start the pulsating animation
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setGlowOpacity((prev) => (prev === 0.5 ? 0.95 : 0.5));
-    }, 1500);
-    
-    return () => clearInterval(interval);
-  }, []);
-
-  // Auto-focus on the input field - simplified approach
-  useEffect(() => {
-    // Initial focus
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-    
-    // Try again after component is fully mounted
-    const timer = setTimeout(() => {
-      if (inputRef.current) {
-        inputRef.current.click();
-        inputRef.current.focus();
-      }
-    }, 100);
-
-    // Try one more time after a bit longer
-    const secondTimer = setTimeout(() => {
-      if (inputRef.current) {
-        inputRef.current.click();
-        inputRef.current.focus();
-      }
-    }, 500);
-    
-    return () => {
-      clearTimeout(timer);
-      clearTimeout(secondTimer);
-    };
-  }, []);
   
   // Get progress bar color based on completion
   const getProgressBarColor = () => {
@@ -391,30 +216,6 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
     setShowCountryDropdown(false);
     // Focus back on the input field after selection
     inputRef.current?.focus();
-  };
-  
-  // Continue button should show timer if in cooldown
-  const renderContinueButtonContent = () => {
-    if (isLoading) {
-      return (
-        <svg className="animate-spin h-10 w-10 text-white absolute z-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      );
-    }
-    
-    if (cooldownSeconds !== null) {
-      return (
-        <div className="text-white text-lg absolute z-10">{cooldownSeconds}s</div>
-      );
-    }
-    
-    return (
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white absolute z-10" viewBox="0 0 20 20" fill="currentColor">
-        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-      </svg>
-    );
   };
   
   return (
@@ -502,8 +303,8 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
             <div className="w-full px-5 flex justify-end">
               <motion.button
                 onClick={sendVerificationCode}
-                disabled={!isPhoneNumberValid || isLoading || cooldownSeconds !== null}
-                className={`w-21 h-21 rounded-full flex items-center justify-center relative overflow-hidden ${!isPhoneNumberValid || cooldownSeconds !== null ? 'opacity-70' : 'opacity-100'}`}
+                disabled={!isPhoneNumberValid || isLoading}
+                className={`w-21 h-21 rounded-full flex items-center justify-center relative overflow-hidden ${!isPhoneNumberValid ? 'opacity-70' : 'opacity-100'}`}
                 style={{ width: '5.25rem', height: '5.25rem' }}
                 whileTap={{ scale: 0.95 }}
                 initial={{ opacity: 0 }}
@@ -512,13 +313,22 @@ export default function PhoneNumberEntry({ onSuccess }: PhoneNumberEntryProps) {
               >
                 {/* Button glow effect */}
                 <motion.div 
-                  className={`absolute inset-0 rounded-full ${isPhoneNumberValid && cooldownSeconds === null ? 'bg-green-500' : 'bg-[#1F1F1F]'}`}
-                  animate={{ opacity: isPhoneNumberValid && cooldownSeconds === null ? glowOpacity : 1 }}
+                  className={`absolute inset-0 rounded-full ${isPhoneNumberValid ? 'bg-green-500' : 'bg-[#1F1F1F]'}`}
+                  animate={{ opacity: isPhoneNumberValid ? glowOpacity : 1 }}
                   transition={{ duration: 0.5 }}
                 />
                 
                 {/* Button content */}
-                {renderContinueButtonContent()}
+                {isLoading ? (
+                  <svg className="animate-spin h-10 w-10 text-white absolute z-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white absolute z-10" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                )}
               </motion.button>
             </div>
             
