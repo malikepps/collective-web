@@ -1,0 +1,84 @@
+## 6. POSTS AND MEDIA IMPLEMENTATION
+
+### 6.1 Post Data Models
+
+Define TypeScript interfaces for posts and media, including:
+- Post main model
+- Media items (images, videos, carousels)
+- Comments and reactions
+- Post visibility settings (members-only, broader ecosystem)
+
+Reference the Swift Post.swift model for field mappings and data structure.
+
+### 6.2 Post Fetching Service
+
+Implement a service for fetching posts with the following features:
+- Fetch posts for a specific nonprofit
+- Pagination with virtual scrolling
+- Filter by visibility (regular vs. member posts)
+- Sort by date, popularity
+- Prefetch media to improve performance
+
+### 6.3 Media Processing
+
+Implement media handling components for:
+- Image optimization and lazy loading
+- Video playback with React Player
+- Carousel support for multiple media items
+- Background color handling for text posts
+- Thumbnail generation for video posts
+
+### 6.4 Post Components
+
+Create the following React components:
+1. **PostView**: Main post display component
+   - Display organization info
+   - Handle different media types
+   - Show caption and metadata
+   - Like/comment actions
+
+2. **PostList**: Virtual scrolling list of posts
+   - Infinite scrolling
+   - Progressive loading
+   - Optimized rendering
+
+3. **PostDetailView**: Full-screen post view
+   - Enhanced media viewing experience
+   - Comment section
+   - Related posts
+
+4. **Comments Section**:
+   - Nested comments with threads
+   - Comment creation
+   - Like/reaction functionality
+
+### 6.5 Media Upload Components
+
+Build components for:
+- Media selection from device
+- Media preview before upload
+- Upload progress indicators
+- Multiple file uploads
+- Type validation and error handling
+
+### 6.6 Sample Implementation Plan
+
+1. Create post and media model interfaces
+2. Implement Firebase service for post fetching
+3. Build basic post card component
+4. Add media rendering components (image, video, carousel)
+5. Create virtual scroll post list
+6. Implement post detail view with comments
+7. Add post interaction functionality (like, comment)
+8. Build media upload components
+9. Implement member-only content handling
+
+### 6.7 Optimization Techniques
+
+Use these techniques for best performance:
+- Image lazy loading with proper sizing
+- Video poster images and delayed playback
+- Virtualized lists for post feeds
+- Paginated data fetching
+- Firebase query optimization
+- Content prefetching 

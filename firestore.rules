@@ -1,0 +1,193 @@
+rules_version = '2';
+
+// Firestore rules
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /nonprofits/{parent}/ig_secrets/{document} {
+      allow create: if /databases/$(database)/documents/users/$(request.auth.uid) in get(/databases/$(database)/documents/nonprofits/$(parent)).data.managers;
+      allow read: if /databases/$(database)/documents/users/$(request.auth.uid) in get(/databases/$(database)/documents/nonprofits/$(parent)).data.managers;
+      allow write: if /databases/$(database)/documents/users/$(request.auth.uid) in get(/databases/$(database)/documents/nonprofits/$(parent)).data.managers;
+      allow delete: if /databases/$(database)/documents/users/$(request.auth.uid) in get(/databases/$(database)/documents/nonprofits/$(parent)).data.managers;
+    }
+
+    match /notifications/{document} {
+      allow create: if request.auth != null;
+      allow read: if resource.data.receiver_ID == /databases/$(database)/documents/users/$(request.auth.uid);
+      allow write: if false;
+      allow delete: if resource.data.receiver_ID == /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    match /posts/{parent}/post_comments/{document} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null;
+      allow write: if resource.data.user == /databases/$(database)/documents/users/$(request.auth.uid);
+      allow delete: if resource.data.user == /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    match /{path=**}/post_comments/{document} {
+      allow read: if request.auth != null;
+    }
+
+
+    // getDocIdFromRef(ref) Helper Function
+    function getDocIdFromPath(pathStr) {
+      let segments = pathStr.split("/");
+      return segments[segments.size() - 1];
+    }
+  
+    // getUserDocRef Helper Function
+    function getUserDocRef() {
+      let userDocRef = /databases/$(database)/documents/users/$(request.auth.uid);
+      return userDocRef;
+    }
+ 
+    // isManager Helper Function
+    function isManager(nonprofitId) {
+      // Build the user document reference
+      let userDocRef = getUserDocRef();
+      
+      // Get the nonprofit document
+      let nonprofit = get(/databases/$(database)/documents/nonprofits/$(nonprofitId)).data;
+
+      // Ensure:
+      // 1. Nonprofit exists
+      // 2. Nonprofit has a 'managers' field
+      // 3. 'managers' array includes the userDocRef
+      return nonprofit != null
+        && nonprofit.managers != null
+        && nonprofit.managers.hasAny([userDocRef]);
+    }
+
+    // Users collection - Modified to allow email-based updates
+    match /users/{document} {
+      allow create: if request.auth.uid == document;
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+      allow delete: if request.auth.uid == resource.data.uid;
+    }
+
+		// Boosted posts subcollection
+      match /boosted_posts/{postId} {
+        allow read: if true;
+        allow create, update, delete: if request.auth != null && request.auth.uid == userId;
+      }
+
+    // Nonprofits collection with featured media and links subcollections
+    match /nonprofits/{document} {
+      allow create: if request.auth != null;
+      allow read: if true;
+      allow write: if /databases/$(database)/documents/users/$(request.auth.uid) in resource.data.managers;
+      allow delete: if /databases/$(database)/documents/users/$(request.auth.uid) in resource.data.managers;
+    }
+
+    // Posts collection - UPDATED
+    match /posts/{document} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+      allow delete: if resource.data.userID == /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    // Rest of your collections
+    match /usernames/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if true;
+      allow delete: if resource.data.userID == /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    // User post reactions - UPDATED
+    match /user_post_reactions/{document} {
+      allow create: if request.auth != null;
+      allow read: if true;
+      allow write: if resource.data.user == /databases/$(database)/documents/users/$(request.auth.uid);
+      allow delete: if resource.data.user == /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    // User comment reactions
+    match /user_comment_reactions/{document} {
+      allow create: if request.auth != null;
+      allow read: if true;
+      allow write: if resource.data.user == /databases/$(database)/documents/users/$(request.auth.uid);
+      allow delete: if resource.data.user == /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    match /nonprofit_membership_tiers/{document} {
+      allow create: if false;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /user_nonprofit_relationships/{document} {
+      allow create: if request.auth != null;
+      allow read: if true;
+      allow write: if resource.data.user == /databases/$(database)/documents/users/$(request.auth.uid);
+      allow delete: if resource.data.user == /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    match /communities/{document} {
+      allow create: if false;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /membership_tiers/{document} {
+      allow create: if false;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /membership/{document} {
+      allow create: if true; // TODO: only if the specified user is the auth user
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    // Message threads collection
+    match /message_threads/{threadId} {
+      allow read: if request.auth != null && (
+        resource.data.user_ref == /databases/$(database)/documents/users/$(request.auth.uid) ||
+        isManager(getDocIdFromPath(resource.data.nonprofit_ref.path))
+      );
+      allow create: if false;  // Only created by cloud functions
+      allow update: if false;  // Only updated by cloud functions
+      allow delete: if false;
+    }
+
+    // Messages collection
+    match /messages/{messageId} {
+      allow read: if request.auth != null && (
+        resource.data.sender_ref == /databases/$(database)/documents/users/$(request.auth.uid) ||
+        isManager(getDocIdFromPath(resource.data.nonprofit_ref.path))
+      );
+      allow create: if request.auth != null && (
+        request.resource.data.sender_ref == /databases/$(database)/documents/users/$(request.auth.uid) ||
+        isManager(getDocIdFromPath(request.resource.data.nonprofit_ref.path))
+      );
+      allow update: if false;  // Messages are immutable
+      allow delete: if false;  // No message deletion in v1
+    }
+
+    // Message metadata collection
+    match /message_metadata/{metadataId} {
+      allow read: if request.auth != null && (
+        resource.data.user_ref == /databases/$(database)/documents/users/$(request.auth.uid) ||
+        isManager(getDocIdFromPath(resource.data.nonprofit_ref.path))
+      );
+      allow create: if false;  // Only created by cloud functions
+      allow update: if request.auth != null && (
+        resource.data.user_ref == /databases/$(database)/documents/users/$(request.auth.uid) ||
+        isManager(getDocIdFromPath(resource.data.nonprofit_ref.path))
+      ) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['unread_count']);
+      allow delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

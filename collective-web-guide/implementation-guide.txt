@@ -1,0 +1,181 @@
+# COLLECTIVE WEB APP IMPLEMENTATION GUIDE
+
+## Table of Contents
+1. Environment Setup
+2. Project Initialization
+3. Firebase Configuration
+4. Authentication Implementation
+5. Nonprofit Profile Implementation
+6. Post Components
+7. Media Handling
+8. Membership and Payments
+9. Navigation and Routing
+10. Home Feed Implementation
+11. Testing and Optimization
+12. Deployment to Production
+
+---
+
+## 1. ENVIRONMENT SETUP
+
+### 1.1 Required Tools
+- **Node.js (v18+)**
+  ```bash
+  # Check your Node version
+  node -v
+  
+  # If needed, install or update using nvm
+  nvm install 18
+  nvm use 18
+  ```
+
+- **Package Manager**
+  ```bash
+  # Use npm (comes with Node) or install yarn
+  npm install -g yarn
+  ```
+
+- **Vercel CLI**
+  ```bash
+  npm install -g vercel
+  ```
+
+- **Git**
+  ```bash
+  # Verify git installation
+  git --version
+  ```
+
+### 1.2 Editor Setup
+- Install Visual Studio Code
+- Install recommended extensions:
+  - ESLint
+  - Prettier
+  - Tailwind CSS IntelliSense
+  - Firebase Explorer
+  - TypeScript React code snippets
+
+---
+
+## 2. PROJECT INITIALIZATION
+
+### 2.1 Create Next.js Project
+```bash
+npx create-next-app@latest collective-web --typescript --tailwind --eslint
+cd collective-web
+```
+
+### 2.2 Install Dependencies
+```bash
+npm install firebase @firebase/auth @firebase/firestore @firebase/storage
+npm install @stripe/stripe-js @stripe/react-stripe-js
+npm install framer-motion @headlessui/react react-player
+npm install react-firebase-hooks react-hook-form
+npm install react-virtualized react-intersection-observer
+```
+
+### 2.3 Project Structure Setup
+```bash
+# Create core directories
+mkdir -p src/components/layout
+mkdir -p src/components/nonprofits
+mkdir -p src/components/posts
+mkdir -p src/components/auth
+mkdir -p src/components/media
+mkdir -p src/components/membership
+mkdir -p src/lib/firebase
+mkdir -p src/lib/hooks
+mkdir -p src/lib/utils
+mkdir -p src/lib/context
+mkdir -p src/pages/nonprofit
+mkdir -p src/pages/post
+mkdir -p src/pages/auth
+mkdir -p src/pages/profile
+mkdir -p public/fonts
+```
+
+### 2.4 Font Setup
+1. Create a fonts.css file in `src/styles`
+2. Add Marfa font files to `public/fonts`
+3. Configure font imports:
+
+```css
+/* src/styles/fonts.css */
+@font-face {
+  font-family: 'Marfa';
+  src: url('/fonts/Marfa-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Marfa';
+  src: url('/fonts/Marfa-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Marfa';
+  src: url('/fonts/Marfa-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Marfa';
+  src: url('/fonts/Marfa-Semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Marfa';
+  src: url('/fonts/Marfa-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+```
+
+4. Import fonts in `_app.tsx`:
+```tsx
+import '../styles/fonts.css';
+```
+
+### 2.5 Tailwind Configuration
+Update `tailwind.config.js`:
+
+```js
+module.exports = {
+  content: [
+    './src/pages/**/*.{js,ts,jsx,tsx}',
+    './src/components/**/*.{js,ts,jsx,tsx}',
+  ],
+  theme: {
+    extend: {
+      fontFamily: {
+        marfa: ['Marfa', 'sans-serif'],
+      },
+      colors: {
+        // Base colors
+        primary: 'var(--color-primary)',
+        secondary: 'var(--color-secondary)',
+        background: '#111214',
+        card: 'rgba(41, 41, 46, 0.7)',
+      },
+    },
+  },
+  plugins: [],
+}
+```
+
+### 2.6 Initialize Vercel Project
+```bash
+vercel login
+vercel
+``` 

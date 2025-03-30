@@ -1,0 +1,117 @@
+# COLLECTIVE WEB APP - QUICK START GUIDE
+
+This guide provides a condensed overview of the implementation process for the Collective web app. For detailed instructions, refer to the full implementation guide.
+
+## First-Time Setup
+
+1. **Environment Setup**
+   ```bash
+   # Install Node.js v18+ and Yarn
+   npm install -g yarn
+   npm install -g vercel
+   
+   # Create project
+   npx create-next-app@latest collective-web --typescript --tailwind --eslint
+   cd collective-web
+   
+   # Install core dependencies
+   npm install firebase framer-motion @headlessui/react react-player
+   npm install @stripe/stripe-js @stripe/react-stripe-js
+   npm install react-firebase-hooks react-hook-form
+   ```
+
+2. **Configure Firebase**
+   - Create `.env.local` file with Firebase credentials
+   - Set up Firebase config in `src/lib/firebase/config.ts`
+   - Import Firebase security rules from Swift project
+
+3. **Vercel Project Setup**
+   ```bash
+   vercel login
+   vercel
+   ```
+
+## Development Workflow
+
+1. **Priority Order**
+   - Start with Firebase configuration
+   - Implement authentication system
+   - Build nonprofit profile pages
+   - Create post components
+   - Implement membership/payment features
+   - Develop navigation and home feed last
+
+2. **Key Components to Build First**
+   - Authentication components
+   - Nonprofit profile view
+   - Media playback components
+   - Post display components
+   - Membership tier display
+
+3. **Reference Swift Code**
+   - `NonprofitProfileView.swift` for profile UI structure
+   - `Post.swift` for post data model
+   - `MembershipTier.swift` for membership options
+   - `HomeView.swift` for feed layout
+
+## Mobile-First Development
+
+1. **Viewport Configuration**
+   - Set proper mobile viewport settings
+   - Test on iOS and Android browsers
+   - Use mobile device emulation in browser dev tools
+
+2. **Responsive Considerations**
+   - Optimize for portrait mode
+   - Use flexible layouts with rem/em units
+   - Test on different screen sizes
+
+## Theme System
+
+1. **Theme Implementation**
+   - Use CSS variables for theme colors
+   - Implement theme context provider
+   - Create theme-aware components
+   - Reference the Swift theme system
+
+## Media Handling
+
+1. **Optimization Strategy**
+   - Implement lazy loading for images
+   - Use responsive image sizing
+   - Set up video poster frames
+   - Configure WebP format for images
+
+## Build and Deploy
+
+1. **Vercel Deployment**
+   ```bash
+   # Preview deployment
+   vercel
+   
+   # Production deployment
+   vercel --prod
+   ```
+
+2. **Testing Before Deployment**
+   - Test on multiple mobile browsers
+   - Verify authentication flows
+   - Check media playback performance
+   - Test membership payment process
+
+## Common Issues
+
+1. **Firebase Authentication**
+   - Enable phone authentication in Firebase console
+   - Set up reCAPTCHA verification
+   - Test with real phone numbers in development
+
+2. **Media Performance**
+   - Optimize image and video sizes
+   - Use compression for uploaded media
+   - Implement proper caching strategies
+
+3. **Stripe Integration**
+   - Test with Stripe test mode first
+   - Implement proper webhook handling
+   - Use idempotent API requests 

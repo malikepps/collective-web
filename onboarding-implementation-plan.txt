@@ -1,0 +1,277 @@
+# Collective Web App - Onboarding Implementation Plan
+
+## Overview
+This plan outlines the approach to implement the onboarding flow for the Collective web app with 100% fidelity to the iOS app. We'll match all animations, transitions, and visual details to create a seamless cross-platform experience.
+
+## Implementation Progress
+
+### Completed
+- ✅ Basic project setup with Next.js 14.0.0
+- ✅ Fixed configuration issues (TailwindCSS, PostCSS, Next.js caching)
+- ✅ Added Framer Motion for animations
+- ✅ Enhanced PhoneNumberEntry component with animations and proper styling
+- ✅ Enhanced VerificationCodeEntry component with animations and proper styling
+- ✅ Implemented onboarding flow navigation between screens
+- ✅ Fixed font loading issues from fonts directory
+- ✅ Added country code dropdown selection with multiple countries
+- ✅ Implemented automatic input field selection for mobile devices
+- ✅ Fixed layout to perfectly match iOS design with proper vertical centering
+- ✅ Added right-aligned enlarged next button with proper styling
+- ✅ Fixed duplicate page issues with routing
+- ✅ Fixed Firebase phone authentication to properly handle verification codes
+- ✅ Improved error handling for phone verification failures
+
+### In Progress
+- ⏳ Testing complete Firebase authentication flow
+- ⏳ DisplayNameEntry component (next up)
+- ⏳ Profile photo upload component
+- ⏳ ZIP code entry with modal sheet
+
+### Pending
+- ⏳ Visual verification against iOS app
+
+## Requirements
+
+### Environment Setup
+- Next.js 14.0.0 
+- TailwindCSS for styling
+- Firebase for authentication and data storage
+- Framer Motion for animations (matching iOS transitions)
+
+### Core Onboarding Flow
+1. Phone Number Entry
+2. SMS Verification Code
+3. Display Name Entry
+4. Profile Photo Upload
+5. ZIP Code Entry
+
+## Implementation Strategy
+
+### 1. Resolution of Current Issues
+- ✅ Remove duplicate onboarding page: Delete `src/pages/onboarding.tsx` and keep `src/pages/onboarding/index.tsx`
+- ✅ Ensure consistent naming between package.json and folder names
+- ✅ Fix any path imports that may be causing issues
+- ✅ Fixed PostCSS configuration for TailwindCSS 
+- ✅ Resolved font loading issues by updating paths to match actual filenames
+- ✅ Fixed multiple Next.js servers running simultaneously
+- ✅ Added empty src/app directory to prevent Next.js errors
+
+### 2. Component Structure
+Each onboarding screen is implemented as:
+- A React component in `src/components/auth/onboarding/`
+- A page in `src/pages/onboarding/` that uses the component
+
+### 3. Detailed Screen Implementation
+
+#### 3.1 Phone Number Entry (COMPLETED)
+- **UI Elements**:
+  - ✅ Country code selector (🇺🇸 with dropdown)
+  - ✅ Phone number input with placeholder
+  - ✅ Dynamic progress bar that fills based on input length
+  - ✅ "Next" button that glows/pulses when valid
+  - ✅ Terms of service text at bottom
+  - ✅ Properly centered layout with logo/title at top
+  - ✅ Properly sized and positioned elements
+  - ✅ Added right-aligned enlarged next button
+  - ✅ Centered terms text
+
+- **Animations**:
+  - ✅ Progress bar filling animation (yellow → green)
+  - ✅ Button pulsing glow effect when phone number is valid
+  - ✅ Button color change (gray → green gradient) when valid
+  - ✅ Smooth transitions between input states
+  - ✅ Exactly matching iOS animation speeds and easing
+
+- **Interactions**:
+  - ✅ Auto-formatting phone number as (xxx) xxx-xxxx
+  - ✅ Input validation for 10 digits
+  - ✅ Show loading state during verification
+  - ✅ Toast notification for errors/success
+  - ✅ Automatic input field selection for better mobile experience
+  - ✅ Properly colored disabled button matching phone input field color
+  - ✅ Country selection with full international options
+
+#### 3.2 SMS Verification Code (COMPLETED)
+- **UI Elements**:
+  - ✅ 6 code input boxes
+  - ✅ Phone number display with edit option
+  - ✅ Paste code button
+  - ✅ Resend code with countdown timer
+  - ✅ Back button
+  - ✅ Continue button with blue gradient
+
+- **Animations**:
+  - ✅ Focus indicator moving between code boxes
+  - ✅ Button pulsing glow effect
+  - ✅ Code input placeholders animation
+  - ✅ Toast notifications sliding in/out
+  
+- **Interactions**:
+  - ✅ Auto-focus on first input
+  - ✅ Auto-advance to next input
+  - ✅ Backspace for previous input
+  - ✅ Paste code functionality
+  - ✅ Resend code with countdown timer
+
+#### 3.3 Display Name Entry
+- **UI Elements**:
+  - Back button
+  - "Looks like you're new here 👋" header
+  - Single-line text input
+  - Informational footer text
+  - Continue button with green gradient
+
+- **Animations**:
+  - Input focus animations
+  - Button pulsing glow effect
+  - Smooth transitions between screens
+  
+- **Interactions**:
+  - Auto-capitalize words
+  - Input validation (non-empty)
+  - Store first/last name components
+
+#### 3.4 Profile Photo Upload
+- **UI Elements**:
+  - Back button
+  - Circular profile image container
+  - Edit button overlay on image
+  - Username display
+  - Skip button
+  - Public profile notice
+  - Continue button with green gradient
+
+- **Animations**:
+  - Image selection transition
+  - Button pulsing glow effect
+  - Smooth transitions between screens
+  
+- **Interactions**:
+  - File selection from device
+  - Image preview within circle
+  - Skip option
+
+#### 3.5 ZIP Code Entry
+- **UI Elements**:
+  - Back button
+  - "Where is home for you?" header
+  - ZIP code input/button
+  - Bottom sheet for ZIP entry (modal)
+  - City/state display after validation
+  - Continue button with green gradient
+
+- **Animations**:
+  - Modal slide-up animation
+  - Validation loading indicator
+  - Button pulsing glow effect
+  - Success checkmark animation
+  
+- **Interactions**:
+  - ZIP code validation against API
+  - City/state population
+  - Bottom sheet interaction
+  - Confirm button in sheet
+
+### 4. Animation Implementation Techniques
+
+#### 4.1 Shared Animation Components (IMPLEMENTED)
+We've created reusable animation patterns for:
+- ✅ Pulsing glow effect for buttons
+- ✅ Progress bar animations
+- ✅ Page transitions with AnimatePresence
+- ✅ Toast notifications with enter/exit animations
+- ✅ Automatic input field selection and focus effects
+
+#### 4.2 Framer Motion Implementation
+We've implemented animations using Framer Motion:
+
+```jsx
+// Button pulsing glow effect (implemented)
+{isValid && (
+  <motion.div
+    className="absolute inset-0 rounded-full"
+    animate={{ 
+      opacity: [0.5, 0.8, 0.5],
+      scale: [0.8, 0.85, 0.8]
+    }}
+    transition={{ 
+      duration: 2, 
+      repeat: Infinity,
+      ease: "easeInOut" 
+    }}
+    style={{ 
+      background: 'radial-gradient(circle, rgba(0,0,0,0) 0%, #10B981 100%)'
+    }}
+  />
+)}
+```
+
+#### 4.3 Page Transitions (IMPLEMENTED)
+We're using Framer Motion's `AnimatePresence` for screen transitions:
+
+```jsx
+<AnimatePresence mode="wait">
+  {currentStep === OnboardingStep.PHONE_NUMBER && (
+    <motion.div
+      key="phone-entry"
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      transition={{ duration: 0.3 }}
+    >
+      <PhoneNumberEntry onSuccess={handlePhoneNumberSuccess} />
+    </motion.div>
+  )}
+</AnimatePresence>
+```
+
+### 5. Firebase Integration
+
+#### 5.1 Phone Authentication
+- ✅ Fixed implementation of phone authentication process
+- ✅ Improved RecaptchaVerifier setup for better reliability
+- ✅ Added better error handling with specific error messages
+- ✅ Positioned reCAPTCHA container for optimal functionality
+- ⏳ Complete testing of the authentication flow
+
+#### 5.2 User Profile Creation
+To be implemented once the entire flow is complete.
+
+### 6. Implementation Timeline and Next Steps
+
+#### Immediate Next Steps:
+1. Implement DisplayNameEntry component
+2. Implement ProfilePhotoUpload component
+3. Implement ZipCodeEntry component with bottom sheet
+4. Set up Firebase phone authentication
+5. Test the complete onboarding flow
+
+### 7. Testing Strategy
+
+#### 7.1 Visual Comparison Testing
+- Ongoing side-by-side comparison with iOS app screenshots
+- Ensuring animations match iOS experience
+
+#### 7.2 Functional Testing
+- Basic component testing is done during development
+- Full flow testing pending
+
+### 8. Implementation Notes
+
+#### Animation Details
+- Button animations use both CSS and Framer Motion
+- Pulsing effect uses opacity and scale animations
+- Progress bar transitions smoothly with animated width changes
+- Verification code UI includes focus indicators and placeholder animations
+- Exact color matches for all UI elements including disabled states
+
+#### Technical Challenges Resolved
+- Fixed browser compatibility issues with keyboard opening
+- Resolved duplicate page errors in Next.js
+- Fixed font loading issues with proper path matching
+- Resolved TailwindCSS configuration issues
+- Fixed multiple Next.js servers running simultaneously
+- Fixed Firebase phone authentication issues with improved reCAPTCHA handling
+
+## Conclusion
+We've made significant progress on the phone number entry and verification code screens, implementing them with high fidelity to the iOS app. The animations are smooth and match the iOS experience closely. Next, we'll implement the remaining screens to complete the onboarding flow. 

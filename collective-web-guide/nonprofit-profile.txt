@@ -1,0 +1,890 @@
+## 5. NONPROFIT PROFILE IMPLEMENTATION
+
+### 5.1 Create Nonprofit Models
+```typescript
+// src/lib/models/organization.ts
+export interface Organization {
+  id?: string;
+  name: string;
+  description: string;
+  photoURL: string;
+  location: string;
+  zipCode: string;
+  city: string;
+  state: string;
+  latitude?: number;
+  longitude?: number;
+  staff?: string[];
+  members?: string[];
+  pitch: string;
+  linkInBio: string;
+  videoURL: string;
+  hero_video_url?: string;
+  membershipFee?: number;
+  username?: string;
+  communityRef: string;
+  communityDisplayName?: string;
+  userID?: string;
+  igAccessToken: string;
+  themeId?: string;
+  welcomeMessage?: string;
+}
+
+export interface Member {
+  id: string;
+  name: string;
+  photoURL: string;
+  role?: string;
+}
+
+export interface Link {
+  id: string;
+  title: string;
+  url: string;
+  order: number;
+}
+
+export enum MembershipRole {
+  COMMUNITY = 'community',
+  MEMBER = 'member',
+  STAFF = 'staff',
+  MANAGER = 'manager'
+}
+
+export interface UserNonprofitRelationship {
+  id?: string;
+  nonprofitId: string;
+  userId: string;
+  role: MembershipRole;
+  joinedAt: Date;
+  isMember: boolean;
+}
+
+export interface MembershipTier {
+  id: string;
+  nonprofitId: string;
+  displayName: string;
+  description: string;
+  price: number;
+  isRecommended: boolean;
+  emoji: string;
+  order: number;
+}
+
+export interface FeaturedMedia {
+  id: string;
+  url: string;
+  type: 'image' | 'video';
+  thumbnailUrl?: string;
+  order: number;
+}
+
+export interface Theme {
+  id: string;
+  name: string;
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  textColor: string;
+  backgroundColor: string;
+}
+```
+
+### 5.2 Create Theme Provider
+```typescript
+// src/lib/context/ThemeContext.tsx
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { db } from '../firebase/config';
+import { doc, getDoc } from 'firebase/firestore';
+import { Theme } from '../models/organization';
+
+interface ThemeContextType {
+  themes: Record<string, Theme>;
+  getTheme: (themeId: string | undefined) => Theme | null;
+  loadTheme: (themeId: string) => Promise<Theme | null>;
+}
+
+const defaultTheme: Theme = {
+  id: 'default',
+  name: 'Default',
+  primaryColor: 'ADD3FF',
+  secondaryColor: '8BBEF9',
+  accentColor: '97F8FA',
+  textColor: 'FFFFFF',
+  backgroundColor: '111214'
+};
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+export const ThemeProvider = ({ children }: { children: ReactNode }) => {
+  const [themes, setThemes] = useState<Record<string, Theme>>({
+    default: defaultTheme
+  });
+
+  const getTheme = (themeId: string | undefined): Theme | null => {
+    if (!themeId) return defaultTheme;
+    return themes[themeId] || null;
+  };
+
+  const loadTheme = async (themeId: string): Promise<Theme | null> => {
+    // Check if we already have this theme
+    if (themes[themeId]) {
+      return themes[themeId];
+    }
+
+    try {
+      const themeDoc = await getDoc(doc(db, 'themes', themeId));
+      
+      if (themeDoc.exists()) {
+        const themeData = themeDoc.data() as Theme;
+        const theme = {
+          id: themeDoc.id,
+          ...themeData
+        };
+        
+        // Cache the theme
+        setThemes(prevThemes => ({
+          ...prevThemes,
+          [themeId]: theme
+        }));
+        
+        return theme;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error loading theme:', error);
+      return null;
+    }
+  };
+
+  // Load common themes on startup
+  useEffect(() => {
+    const loadCommonThemes = async () => {
+      const commonThemeIds = ['blue', 'green', 'purple', 'orange', 'red'];
+      for (const id of commonThemeIds) {
+        await loadTheme(id);
+      }
+    };
+    
+    loadCommonThemes();
+  }, []);
+
+  return (
+    <ThemeContext.Provider value={{ themes, getTheme, loadTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+};
+```
+
+### 5.3 Create Nonprofit Service
+```typescript
+// src/lib/services/nonprofit.service.ts
+import { db } from '../firebase/config';
+import {
+  doc, getDoc, collection, query, where, getDocs,
+  updateDoc, arrayUnion, arrayRemove, Timestamp,
+  setDoc, DocumentReference
+} from 'firebase/firestore';
+import { 
+  Organization, Member, Link, UserNonprofitRelationship, 
+  MembershipRole, MembershipTier 
+} from '../models/organization';
+
+export const fetchOrganization = async (id: string): Promise<Organization | null> => {
+  try {
+    const docRef = doc(db, 'nonprofits', id);
+    const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) {
+      return null;
+    }
+    
+    const data = docSnap.data();
+    
+    // Handle references for community
+    let communityRef = data.community;
+    if (communityRef && typeof communityRef !== 'string') {
+      communityRef = communityRef.path;
+    }
+    
+    return {
+      id: docSnap.id,
+      name: data.display_name || '',
+      description: data.bio || '',
+      photoURL: data.photo_url || '',
+      location: data.city_town || '',
+      zipCode: data.zip_code || '',
+      city: data.city || '',
+      state: data.state || '',
+      latitude: data.latitude,
+      longitude: data.longitude,
+      staff: data.staff || [],
+      members: data.members || [],
+      pitch: data.pitch || '',
+      linkInBio: data.website || '',
+      videoURL: data.video_url || '',
+      hero_video_url: data.hero_video_url,
+      membershipFee: data.membership_fee,
+      username: data.username,
+      communityRef: communityRef || '',
+      userID: data.user_id,
+      igAccessToken: data.ig_access_token || '',
+      themeId: data.theme_id,
+      welcomeMessage: data.welcome_message
+    } as Organization;
+  } catch (error) {
+    console.error('Error fetching organization:', error);
+    return null;
+  }
+};
+
+export const fetchMembers = async (organizationId: string): Promise<Member[]> => {
+  try {
+    const org = await fetchOrganization(organizationId);
+    if (!org || !org.members) return [];
+    
+    const members: Member[] = [];
+    
+    // Get all users in single batch
+    const userRefs = org.members.map(userId => doc(db, 'users', userId));
+    
+    for (const userRef of userRefs) {
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        members.push({
+          id: userSnap.id,
+          name: `${userData.first_name || ''} ${userData.last_name || ''}`.trim(),
+          photoURL: userData.photo_url || '',
+          role: 'member'
+        });
+      }
+    }
+    
+    return members;
+  } catch (error) {
+    console.error('Error fetching members:', error);
+    return [];
+  }
+};
+
+export const fetchStaffMembers = async (organizationId: string): Promise<Member[]> => {
+  try {
+    const org = await fetchOrganization(organizationId);
+    if (!org || !org.staff) return [];
+    
+    const staffMembers: Member[] = [];
+    
+    // Get all users in single batch
+    const userRefs = org.staff.map(userId => doc(db, 'users', userId));
+    
+    for (const userRef of userRefs) {
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        staffMembers.push({
+          id: userSnap.id,
+          name: `${userData.first_name || ''} ${userData.last_name || ''}`.trim(),
+          photoURL: userData.photo_url || '',
+          role: 'staff'
+        });
+      }
+    }
+    
+    return staffMembers;
+  } catch (error) {
+    console.error('Error fetching staff members:', error);
+    return [];
+  }
+};
+
+export const fetchOrganizationLinks = async (organizationId: string): Promise<Link[]> => {
+  try {
+    const linksRef = collection(db, 'nonprofits', organizationId, 'links');
+    const querySnapshot = await getDocs(linksRef);
+    
+    const links: Link[] = [];
+    querySnapshot.forEach(doc => {
+      links.push({
+        id: doc.id,
+        title: doc.data().title || '',
+        url: doc.data().url || '',
+        order: doc.data().order || 0
+      });
+    });
+    
+    return links.sort((a, b) => a.order - b.order);
+  } catch (error) {
+    console.error('Error fetching organization links:', error);
+    return [];
+  }
+};
+
+export const fetchMembershipTiers = async (organizationId: string): Promise<MembershipTier[]> => {
+  try {
+    const tiersRef = collection(db, 'nonprofit_membership_tiers');
+    const q = query(tiersRef, where('nonprofit_id', '==', organizationId));
+    const querySnapshot = await getDocs(q);
+    
+    const tiers: MembershipTier[] = [];
+    querySnapshot.forEach(doc => {
+      const data = doc.data();
+      tiers.push({
+        id: doc.id,
+        nonprofitId: data.nonprofit_id,
+        displayName: data.display_name || '',
+        description: data.description || '',
+        price: data.price || 0,
+        isRecommended: data.is_recommended || false,
+        emoji: data.emoji || '',
+        order: data.order || 0
+      });
+    });
+    
+    return tiers.sort((a, b) => a.order - b.order);
+  } catch (error) {
+    console.error('Error fetching membership tiers:', error);
+    return [];
+  }
+};
+
+export const fetchUserRelationship = async (
+  userId: string, 
+  organizationId: string
+): Promise<UserNonprofitRelationship | null> => {
+  try {
+    const relationshipsRef = collection(db, 'user_nonprofit_relationships');
+    const q = query(
+      relationshipsRef,
+      where('user', '==', doc(db, 'users', userId)),
+      where('nonprofit', '==', doc(db, 'nonprofits', organizationId))
+    );
+    
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      return null;
+    }
+    
+    const docData = querySnapshot.docs[0].data();
+    
+    return {
+      id: querySnapshot.docs[0].id,
+      nonprofitId: organizationId,
+      userId: userId,
+      role: docData.role as MembershipRole,
+      joinedAt: docData.joined_at.toDate(),
+      isMember: docData.is_member || false
+    };
+  } catch (error) {
+    console.error('Error fetching user relationship:', error);
+    return null;
+  }
+};
+
+export const toggleCommunityMembership = async (
+  organizationId: string, 
+  userId: string
+): Promise<boolean> => {
+  try {
+    const relationship = await fetchUserRelationship(userId, organizationId);
+    
+    if (!relationship) {
+      // User is not in community, add them
+      const relationshipsRef = collection(db, 'user_nonprofit_relationships');
+      await setDoc(doc(relationshipsRef), {
+        user: doc(db, 'users', userId),
+        nonprofit: doc(db, 'nonprofits', organizationId),
+        role: MembershipRole.COMMUNITY,
+        joined_at: Timestamp.now(),
+        is_member: false
+      });
+      
+      return true;
+    } else {
+      // User is already in community, check if they're a member
+      if (relationship.isMember) {
+        // Can't remove if they're a member
+        return false;
+      }
+      
+      // Remove them from community
+      await setDoc(doc(db, 'user_nonprofit_relationships', relationship.id!), {
+        user: doc(db, 'users', userId),
+        nonprofit: doc(db, 'nonprofits', organizationId),
+        role: MembershipRole.COMMUNITY,
+        joined_at: Timestamp.now(),
+        is_member: false,
+        removed: true
+      });
+      
+      return false;
+    }
+  } catch (error) {
+    console.error('Error toggling community membership:', error);
+    throw error;
+  }
+};
+```
+
+### 5.4 Create Nonprofit Profile Components
+```tsx
+// src/components/nonprofits/MediaSection.tsx
+import { useState, useEffect } from 'react';
+import ReactPlayer from 'react-player/lazy';
+import { Organization, FeaturedMedia } from '../../lib/models/organization';
+import { storage } from '../../lib/firebase/config';
+import { ref, listAll, getDownloadURL } from 'firebase/storage';
+
+interface MediaSectionProps {
+  organization: Organization;
+}
+
+export default function MediaSection({ organization }: MediaSectionProps) {
+  const [featuredMedia, setFeaturedMedia] = useState<FeaturedMedia[]>([]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+  
+  // Load featured media
+  useEffect(() => {
+    const loadFeaturedMedia = async () => {
+      if (!organization.id) return;
+      
+      try {
+        setLoading(true);
+        
+        // First check if hero video exists
+        if (organization.hero_video_url) {
+          setFeaturedMedia([{
+            id: 'hero',
+            url: organization.hero_video_url,
+            type: 'video',
+            order: 0
+          }]);
+          setLoading(false);
+          return;
+        }
+        
+        // Otherwise load featured media from storage
+        const mediaRef = ref(storage, `nonprofits/${organization.id}/featured_media`);
+        const mediaList = await listAll(mediaRef);
+        
+        const mediaPromises = mediaList.items.map(async (item) => {
+          const url = await getDownloadURL(item);
+          const isVideo = item.name.endsWith('.mp4') || item.name.endsWith('.mov');
+          
+          return {
+            id: item.name,
+            url,
+            type: isVideo ? 'video' : 'image',
+            order: parseInt(item.name.split('_')[0]) || 0
+          };
+        });
+        
+        const media = await Promise.all(mediaPromises);
+        setFeaturedMedia(media.sort((a, b) => a.order - b.order));
+      } catch (error) {
+        console.error('Error loading featured media:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadFeaturedMedia();
+  }, [organization.id, organization.hero_video_url]);
+  
+  // Auto-advance carousel
+  useEffect(() => {
+    if (featuredMedia.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setActiveIndex((current) => (current + 1) % featuredMedia.length);
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [featuredMedia.length]);
+  
+  if (loading) {
+    return (
+      <div className="w-full h-[52vh] bg-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
+  if (featuredMedia.length === 0) {
+    // Fallback placeholder
+    return (
+      <div className="w-full h-[52vh] bg-black flex items-center justify-center">
+        <div className="text-gray-400">No media available</div>
+      </div>
+    );
+  }
+  
+  const activeMedia = featuredMedia[activeIndex];
+  
+  return (
+    <div className="w-full h-[52vh] bg-black relative overflow-hidden">
+      {/* Media content */}
+      {activeMedia.type === 'video' ? (
+        <ReactPlayer
+          url={activeMedia.url}
+          playing
+          loop
+          muted
+          width="100%"
+          height="100%"
+          style={{ objectFit: 'cover' }}
+        />
+      ) : (
+        <img 
+          src={activeMedia.url} 
+          alt={organization.name} 
+          className="w-full h-full object-cover"
+        />
+      )}
+      
+      {/* Gradient overlay */}
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent" />
+      
+      {/* Organization info */}
+      <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+        <div className="flex items-center space-x-4">
+          <img 
+            src={organization.photoURL} 
+            alt={organization.name}
+            className="w-16 h-16 rounded-full object-cover border-2 border-white"
+          />
+          <h1 className="text-3xl font-marfa font-semibold">
+            {organization.name}
+          </h1>
+        </div>
+      </div>
+      
+      {/* Carousel indicators */}
+      {featuredMedia.length > 1 && (
+        <div className="absolute bottom-4 right-4 flex space-x-2">
+          {featuredMedia.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setActiveIndex(index)}
+              className={`w-2 h-2 rounded-full ${
+                index === activeIndex ? 'bg-white' : 'bg-gray-400'
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+```tsx
+// src/components/nonprofits/InfoSection.tsx
+import { useState } from 'react';
+import { Organization, Link } from '../../lib/models/organization';
+import { useAuth } from '../../lib/context/AuthContext';
+import { toggleCommunityMembership, fetchUserRelationship } from '../../lib/services/nonprofit.service';
+import { useTheme } from '../../lib/context/ThemeContext';
+import { motion } from 'framer-motion';
+
+interface InfoSectionProps {
+  organization: Organization;
+  isUserMember: boolean;
+  isUserInCommunity: boolean;
+  onShowMembershipOptions: () => void;
+  onShowLinksSheet: () => void;
+}
+
+export default function InfoSection({
+  organization,
+  isUserMember,
+  isUserInCommunity,
+  onShowMembershipOptions,
+  onShowLinksSheet
+}: InfoSectionProps) {
+  const { user } = useAuth();
+  const { getTheme } = useTheme();
+  const theme = getTheme(organization.themeId);
+  
+  const [joining, setJoining] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  
+  const handleJoinCommunity = async () => {
+    if (!user) return;
+    
+    try {
+      setJoining(true);
+      // First update UI for immediate feedback
+      setShowSuccess(true);
+      setShowConfetti(true);
+      
+      // Then update backend
+      await toggleCommunityMembership(organization.id!, user.uid);
+      
+      // Hide effects after animation completes
+      setTimeout(() => {
+        setShowConfetti(false);
+        setShowSuccess(false);
+      }, 2000);
+    } catch (error) {
+      console.error('Error joining community:', error);
+      setShowSuccess(false);
+    } finally {
+      setJoining(false);
+    }
+  };
+  
+  return (
+    <div className="bg-card rounded-xl p-6 mx-4 -mt-6 relative z-10">
+      {/* Location and links row */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <button className="bg-gray-800 rounded-lg px-3 py-1 text-sm text-gray-300 flex items-center">
+          <span className="mr-1">📍</span>
+          {organization.location || 'No location'}
+        </button>
+        
+        <button 
+          onClick={onShowLinksSheet}
+          className="bg-gray-800 rounded-lg px-3 py-1 text-sm text-gray-300 flex items-center"
+        >
+          <span className="mr-1">🔗</span>
+          links
+        </button>
+        
+        <button className="bg-gray-800 rounded-lg px-3 py-1 text-sm text-gray-300 flex items-center">
+          <span>mission</span>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+          </svg>
+        </button>
+      </div>
+      
+      {/* Organization description */}
+      <p className="text-white text-sm mb-6 text-center">
+        {organization.description}
+      </p>
+      
+      {/* Action buttons */}
+      <div className="space-y-3">
+        {isUserMember ? (
+          <div className="bg-gray-800 bg-opacity-50 text-yellow-300 py-3 px-4 rounded-lg text-center font-marfa font-medium">
+            ✨ Member
+          </div>
+        ) : (
+          <button
+            onClick={onShowMembershipOptions}
+            className="w-full py-3 rounded-lg text-center font-marfa font-medium"
+            style={{
+              backgroundColor: `#${theme?.primaryColor || 'ADD3FF'}`,
+              color: theme?.primaryColor 
+                ? parseInt(theme.primaryColor, 16) > 0xAAAAAA ? '#000000' : '#FFFFFF'
+                : '#000000'
+            }}
+          >
+            See membership options
+          </button>
+        )}
+        
+        {!isUserMember && !isUserInCommunity && (
+          <button
+            onClick={handleJoinCommunity}
+            disabled={joining}
+            className="w-full bg-gray-800 py-3 rounded-lg text-center font-marfa font-medium text-white relative overflow-hidden"
+          >
+            {joining ? (
+              <span className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Joining...
+              </span>
+            ) : showSuccess ? (
+              <span className="flex items-center justify-center">
+                <svg className="w-5 h-5 mr-2 text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586l-2.293-2.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z" clipRule="evenodd"></path>
+                </svg>
+                You're in!
+              </span>
+            ) : (
+              "Join community"
+            )}
+            
+            {/* Confetti effect */}
+            {showConfetti && (
+              <motion.div 
+                className="absolute inset-0 overflow-hidden"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                {Array.from({ length: 50 }).map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute w-2 h-2 rounded-full"
+                    style={{
+                      backgroundColor: [
+                        '#8BBEF9', '#ADD3FF', '#97F8FA', '#FFFFFF', '#FFD700'
+                      ][Math.floor(Math.random() * 5)],
+                      left: `${Math.random() * 100}%`,
+                      top: '0%',
+                    }}
+                    animate={{
+                      y: [0, 60 + Math.random() * 40],
+                      x: [0, (Math.random() - 0.5) * 60],
+                      scale: [1, 0.5],
+                      opacity: [1, 0]
+                    }}
+                    transition={{
+                      duration: 1 + Math.random(),
+                      ease: "easeOut"
+                    }}
+                  />
+                ))}
+              </motion.div>
+            )}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+```tsx
+// src/components/nonprofits/CollectiveSection.tsx
+import { useState, useEffect } from 'react';
+import { Organization, Member } from '../../lib/models/organization';
+import { fetchMembers, fetchStaffMembers } from '../../lib/services/nonprofit.service';
+
+interface CollectiveSectionProps {
+  organization: Organization;
+}
+
+export default function CollectiveSection({ organization }: CollectiveSectionProps) {
+  const [members, setMembers] = useState<Member[]>([]);
+  const [staffMembers, setStaffMembers] = useState<Member[]>([]);
+  const [displayFilter, setDisplayFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const loadMembers = async () => {
+      if (!organization.id) return;
+      
+      setLoading(true);
+      try {
+        const [memberData, staffData] = await Promise.all([
+          fetchMembers(organization.id),
+          fetchStaffMembers(organization.id)
+        ]);
+        
+        setMembers(memberData);
+        setStaffMembers(staffData);
+      } catch (error) {
+        console.error('Error loading members:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadMembers();
+  }, [organization.id]);
+  
+  const filteredMembers = () => {
+    if (displayFilter === 'all') {
+      return [...staffMembers, ...members];
+    } else if (displayFilter === 'manager') {
+      return staffMembers;
+    } else if (displayFilter === 'member') {
+      return members;
+    }
+    return [];
+  };
+  
+  const getFilterText = () => {
+    switch (displayFilter) {
+      case 'manager': return 'Staff';
+      case 'member': return 'Members';
+      default: return 'All';
+    }
+  };
+  
+  return (
+    <div className="bg-card rounded-xl p-6 mx-4 mt-4">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-marfa font-semibold text-white">Collective</h2>
+        
+        <button 
+          onClick={() => {
+            // Show filter options modal
+          }}
+          className="bg-gray-800 rounded-lg px-3 py-1 text-sm text-gray-300 flex items-center"
+        >
+          <span className="mr-1">Filter</span>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
+          </svg>
+        </button>
+      </div>
+      
+      {loading ? (
+        <div className="h-24 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      ) : filteredMembers().length === 0 ? (
+        <div className="h-24 flex items-center justify-center text-gray-400">
+          No members found
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5">
+          {filteredMembers().slice(0, 10).map(member => (
+            <div key={member.id} className="flex flex-col items-center">
+              <div className="relative">
+                <img 
+                  src={member.photoURL || '/placeholder-avatar.png'} 
+                  alt={member.name}
+                  className="w-16 h-16 rounded-full object-cover"
+                />
+                {member.role === 'staff' && (
+                  <div className="absolute -top-1 -right-1 bg-yellow-400 rounded-full w-4 h-4 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-black" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              <span className="text-white text-xs mt-2 text-center truncate w-full">
+                {member.name.split(' ')[0]}
+              </span>
+            </div>
+          ))}
+          
+          {filteredMembers().length > 10 && (
+            <div className="flex flex-col items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center text-white">
+                +{filteredMembers().length - 10}
+              </div>
+              <span className="text-white text-xs mt-2 text-center">
+                more
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+``` 

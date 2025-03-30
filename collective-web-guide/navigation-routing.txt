@@ -1,0 +1,91 @@
+## 8. NAVIGATION AND ROUTING IMPLEMENTATION
+
+### 8.1 Route Structure
+
+Define the application's route structure based on Swift navigation paths:
+- Home feed (`/`)
+- Nonprofit profile (`/nonprofit/:id`)
+- User profile (`/profile/:id`)
+- Post detail (`/post/:id`)
+- Authentication routes (`/auth/login`, `/auth/verify`)
+- Membership routes (`/nonprofit/:id/membership`)
+- Settings and account management (`/settings`)
+
+### 8.2 Navigation Components
+
+Create navigation UI components:
+1. **Tab Bar**: 
+   - Mobile-optimized bottom navigation
+   - Four main tabs (Home, Messages, Notifications, Profile)
+   - Active state indicators
+   - Adaptive based on authentication
+
+2. **Navigation Transitions**:
+   - Page transitions between routes
+   - Animation between screens
+   - Loading states during navigation
+
+3. **Profile Selector**:
+   - For users who manage organizations
+   - Quick switching between personal and org profiles
+
+### 8.3 Route Protection
+
+Implement authentication route protection:
+- Protect routes that require authentication
+- Redirect to login when needed
+- Preserve intended destination after login
+- Role-based access control
+
+### 8.4 Deep Linking Support
+
+Set up deep linking capabilities:
+- Handle direct links to content
+- Support social media sharing links
+- Provide proper open graph tags for shared content
+- Handle back navigation properly
+
+### 8.5 Route History Management
+
+Implement history management:
+- Proper back button behavior
+- Remember scroll positions
+- Stack-based navigation history
+- Modal history management
+
+### 8.6 Layout Components
+
+Create layout wrapper components:
+1. **MainLayout**:
+   - Tab bar integration
+   - Common header elements
+   - Global state providers
+
+2. **ProfileLayout**:
+   - Profile header
+   - Profile tabs
+   - Common profile actions
+
+3. **NonprofitLayout**:
+   - Organization header
+   - Featured media
+   - Action buttons
+   - Member display
+
+### 8.7 Programmatic Navigation
+
+Implement services for programmatic navigation:
+- Navigate after actions (post creation, signup, etc.)
+- Handle navigation edge cases
+- Support nested navigation
+
+### 8.8 Implementation Plan
+
+1. Set up Next.js routing structure
+2. Create protected route wrapper component
+3. Implement main layout with tab bar
+4. Build navigation components for different sections
+5. Create transition animations between routes
+6. Implement deep linking support
+7. Build profile selector for org managers
+8. Set up open graph tags for shared content 

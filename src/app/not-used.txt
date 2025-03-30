@@ -1,0 +1,2 @@
+This directory exists only to prevent Next.js from throwing errors.
+We are using the Pages Router, not the App Router. 
