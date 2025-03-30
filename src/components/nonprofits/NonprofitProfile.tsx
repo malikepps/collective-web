@@ -8,6 +8,7 @@ import { Post, postFromFirestore } from '@/lib/models/Post';
 import { useAuth } from '@/lib/context/AuthContext';
 import { useTheme } from '@/lib/context/ThemeContext';
 import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+import { isColorDark } from '@/lib/utils/colorUtils';
 
 interface NonprofitProfileProps {
   organizationId: string;
@@ -235,7 +236,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({ organizationId }) =
             className="w-full py-3 px-4 rounded-lg font-semibold flex justify-center"
             style={{ 
               backgroundColor: theme?.primaryColor ? `#${theme.primaryColor}` : '#ADD3FF',
-              color: theme?.primaryColor && !theme.isColorDark ? 'black' : 'white'
+              color: theme?.primaryColor ? (isColorDark(`#${theme.primaryColor}`) ? 'white' : 'black') : 'white'
             }}
             onClick={() => setShowMembershipOptions(true)}
           >

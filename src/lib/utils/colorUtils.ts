@@ -1,64 +1,12 @@
-import { DocumentSnapshot, QueryDocumentSnapshot, Timestamp } from 'firebase/firestore';
+/**
+ * Utility functions for color operations and calculations
+ */
 
-export enum ThemeCategory {
-  BRIGHT = 'bright',
-  SUBTLE = 'subtle',
-  LIGHT = 'light',
-  NEUTRAL = 'neutral'
-}
-
-export interface Theme {
-  id: string;
-  name: string;
-  primaryColor: string;
-  secondaryColor: string;
-  category: ThemeCategory;
-  gradientColors: string[];
-  createdAt: Date;
-  palette: string[];
-  accentColor?: string;
-  textOnPrimaryColor?: string;
-  textOnDarkColor?: string;
-  contrastRatio?: number;
-  isColorDark?: boolean;
-}
-
-export const themeFromFirestore = (doc: DocumentSnapshot | QueryDocumentSnapshot): Theme | null => {
-  const data = doc.data();
-  if (!data) return null;
-  
-  // Required fields
-  const name = data.name as string;
-  const primaryColor = data.primary_color as string;
-  const secondaryColor = data.secondary_color as string;
-  const categoryRaw = data.category as string;
-  const gradientColors = data.gradient_colors as string[];
-  const timestamp = data.created_at as Timestamp;
-  
-  if (!name || !primaryColor || !secondaryColor || !categoryRaw || !gradientColors || !timestamp) {
-    console.error('Missing required theme fields');
-    return null;
-  }
-  
-  const category = categoryRaw as ThemeCategory;
-  
-  return {
-    id: doc.id,
-    name,
-    primaryColor,
-    secondaryColor,
-    category,
-    gradientColors,
-    createdAt: timestamp.toDate(),
-    palette: data.palette as string[] || [],
-    accentColor: data.accent_color as string,
-    textOnPrimaryColor: data.text_on_primary as string,
-    textOnDarkColor: data.text_on_dark as string,
-    contrastRatio: data.contrast_ratio as number
-  };
-};
-
-// Helper functions for color calculations
+/**
+ * Determines if a color is considered "dark" based on its brightness
+ * @param hex - Hex color code (with or without # prefix)
+ * @returns boolean - true if the color is dark, false otherwise
+ */
 export const isColorDark = (hex: string): boolean => {
   const cleanHex = hex.startsWith('#') ? hex.slice(1) : hex;
   
@@ -67,7 +15,7 @@ export const isColorDark = (hex: string): boolean => {
     const g = parseInt(cleanHex.substring(2, 4), 16) / 255;
     const b = parseInt(cleanHex.substring(4, 6), 16) / 255;
     
-    // Calculate perceived brightness
+    // Calculate perceived brightness (Based on YIQ formula)
     const brightness = (r * 0.299) + (g * 0.587) + (b * 0.114);
     
     // A brightness below 0.5 is considered "dark"
@@ -77,10 +25,21 @@ export const isColorDark = (hex: string): boolean => {
   return true; // Default to dark if we can't parse
 };
 
+/**
+ * Determines if a color is considered "light" based on its brightness
+ * @param hex - Hex color code (with or without # prefix)
+ * @returns boolean - true if the color is light, false otherwise
+ */
 export const isColorLight = (hex: string): boolean => {
   return !isColorDark(hex);
 };
 
+/**
+ * Calculates the contrast ratio between two colors
+ * @param foreground - Hex color code for foreground (with or without # prefix)
+ * @param background - Hex color code for background (with or without # prefix)
+ * @returns number - The contrast ratio (higher is better contrast)
+ */
 export const calculateContrastRatio = (foreground: string, background: string): number => {
   // Calculate relative luminance for both colors
   const getLuminance = (hex: string): number => {
@@ -110,14 +69,14 @@ export const calculateContrastRatio = (foreground: string, background: string): 
     g = toLinear(g);
     b = toLinear(b);
     
-    // Calculate luminance
+    // Calculate luminance using the formula from WCAG 2.0
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   };
   
   const lum1 = getLuminance(foreground);
   const lum2 = getLuminance(background);
   
-  // Calculate contrast ratio
+  // Calculate contrast ratio according to WCAG 2.0 formula
   const lighter = Math.max(lum1, lum2);
   const darker = Math.min(lum1, lum2);
   
