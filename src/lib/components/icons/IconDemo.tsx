@@ -15,7 +15,7 @@ const IconDemo: React.FC = () => {
         <div className="grid grid-cols-6 gap-4">
           <IconItem icon={Icon.HOME} title="Home" />
           <IconItem icon={Icon.SEARCH} title="Search" />
-          <IconItem icon={Icon.BELL} title="Bell" />
+          <IconItem icon={Icon.NOTIFICATIONS} title="Bell" />
           <IconItem icon={Icon.USER} title="User" />
           <IconItem icon={Icon.SETTINGS} title="Settings" />
           <IconItem icon={Icon.CLOSE} title="Close" />
@@ -33,7 +33,7 @@ const IconDemo: React.FC = () => {
         <div className="grid grid-cols-6 gap-4">
           <IconItem icon={Icon.HOME} title="Home" style={IconStyle.REGULAR} />
           <IconItem icon={Icon.SEARCH} title="Search" style={IconStyle.REGULAR} />
-          <IconItem icon={Icon.BELL} title="Bell" style={IconStyle.REGULAR} />
+          <IconItem icon={Icon.NOTIFICATIONS} title="Bell" style={IconStyle.REGULAR} />
           <IconItem icon={Icon.USER} title="User" style={IconStyle.REGULAR} />
           <IconItem icon={Icon.SETTINGS} title="Settings" style={IconStyle.REGULAR} />
           <IconItem icon={Icon.CLOSE} title="Close" style={IconStyle.REGULAR} />
@@ -51,7 +51,7 @@ const IconDemo: React.FC = () => {
             secondaryColor="95df9e"
           />
           <IconItem 
-            icon={Icon.BELL} 
+            icon={Icon.NOTIFICATIONS} 
             title="Bell" 
             style={IconStyle.DUOTONE} 
             primaryColor="ff9500"
@@ -65,7 +65,7 @@ const IconDemo: React.FC = () => {
             secondaryColor="cce4ff"
           />
           <IconItem 
-            icon={Icon.HEART} 
+            icon={Icon.LIKE} 
             title="Heart" 
             style={IconStyle.DUOTONE} 
             primaryColor="ff3b30"
@@ -79,7 +79,7 @@ const IconDemo: React.FC = () => {
             secondaryColor="d4f5ff"
           />
           <IconItem 
-            icon={Icon.CHECK_CIRCLE} 
+            icon={Icon.SUCCESS} 
             title="Success" 
             style={IconStyle.DUOTONE} 
             primaryColor="4cd964"
