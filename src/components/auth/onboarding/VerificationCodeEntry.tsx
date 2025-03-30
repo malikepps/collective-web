@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { getAuth, PhoneAuthProvider, signInWithCredential } from 'firebase/auth';
+import { getAuth, PhoneAuthProvider, signInWithCredential, RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 
@@ -26,6 +26,7 @@ export default function VerificationCodeEntry({
   const [showSuccess, setShowSuccess] = useState(false);
   const [resendCount, setResendCount] = useState(30);
   const [isResendDisabled, setIsResendDisabled] = useState(true);
+  const [verificationCooldown, setVerificationCooldown] = useState<number | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>(Array(6).fill(null));
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);

@@ -37,7 +37,7 @@ export default function OnboardingFlow() {
   const [displayName, setDisplayName] = useState<string>('');
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const router = useRouter();
-  const { createUserProfile, user, loading } = useAuth();
+  const { user, loading } = useAuth();
   
   // Handle phone entry success
   const handlePhoneSuccess = (verificationId: string, phoneNumber: string) => {
