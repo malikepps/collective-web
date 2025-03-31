@@ -22,7 +22,7 @@ const DebugIcon: React.FC<DebugIconProps> = ({
   // Get the Unicode for common icons
   const getUnicode = (name: string): string => {
     const iconMap: Record<string, string> = {
-      'chevron-left': '\uf053',
+      'bars': '\uf0c9',
       'chevron-right': '\uf054',
       'arrow-left': '\uf060',
       'arrow-right': '\uf061',
@@ -168,11 +168,9 @@ const DebugIcon: React.FC<DebugIconProps> = ({
   return (
     <div 
       style={{ 
-        padding: '0px',
-        overflow: 'hidden', 
-        borderRadius: '50%', 
-        width: `${size * 1.5}px`, 
-        height: `${size * 1.5}px`,
+        overflow: 'hidden',
+        width: `${size * 1.875}px`, // Increased by 25% from 1.5
+        height: `${size * 1.875}px`, // Increased by 25% from 1.5
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -180,7 +178,14 @@ const DebugIcon: React.FC<DebugIconProps> = ({
       }}
       onClick={cycleDebugMode}
     >
-      {renderIcon()}
+      <div style={{ 
+        filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        {renderIcon()}
+      </div>
       {fontLoaded === false && (
         <div style={{ 
           position: 'absolute', 
