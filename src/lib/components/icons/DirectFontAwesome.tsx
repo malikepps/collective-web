@@ -66,6 +66,10 @@ const DirectFontAwesome: React.FC<DirectFontAwesomeProps> = ({
         path: 'M12 7L12 7M12 12L12 12M12 17L12 17',
         viewBox: '0 0 24 24'
       },
+      'ellipsis': {
+        path: 'M7 12L7 12M12 12L12 12M17 12L17 12',
+        viewBox: '0 0 24 24'
+      },
       'check': {
         path: 'M5 13l4 4L19 7',
         viewBox: '0 0 24 24'

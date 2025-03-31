@@ -126,6 +126,9 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
     setShowLeaveConfirmation(false);
   };
   
+  // Calculate navbar background opacity based on scroll
+  const navbarBgOpacity = Math.min(0.8, scrollOffset / 150);
+  
   return (
     <>
       <Head>
@@ -151,8 +154,15 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
       </Head>
       
       <div className="min-h-screen bg-black overflow-hidden">
-        {/* Back button - fixed position */}
-        <div className="fixed top-12 left-4 z-10">
+        {/* Navigation bar - fixed position with darkening effect */}
+        <div 
+          className="fixed top-0 left-0 right-0 z-10 h-20 flex items-center justify-between px-4"
+          style={{ 
+            backgroundColor: `rgba(0, 0, 0, ${navbarBgOpacity})`,
+            transition: 'background-color 0.3s ease'
+          }}
+        >
+          {/* Back button */}
           <button 
             onClick={() => router.back()}
             className="flex items-center justify-center overflow-hidden"
@@ -164,35 +174,31 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
               style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
             />
           </button>
-        </div>
-        
-        {/* Username in Navigation - fixed position */}
-        <div 
-          className="fixed top-12 left-0 right-0 z-10 text-center"
-          style={{ 
-            opacity: scrollOffset > 50 ? Math.min(1, (scrollOffset - 50) / 100) : 0 
-          }}
-        >
-          <p className="text-white font-marfa font-medium">
-            @{organization.username || organization.name.toLowerCase().replace(/\s/g, '')}
-          </p>
-        </div>
-        
-        {/* Ellipsis menu - fixed position */}
-        <div className="fixed top-12 right-4 z-10">
-          <div className="relative inline-block text-left">
-            <button
-              onClick={() => setShowLeaveConfirmation(true)}
-              className="flex items-center justify-center p-2"
-            >
-              <DirectFontAwesome
-                icon="ellipsis-vertical"
-                size={50}
-                color="#ffffff"
-                style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
-              />
-            </button>
+          
+          {/* Username in center */}
+          <div
+            style={{ 
+              opacity: scrollOffset > 50 ? Math.min(1, (scrollOffset - 50) / 100) : 0,
+              transition: 'opacity 0.3s ease'
+            }}
+          >
+            <p className="text-white font-marfa font-medium">
+              @{organization.username || organization.name.toLowerCase().replace(/\s/g, '')}
+            </p>
           </div>
+          
+          {/* Ellipsis menu button */}
+          <button
+            onClick={() => setShowLeaveConfirmation(true)}
+            className="flex items-center justify-center overflow-hidden"
+          >
+            <DirectFontAwesome
+              icon="ellipsis"
+              size={25}
+              color="#ffffff"
+              style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
+            />
+          </button>
         </div>
         
         {/* Media Section */}
@@ -211,6 +217,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
             isUserMember={isUserMember}
             isUserInCommunity={isUserInCommunity}
             onToggleCommunity={toggleCommunity}
+            hasRelationship={relationship !== null}
           />
           
           {/* Collective Section */}

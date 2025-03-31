@@ -12,6 +12,7 @@ interface InfoBoxProps {
   isUserMember?: boolean;
   isUserInCommunity?: boolean;
   onToggleCommunity?: () => Promise<boolean>;
+  hasRelationship?: boolean;
 }
 
 const InfoBox: React.FC<InfoBoxProps> = ({
@@ -21,12 +22,14 @@ const InfoBox: React.FC<InfoBoxProps> = ({
   onShowMembershipOptions,
   isUserMember = false,
   isUserInCommunity = false,
-  onToggleCommunity
+  onToggleCommunity,
+  hasRelationship = false
 }) => {
   console.log("[DEBUG] InfoBox rendering with state:", {
     organizationId: organization.id,
     isUserMember,
-    isUserInCommunity
+    isUserInCommunity,
+    hasRelationship
   });
   
   const { getTheme } = useTheme();
@@ -37,9 +40,10 @@ const InfoBox: React.FC<InfoBoxProps> = ({
     console.log("[DEBUG] InfoBox membership status changed:", {
       organizationId: organization.id,
       isUserMember,
-      isUserInCommunity
+      isUserInCommunity,
+      hasRelationship
     });
-  }, [organization.id, isUserMember, isUserInCommunity]);
+  }, [organization.id, isUserMember, isUserInCommunity, hasRelationship]);
   
   // Determine the text color based on the theme's primary color brightness
   const buttonTextColor = (): string => {
@@ -107,19 +111,22 @@ const InfoBox: React.FC<InfoBoxProps> = ({
         className="space-y-2"
         data-member={isUserMember ? "true" : "false"}
         data-community={isUserInCommunity ? "true" : "false"}
+        data-relationship={hasRelationship ? "true" : "false"}
       >
         {isUserMember ? (
-          // Member badge for members
-          <div 
-            className="w-full h-11 ios-rounded-sm font-marfa font-semibold text-base flex items-center justify-center"
-            style={{ 
-              backgroundColor: 'rgba(255, 255, 255, 0.1)'
-            }}
-          >
-            <span className="text-[#FFD966] flex items-center">
-              <span className="mr-1">✨</span>
-              <span>Member</span>
-            </span>
+          // Member badge for members - more compact with internal padding
+          <div className="flex justify-center">
+            <div 
+              className="ios-rounded-sm font-marfa font-semibold text-base flex items-center justify-center px-6 py-2"
+              style={{ 
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }}
+            >
+              <span className="text-[#FFD966] flex items-center">
+                <span className="mr-1">✨</span>
+                <span>Member</span>
+              </span>
+            </div>
           </div>
         ) : (
           // Membership options button for non-members
@@ -140,8 +147,8 @@ const InfoBox: React.FC<InfoBoxProps> = ({
           </button>
         )}
         
-        {/* Only show Join Community button if user is not already in community */}
-        {!isUserInCommunity && (
+        {/* Only show Join Community button if user has NO relationship with the nonprofit */}
+        {!hasRelationship && (
           <button 
             onClick={handleToggleCommunity}
             className="bg-white/20 w-full h-11 ios-rounded-sm font-marfa font-semibold text-base"
