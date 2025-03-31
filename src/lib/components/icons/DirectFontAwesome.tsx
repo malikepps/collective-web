@@ -42,6 +42,14 @@ const DirectFontAwesome: React.FC<DirectFontAwesomeProps> = ({
         path: 'M9 18l6-6-6-6',
         viewBox: '0 0 24 24'
       },
+      'chevron-down': {
+        path: 'M6 9l6 6 6-6',
+        viewBox: '0 0 24 24'
+      },
+      'chevron-up': {
+        path: 'M18 15l-6-6-6 6',
+        viewBox: '0 0 24 24'
+      },
       'arrow-left': { 
         path: 'M19 12H5M12 19l-7-7 7-7',
         viewBox: '0 0 24 24'

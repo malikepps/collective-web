@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { MembershipTier } from '@/lib/models/MembershipTier';
 import { isColorLight } from '@/lib/models/Theme';
 import { Theme } from '@/lib/models/Theme';
@@ -19,6 +19,10 @@ const MembershipTierCard: React.FC<MembershipTierCardProps> = ({
   isRecommended,
   onClick
 }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [needsExpansion, setNeedsExpansion] = useState(false);
+  const descriptionRef = useRef<HTMLDivElement>(null);
+  
   // Format price to show as a whole number if it's a whole number
   const formattedPrice = tier.price % 1 === 0 ? tier.price.toString() : tier.price.toFixed(2);
   
@@ -48,6 +52,26 @@ const MembershipTierCard: React.FC<MembershipTierCardProps> = ({
       </div>
     );
   });
+
+  // Check if content needs "Show More" button when component mounts or window resizes
+  useEffect(() => {
+    const checkHeight = () => {
+      if (descriptionRef.current) {
+        // If the scroll height is greater than the client height, we need to show the expansion button
+        const needsToExpand = descriptionRef.current.scrollHeight > descriptionRef.current.clientHeight;
+        setNeedsExpansion(needsToExpand);
+      }
+    };
+
+    checkHeight();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkHeight);
+    
+    return () => {
+      window.removeEventListener('resize', checkHeight);
+    };
+  }, []);
 
   return (
     <div 
@@ -92,14 +116,9 @@ const MembershipTierCard: React.FC<MembershipTierCardProps> = ({
         <span className="text-white/70 font-marfa ml-1">/ mo</span>
       </div>
       
-      {/* Description with bullet points support */}
-      <div className="mb-6 text-left">
-        {descriptionLines}
-      </div>
-      
-      {/* Join button */}
+      {/* Join button - moved above description */}
       <button 
-        className="w-full py-3 rounded-lg font-marfa font-semibold text-base"
+        className="w-full py-3 rounded-lg font-marfa font-semibold text-base mb-4"
         style={{ 
           backgroundColor: primaryColor,
           color: textColor
@@ -107,6 +126,42 @@ const MembershipTierCard: React.FC<MembershipTierCardProps> = ({
       >
         Join
       </button>
+      
+      {/* Description wrapper with fade effect */}
+      <div className="relative">
+        {/* Description with bullet points support */}
+        <div 
+          ref={descriptionRef}
+          className="text-left overflow-hidden transition-all duration-300 ease-in-out"
+          style={{ 
+            maxHeight: expanded ? '1000px' : 'calc(45vh - 260px)',
+            maskImage: !expanded && needsExpansion ? 'linear-gradient(to bottom, black 70%, transparent 100%)' : 'none',
+            WebkitMaskImage: !expanded && needsExpansion ? 'linear-gradient(to bottom, black 70%, transparent 100%)' : 'none'
+          }}
+        >
+          {descriptionLines}
+        </div>
+        
+        {/* Show more button */}
+        {needsExpansion && (
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded(!expanded);
+            }}
+            className="w-full py-2 mt-2 flex items-center justify-center"
+          >
+            <span className="text-white/70 font-marfa text-sm mr-2">
+              {expanded ? 'Show less' : 'Show more'}
+            </span>
+            <DirectFontAwesome
+              icon={expanded ? 'chevron-up' : 'chevron-down'}
+              size={12}
+              color="rgba(255, 255, 255, 0.7)"
+            />
+          </button>
+        )}
+      </div>
     </div>
   );
 };

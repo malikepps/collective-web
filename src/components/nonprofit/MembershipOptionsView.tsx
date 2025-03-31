@@ -18,7 +18,10 @@ const MembershipOptionsView: React.FC<MembershipOptionsViewProps> = ({
   onClose
 }) => {
   const { getTheme } = useTheme();
+  // Properly obtain the theme object based on the organization's themeId
   const theme = organization.themeId ? getTheme(organization.themeId) : undefined;
+  console.log('[DEBUG] Theme for membership options:', theme);
+  
   const [showCustomSheet, setShowCustomSheet] = useState(false);
   const hasInitialized = useRef(false);
   
@@ -45,6 +48,10 @@ const MembershipOptionsView: React.FC<MembershipOptionsViewProps> = ({
     hasInitialized.current = false;
     return null;
   }
+  
+  // Generate theme-based styles
+  const primaryColor = theme?.primaryColor ? `#${theme.primaryColor}` : '#ADD3FF';
+  const primaryTextColor = theme?.textOnPrimaryColor ? `#${theme.textOnPrimaryColor}` : '#000000';
   
   return (
     <div className="fixed inset-0 z-50 bg-[#111214] overflow-hidden">
@@ -80,9 +87,17 @@ const MembershipOptionsView: React.FC<MembershipOptionsViewProps> = ({
       {/* Content */}
       <div className="pt-20 pb-24 px-6 overflow-auto h-full">
         <div className="max-w-md mx-auto">
-          <h2 className="text-white font-marfa font-semibold text-xl text-center mb-8">
+          <h2 className="text-white font-marfa font-semibold text-xl text-center mb-4">
             Membership Options
           </h2>
+          
+          {/* Custom payment option button - moved to top */}
+          <button
+            onClick={() => setShowCustomSheet(true)}
+            className="w-full py-3 mb-6 bg-[#2A2A2A] rounded-lg font-marfa font-medium text-base text-white"
+          >
+            Custom Amount
+          </button>
           
           {loading ? (
             <div className="flex justify-center items-center h-64">
@@ -110,14 +125,6 @@ const MembershipOptionsView: React.FC<MembershipOptionsViewProps> = ({
               ))}
             </div>
           )}
-          
-          {/* Custom payment option button */}
-          <button
-            onClick={() => setShowCustomSheet(true)}
-            className="w-full py-3 mt-6 bg-[#2A2A2A] rounded-lg font-marfa font-medium text-base text-white"
-          >
-            Custom Amount
-          </button>
         </div>
       </div>
       
