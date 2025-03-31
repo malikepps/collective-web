@@ -128,6 +128,8 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   
   // Calculate navbar background opacity based on scroll
   const navbarBgOpacity = Math.min(0.8, scrollOffset / 150);
+  // Calculate blur intensity based on scroll
+  const blurIntensity = Math.min(8, scrollOffset / 40);
   
   return (
     <>
@@ -154,12 +156,14 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
       </Head>
       
       <div className="min-h-screen bg-black overflow-hidden">
-        {/* Navigation bar - fixed position with darkening effect */}
+        {/* Navigation bar - fixed position with darkening effect and blur */}
         <div 
-          className="fixed top-0 left-0 right-0 z-10 h-20 flex items-center justify-between px-4"
+          className="fixed top-0 left-0 right-0 z-10 h-10 flex items-center justify-between px-4"
           style={{ 
             backgroundColor: `rgba(0, 0, 0, ${navbarBgOpacity})`,
-            transition: 'background-color 0.3s ease'
+            backdropFilter: `blur(${blurIntensity}px)`,
+            WebkitBackdropFilter: `blur(${blurIntensity}px)`,
+            transition: 'background-color 0.3s ease, backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease'
           }}
         >
           {/* Back button */}
@@ -194,7 +198,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
           >
             <DirectFontAwesome
               icon="ellipsis"
-              size={25}
+              size={50}
               color="#ffffff"
               style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
             />
