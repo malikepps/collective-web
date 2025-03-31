@@ -20,6 +20,8 @@ interface NonprofitProfileProps {
 const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   organization
 }) => {
+  console.log("[DEBUG] NonprofitProfile rendering for org:", organization.id, organization.name);
+  
   const router = useRouter();
   const { getTheme } = useTheme();
   const theme = organization.themeId ? getTheme(organization.themeId) : undefined;
@@ -33,12 +35,27 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   
   // Get user relationship with organization
   const { 
+    relationship,
     isUserMember, 
     isUserInCommunity, 
     isUserStaff,
     loading: relationshipLoading,
+    error: relationshipError,
     toggleCommunity
   } = useUserOrganizationRelationship(organization.id);
+  
+  // Debug logs for relationship state
+  useEffect(() => {
+    console.log("[DEBUG] Relationship state:", {
+      organizationId: organization.id,
+      relationship,
+      isUserMember,
+      isUserInCommunity,
+      isUserStaff,
+      loading: relationshipLoading,
+      error: relationshipError
+    });
+  }, [organization.id, relationship, isUserMember, isUserInCommunity, isUserStaff, relationshipLoading, relationshipError]);
   
   // Handle scroll events to adjust header opacity
   useEffect(() => {
@@ -104,6 +121,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   };
   
   const handleLeaveCommunity = async () => {
+    console.log("[DEBUG] Leaving community for org:", organization.id);
     await toggleCommunity();
     setShowLeaveConfirmation(false);
   };
@@ -169,7 +187,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
             >
               <DirectFontAwesome
                 icon="ellipsis-vertical"
-                size={20}
+                size={50}
                 color="#ffffff"
                 style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
               />

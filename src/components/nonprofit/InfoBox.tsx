@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Organization } from '@/lib/models/Organization';
 import { useTheme } from '@/lib/context/ThemeContext';
 import { isColorLight } from '@/lib/models/Theme';
@@ -23,8 +23,23 @@ const InfoBox: React.FC<InfoBoxProps> = ({
   isUserInCommunity = false,
   onToggleCommunity
 }) => {
+  console.log("[DEBUG] InfoBox rendering with state:", {
+    organizationId: organization.id,
+    isUserMember,
+    isUserInCommunity
+  });
+  
   const { getTheme } = useTheme();
   const theme = getTheme(organization.themeId);
+  
+  // Debug logs when membership status changes
+  useEffect(() => {
+    console.log("[DEBUG] InfoBox membership status changed:", {
+      organizationId: organization.id,
+      isUserMember,
+      isUserInCommunity
+    });
+  }, [organization.id, isUserMember, isUserInCommunity]);
   
   // Determine the text color based on the theme's primary color brightness
   const buttonTextColor = (): string => {
@@ -37,8 +52,10 @@ const InfoBox: React.FC<InfoBoxProps> = ({
   };
   
   const handleToggleCommunity = async () => {
+    console.log("[DEBUG] Toggle community button clicked for org:", organization.id);
     if (onToggleCommunity) {
-      await onToggleCommunity();
+      const result = await onToggleCommunity();
+      console.log("[DEBUG] Toggle community result:", result);
     }
   };
   
@@ -85,8 +102,12 @@ const InfoBox: React.FC<InfoBoxProps> = ({
         {organization.description}
       </p>
       
-      {/* Action buttons */}
-      <div className="space-y-2">
+      {/* Action buttons - with extra debug info */}
+      <div 
+        className="space-y-2"
+        data-member={isUserMember ? "true" : "false"}
+        data-community={isUserInCommunity ? "true" : "false"}
+      >
         {isUserMember ? (
           // Member badge for members
           <div 
@@ -95,12 +116,18 @@ const InfoBox: React.FC<InfoBoxProps> = ({
               backgroundColor: 'rgba(255, 255, 255, 0.1)'
             }}
           >
-            <span className="text-[#FFD966]">✨ Member</span>
+            <span className="text-[#FFD966] flex items-center">
+              <span className="mr-1">✨</span>
+              <span>Member</span>
+            </span>
           </div>
         ) : (
           // Membership options button for non-members
           <button 
-            onClick={onShowMembershipOptions}
+            onClick={() => {
+              console.log("[DEBUG] See membership options clicked");
+              onShowMembershipOptions();
+            }}
             className="w-full h-11 ios-rounded-sm font-marfa font-semibold text-base transition-all duration-200 hover:opacity-90 relative overflow-hidden"
             style={{ 
               backgroundColor: theme?.primaryColor || '#ADD3FF',
