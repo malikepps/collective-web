@@ -33,7 +33,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
   return (
     <div className="bg-card p-6 text-white continuous-corner">
       {/* Top buttons row */}
-      <div className="flex items-center justify-center mb-4">
+      <div className="flex items-center justify-start mb-4">
         <button className="px-2 h-8 flex items-center">
           <span className="mr-1">📍</span>
           <span className="text-gray-400 text-sm font-marfa font-light">
