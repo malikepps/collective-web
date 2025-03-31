@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Organization } from '@/lib/models/Organization';
 import { useTheme } from '@/lib/context/ThemeContext';
+import { DirectFontAwesome } from '@/lib/components/icons';
+import { useMembershipTiers } from '@/lib/hooks/useMembershipTiers';
+import MembershipTierCard from './MembershipTierCard';
+import CustomMembershipSheet from './CustomMembershipSheet';
 
 interface MembershipOptionsViewProps {
   organization: Organization;
@@ -14,19 +18,40 @@ const MembershipOptionsView: React.FC<MembershipOptionsViewProps> = ({
   onClose
 }) => {
   const { getTheme } = useTheme();
-  const theme = getTheme(organization.themeId);
+  const theme = organization.themeId ? getTheme(organization.themeId) : undefined;
+  const [showCustomSheet, setShowCustomSheet] = useState(false);
+  
+  // Fetch membership tiers
+  const { 
+    tiers, 
+    loading, 
+    error, 
+    recommendedTier,
+    refreshTiers 
+  } = useMembershipTiers(organization.id);
+  
+  // Refresh tiers when component opens
+  useEffect(() => {
+    if (isOpen) {
+      refreshTiers();
+    }
+  }, [isOpen, refreshTiers]);
   
   if (!isOpen) return null;
   
   return (
-    <div className="fixed inset-0 z-50 bg-[#111214]">
+    <div className="fixed inset-0 z-50 bg-[#111214] overflow-hidden">
       {/* Header */}
-      <div className="fixed top-0 left-0 right-0 p-4 flex justify-between items-center z-10">
+      <div className="fixed top-0 left-0 right-0 p-4 flex justify-between items-center z-10 bg-[#111214]">
         <button 
           onClick={onClose}
           className="w-10 h-10 flex items-center justify-center rounded-full bg-black/50"
         >
-          <span className="text-white text-lg">←</span>
+          <DirectFontAwesome 
+            icon="chevron-left"
+            size={16}
+            color="#ffffff"
+          />
         </button>
         
         <div className="flex items-center">
@@ -46,48 +71,56 @@ const MembershipOptionsView: React.FC<MembershipOptionsViewProps> = ({
       </div>
       
       {/* Content */}
-      <div className="pt-20 pb-10 px-6 overflow-auto h-full">
+      <div className="pt-20 pb-24 px-6 overflow-auto h-full">
         <div className="max-w-md mx-auto">
           <h2 className="text-white font-marfa font-semibold text-xl text-center mb-8">
             Membership Options
           </h2>
           
-          {/* Placeholder for membership tiers */}
-          <div 
-            className="bg-[#2A2A2A] rounded-xl p-6 text-center"
-            style={{ 
-              border: theme?.primaryColor ? `2px solid #${theme.primaryColor}` : '2px solid #ADD3FF'
-            }}
-          >
-            <h3 className="text-white font-marfa font-semibold text-2xl mb-2">
-              ✨ Basic Membership
-            </h3>
-            
-            <div className="flex items-baseline justify-center mb-6">
-              <span className="text-white font-marfa font-bold text-4xl">$5</span>
-              <span className="text-white/70 font-marfa ml-1">/ mo</span>
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
             </div>
-            
-            <p className="text-white/90 font-marfa text-sm mb-8">
-              Support {organization.name} and get exclusive access to member-only content.
-            </p>
-            
-            <button 
-              className="w-full py-3 rounded-lg font-marfa font-semibold text-base"
-              style={{ 
-                backgroundColor: theme?.primaryColor ? `#${theme.primaryColor}` : '#ADD3FF',
-                color: theme?.primaryColor && theme.textOnPrimaryColor ? `#${theme.textOnPrimaryColor}` : '#000000'
-              }}
-            >
-              Join
-            </button>
-          </div>
+          ) : error ? (
+            <div className="text-red-500 text-center">
+              {error}
+            </div>
+          ) : tiers.length === 0 ? (
+            <div className="text-white/60 text-center">
+              No membership options available
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Display membership tiers in a vertical stack */}
+              {tiers.map(tier => (
+                <MembershipTierCard
+                  key={tier.id}
+                  tier={tier}
+                  organizationName={organization.name}
+                  theme={theme}
+                  isRecommended={tier.id === recommendedTier?.id}
+                />
+              ))}
+            </div>
+          )}
           
-          <p className="text-center text-white/60 font-marfa text-sm mt-6">
-            More membership tiers will be available soon
-          </p>
+          {/* Custom payment option button */}
+          <button
+            onClick={() => setShowCustomSheet(true)}
+            className="w-full py-3 mt-6 bg-[#2A2A2A] rounded-lg font-marfa font-medium text-base text-white"
+          >
+            Custom Amount
+          </button>
         </div>
       </div>
+      
+      {/* Custom membership sheet */}
+      <CustomMembershipSheet
+        organization={organization}
+        theme={theme}
+        isOpen={showCustomSheet}
+        onClose={() => setShowCustomSheet(false)}
+      />
     </div>
   );
 };

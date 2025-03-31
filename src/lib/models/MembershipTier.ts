@@ -1,4 +1,4 @@
-import { DocumentSnapshot } from 'firebase/firestore';
+import { DocumentSnapshot, DocumentReference } from 'firebase/firestore';
 
 export interface MembershipTier {
   id: string;
@@ -11,7 +11,7 @@ export interface MembershipTier {
   isRecommended: boolean;
 }
 
-export const membershipTierFromFirestore = (doc: DocumentSnapshot): MembershipTier | null => {
+export const tierFromFirestore = (doc: DocumentSnapshot): MembershipTier | null => {
   const data = doc.data();
   if (!data) return null;
   
@@ -27,7 +27,7 @@ export const membershipTierFromFirestore = (doc: DocumentSnapshot): MembershipTi
   };
 };
 
-export const membershipTierToFirestore = (tier: MembershipTier): Record<string, any> => {
+export const tierToFirestore = (tier: MembershipTier): Record<string, any> => {
   return {
     display_name: tier.displayName,
     description: tier.description,
@@ -39,7 +39,8 @@ export const membershipTierToFirestore = (tier: MembershipTier): Record<string, 
   };
 };
 
-export const getStandardTiers = (): MembershipTier[] => {
+// Standard tiers for new nonprofits
+export const standardTiers = (): MembershipTier[] => {
   return [
     {
       id: 'community',
