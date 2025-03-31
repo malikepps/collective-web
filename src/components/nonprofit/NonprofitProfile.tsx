@@ -10,6 +10,7 @@ import CollectiveSection from './CollectiveSection';
 import FilterBottomSheet from './FilterBottomSheet';
 import { FAIcon, Icon, IconStyle, DebugIcon, DirectFontAwesome } from '@/lib/components/icons';
 import { useTheme } from '@/lib/context/ThemeContext';
+import Head from 'next/head';
 
 interface NonprofitProfileProps {
   organization: Organization;
@@ -51,15 +52,27 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
       htmlElement.style.overflow = 'hidden';
       bodyElement.style.overflow = 'hidden';
     } else {
-      // Allow scrolling when no modals are open
-      htmlElement.style.overflow = '';
-      bodyElement.style.overflow = '';
+      // Allow scrolling when no modals are open, but hide scrollbars
+      htmlElement.style.overflow = 'auto';
+      bodyElement.style.overflow = 'auto';
+      
+      // Hide scrollbars but keep scrolling functionality
+      htmlElement.style.scrollbarWidth = 'none';
+      bodyElement.style.scrollbarWidth = 'none';
+      
+      // For WebKit browsers
+      htmlElement.style.msOverflowStyle = 'none';
+      bodyElement.style.msOverflowStyle = 'none';
     }
     
     return () => {
       // Cleanup: reset overflow when component unmounts
       htmlElement.style.overflow = '';
       bodyElement.style.overflow = '';
+      htmlElement.style.scrollbarWidth = '';
+      bodyElement.style.scrollbarWidth = '';
+      htmlElement.style.msOverflowStyle = '';
+      bodyElement.style.msOverflowStyle = '';
     };
   }, [showLinksSheet, showMissionSheet, showMembershipOptions, showFilterSheet]);
   
@@ -85,94 +98,118 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   };
   
   return (
-    <div className="min-h-screen bg-black overflow-hidden">
-      {/* Back button - fixed position */}
-      <div className="fixed top-12 left-4 z-10">
-        <button 
-          onClick={() => router.back()}
-          className="flex items-center justify-center overflow-hidden"
-        >
-          <DirectFontAwesome 
-            icon="bars"
-            size={25}
-            color="#ffffff"
-            style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
-          />
-        </button>
-      </div>
+    <>
+      <Head>
+        <style jsx global>{`
+          /* Hide scrollbar for all elements */
+          ::-webkit-scrollbar {
+            display: none;
+          }
+          
+          /* Hide scrollbar for IE, Edge and Firefox */
+          * {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;     /* Firefox */
+          }
+          
+          html, body {
+            overflow-y: auto;
+            overflow-x: hidden;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}</style>
+      </Head>
       
-      {/* Username in Navigation - fixed position */}
-      <div 
-        className="fixed top-12 left-0 right-0 z-10 text-center"
-        style={{ 
-          opacity: scrollOffset > 50 ? Math.min(1, (scrollOffset - 50) / 100) : 0 
-        }}
-      >
-        <p className="text-white font-marfa font-medium">
-          @{organization.username || organization.name.toLowerCase().replace(/\s/g, '')}
-        </p>
-      </div>
-      
-      {/* Media Section */}
-      <div className="mt-2 bg-black">
-        <MediaSection organization={organization} />
-      </div>
-      
-      {/* Content Sections */}
-      <div className="pb-20 pt-1">
-        {/* Info Box */}
-        <InfoBox 
-          organization={organization}
-          onShowLinks={handleShowLinks}
-          onShowMission={handleShowMission}
-          onShowMembershipOptions={handleShowMembershipOptions}
-        />
-        
-        {/* Collective Section */}
-        <div className="mt-1">
-          <CollectiveSection
-            organization={organization}
-            onShowFilterSheet={handleShowFilterSheet}
-            displayFilter={displayFilter}
-          />
+      <div className="min-h-screen bg-black overflow-hidden">
+        {/* Back button - fixed position */}
+        <div className="fixed top-12 left-4 z-10">
+          <button 
+            onClick={() => router.back()}
+            className="flex items-center justify-center overflow-hidden"
+          >
+            <DirectFontAwesome 
+              icon="bars"
+              size={25}
+              color="#ffffff"
+              style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
+            />
+          </button>
         </div>
         
-        {/* Posts Section - placeholder */}
-        <div className="bg-card p-4 text-white mt-1 continuous-corner">
-          <h2 className="text-white font-semibold text-2xl mb-4">Posts</h2>
-          <div className="flex items-center justify-center h-32">
-            <p className="text-white/50">Posts will appear here</p>
+        {/* Username in Navigation - fixed position */}
+        <div 
+          className="fixed top-12 left-0 right-0 z-10 text-center"
+          style={{ 
+            opacity: scrollOffset > 50 ? Math.min(1, (scrollOffset - 50) / 100) : 0 
+          }}
+        >
+          <p className="text-white font-marfa font-medium">
+            @{organization.username || organization.name.toLowerCase().replace(/\s/g, '')}
+          </p>
+        </div>
+        
+        {/* Media Section */}
+        <div className="mt-2 bg-black">
+          <MediaSection organization={organization} />
+        </div>
+        
+        {/* Content Sections */}
+        <div className="pb-20 pt-1">
+          {/* Info Box */}
+          <InfoBox 
+            organization={organization}
+            onShowLinks={handleShowLinks}
+            onShowMission={handleShowMission}
+            onShowMembershipOptions={handleShowMembershipOptions}
+          />
+          
+          {/* Collective Section */}
+          <div className="mt-1">
+            <CollectiveSection
+              organization={organization}
+              onShowFilterSheet={handleShowFilterSheet}
+              displayFilter={displayFilter}
+            />
+          </div>
+          
+          {/* Posts Section - placeholder */}
+          <div className="bg-card p-4 text-white mt-1 continuous-corner">
+            <h2 className="text-white font-semibold text-2xl mb-4">Posts</h2>
+            <div className="flex items-center justify-center h-32">
+              <p className="text-white/50">Posts will appear here</p>
+            </div>
           </div>
         </div>
+        
+        {/* Modal components */}
+        <LinksSheet 
+          organization={organization}
+          isOpen={showLinksSheet}
+          onClose={() => setShowLinksSheet(false)}
+        />
+        
+        <OrganizationDetailsView
+          organization={organization}
+          isOpen={showMissionSheet}
+          onClose={() => setShowMissionSheet(false)}
+        />
+        
+        <MembershipOptionsView
+          organization={organization}
+          isOpen={showMembershipOptions}
+          onClose={() => setShowMembershipOptions(false)}
+        />
+        
+        <FilterBottomSheet
+          selectedFilter={displayFilter}
+          onFilterChange={handleFilterChange}
+          isOpen={showFilterSheet}
+          onClose={() => setShowFilterSheet(false)}
+          theme={theme}
+        />
       </div>
-      
-      {/* Modal components */}
-      <LinksSheet 
-        organization={organization}
-        isOpen={showLinksSheet}
-        onClose={() => setShowLinksSheet(false)}
-      />
-      
-      <OrganizationDetailsView
-        organization={organization}
-        isOpen={showMissionSheet}
-        onClose={() => setShowMissionSheet(false)}
-      />
-      
-      <MembershipOptionsView
-        organization={organization}
-        isOpen={showMembershipOptions}
-        onClose={() => setShowMembershipOptions(false)}
-      />
-      
-      <FilterBottomSheet
-        selectedFilter={displayFilter}
-        onFilterChange={handleFilterChange}
-        isOpen={showFilterSheet}
-        onClose={() => setShowFilterSheet(false)}
-        theme={theme}
-      />
-    </div>
+    </>
   );
 };
 

@@ -93,14 +93,6 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
             onSelect={() => setTempSelection('member')}
             accentColor={primaryColor}
           />
-          
-          <FilterOption 
-            title="Community" 
-            description="Supporters and followers"
-            isSelected={tempSelection === 'community'}
-            onSelect={() => setTempSelection('community')}
-            accentColor={primaryColor}
-          />
 
           <FilterOption 
             title="All" 
