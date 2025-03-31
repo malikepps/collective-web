@@ -33,39 +33,43 @@ const InfoBox: React.FC<InfoBoxProps> = ({
   return (
     <div className="bg-card p-6 text-white continuous-corner">
       {/* Top buttons row */}
-      <div className="flex items-center space-x-2 mb-4">
+      <div className="flex items-center justify-center mb-4">
         <button className="px-2 h-8 flex items-center">
           <span className="mr-1">📍</span>
-          <span className="text-gray-400 text-xs font-marfa font-light">
+          <span className="text-gray-400 text-sm font-marfa font-light">
             {organization.location || "No location"}
           </span>
         </button>
         
         {organization.linkInBio && (
-          <button 
-            onClick={onShowLinks}
-            className="px-2 h-8 flex items-center"
-          >
-            <span className="mr-1">🔗</span>
-            <span className="text-gray-400 text-xs font-marfa font-light">links</span>
-          </button>
+          <>
+            <span className="text-gray-500 mx-2">•</span>
+            <button 
+              onClick={onShowLinks}
+              className="px-2 h-8 flex items-center"
+            >
+              <span className="mr-1">🔗</span>
+              <span className="text-gray-400 text-sm font-marfa font-light">links</span>
+            </button>
+          </>
         )}
         
+        <span className="text-gray-500 mx-2">•</span>
         <button 
           onClick={onShowMission}
           className="px-2 h-8 flex items-center"
         >
-          <span className="text-gray-400 text-xs font-marfa font-light">mission</span>
+          <span className="text-gray-400 text-sm font-marfa font-light">mission</span>
           <DirectFontAwesome 
             icon="chevron-right"
-            size={14}
+            size={16}
             color="#9ca3af"
           />
         </button>
       </div>
       
       {/* Description */}
-      <p className="text-white/90 text-center text-sm font-marfa font-light mb-6 leading-relaxed">
+      <p className="text-white/90 text-center text-base font-marfa font-light mb-6 leading-relaxed">
         {organization.description}
       </p>
       
