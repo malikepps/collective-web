@@ -44,7 +44,9 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
         if (theme?.primaryColor) {
           // If we have a primaryColor but no gradientColors, create a gradient from the primary color
           if (!theme.gradientColors || theme.gradientColors.length < 2) {
-            return [theme.primaryColor, shadeColor(theme.primaryColor, -20)];
+            const primaryWithHash = theme.primaryColor.startsWith('#') ? 
+              theme.primaryColor : `#${theme.primaryColor}`;
+            return [primaryWithHash, shadeColor(primaryWithHash, -20)];
           }
           return theme.gradientColors.map(color => `#${color}`);
         }
@@ -106,14 +108,9 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
     const firstName = member.name.split(' ')[0];
     return firstName.charAt(0).toUpperCase();
   };
-  
-  // Get border gradient
-  const getBorderGradient = () => {
-    const colors = gradientColors();
-    if (colors.length === 0) return 'none';
-    
-    return `linear-gradient(to bottom, ${colors.join(', ')})`;
-  };
+
+  // Debug log to inspect the member name
+  console.log(`Member name: ${member.name}`);
   
   return (
     <button 
@@ -123,41 +120,37 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
     >
       {/* Container with proper spacing for glow effect */}
       <div className="p-2">
+        {/* Main circle container with border */}
         <div 
-          className="relative rounded-full"
+          className="relative rounded-full overflow-hidden"
           style={{
             width: `${SIZE}px`,
             height: `${SIZE}px`,
-            boxShadow: shouldShowGlow() ? `0 0 15px ${glowColor()}` : 'none'
+            boxShadow: shouldShowGlow() ? `0 0 15px ${glowColor()}` : 'none',
+            border: gradientColors().length > 0 ? '3px solid transparent' : 'none',
+            background: gradientColors().length > 0 ? 
+              `linear-gradient(to bottom, ${gradientColors().join(', ')}) border-box` : 'none'
           }}
         >
-          {/* Actual border - using a separate div for the border */}
-          {gradientColors().length > 0 && (
-            <div 
-              className="absolute inset-0 rounded-full z-20 pointer-events-none"
-              style={{
-                padding: '2px', // Border width
-                backgroundImage: getBorderGradient(),
-                backgroundClip: 'padding-box, border-box',
-                border: '2px solid transparent',
-                borderRadius: '9999px',
-              }}
-            />
-          )}
-          
-          {/* Content container */}
-          <div className="absolute inset-[3px] rounded-full overflow-hidden z-10">
+          {/* Inner circle container */}
+          <div 
+            className="absolute inset-0 rounded-full overflow-hidden" 
+            style={{
+              margin: '2px',
+              background: 'rgb(51, 51, 51)'
+            }}
+          >
             {member.photoURL ? (
               // With photo
               <img
                 src={member.photoURL}
                 alt={member.name}
-                className="w-full h-full object-cover rounded-full"
+                className="w-full h-full object-cover"
               />
             ) : (
               // Without photo - show initial
               <div 
-                className="flex items-center justify-center w-full h-full rounded-full"
+                className="flex items-center justify-center w-full h-full"
                 style={{
                   background: 'linear-gradient(to bottom, rgb(51, 51, 51), rgb(77, 77, 77))'
                 }}

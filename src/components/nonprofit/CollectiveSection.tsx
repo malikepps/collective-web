@@ -43,6 +43,7 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
         );
         
         const relationshipsSnapshot = await getDocs(relationshipsQuery);
+        console.log(`Found ${relationshipsSnapshot.docs.length} relationships`);
         
         // Process relationships and fetch user data
         const membersPromises = relationshipsSnapshot.docs.map(async (relationshipDoc) => {
@@ -55,9 +56,12 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
           
           if (!user) return null;
           
+          // Log the user details for debugging
+          console.log(`Loaded user: ${user.id}, ${user.displayName}`);
+          
           return {
             id: user.id,
-            name: user.displayName,
+            name: user.displayName || 'Unknown User', // Fallback name
             photoURL: user.photoURL || undefined,
             role: relationship.displayFilter || 'community',
             relationship
@@ -66,6 +70,12 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
         
         const membersResult = await Promise.all(membersPromises);
         const validMembers = membersResult.filter((m): m is MemberWithRelationship => m !== null);
+        
+        console.log(`Found ${validMembers.length} valid members`);
+        // Log some sample names
+        validMembers.slice(0, 3).forEach(member => {
+          console.log(`Member name: ${member.name}, First name: ${getFirstName(member.name)}`);
+        });
         
         // Sort members: managers first, then members, then community
         validMembers.sort((a, b) => {
@@ -144,7 +154,8 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
   
   // Extract first name from display name
   const getFirstName = (fullName: string): string => {
-    return fullName.split(' ')[0];
+    if (!fullName || fullName.trim() === '') return 'User';
+    return fullName.split(' ')[0] || 'User';
   };
   
   return (
@@ -188,19 +199,27 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
                 key={`row-${rowIndex}`} 
                 className="flex space-x-4 px-2"
               >
-                {row.map((member) => (
-                  <div key={member.id} className="flex flex-col items-center min-w-[75px]">
-                    <PersonCircleView 
-                      member={member} 
-                      style={getMemberStyle(member)}
-                      themeId={organization.themeId || undefined}
-                      onClick={() => console.log('Member clicked:', member.name)}
-                    />
-                    <span className="text-white text-sm mt-1 w-16 truncate text-center font-marfa font-medium">
-                      {getFirstName(member.name)}
-                    </span>
-                  </div>
-                ))}
+                {row.map((member) => {
+                  // Debug user names
+                  console.log(`Rendering member: ${member.name}, First: ${getFirstName(member.name)}`);
+                  
+                  return (
+                    <div key={member.id} className="flex flex-col items-center min-w-[75px]">
+                      <PersonCircleView 
+                        member={member} 
+                        style={getMemberStyle(member)}
+                        themeId={organization.themeId || undefined}
+                        onClick={() => console.log('Member clicked:', member.name)}
+                      />
+                      <span 
+                        className="text-white text-sm mt-1 w-20 truncate text-center font-marfa font-medium"
+                        title={member.name}
+                      >
+                        {getFirstName(member.name)}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             ))}
           </div>
