@@ -59,10 +59,6 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
       // Hide scrollbars but keep scrolling functionality
       htmlElement.style.scrollbarWidth = 'none';
       bodyElement.style.scrollbarWidth = 'none';
-      
-      // For WebKit browsers
-      htmlElement.style.msOverflowStyle = 'none';
-      bodyElement.style.msOverflowStyle = 'none';
     }
     
     return () => {
@@ -71,8 +67,6 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
       bodyElement.style.overflow = '';
       htmlElement.style.scrollbarWidth = '';
       bodyElement.style.scrollbarWidth = '';
-      htmlElement.style.msOverflowStyle = '';
-      bodyElement.style.msOverflowStyle = '';
     };
   }, [showLinksSheet, showMissionSheet, showMembershipOptions, showFilterSheet]);
   
