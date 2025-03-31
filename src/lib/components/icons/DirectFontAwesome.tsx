@@ -61,6 +61,22 @@ const DirectFontAwesome: React.FC<DirectFontAwesomeProps> = ({
       'xmark': {
         path: 'M6 18L18 6M6 6l12 12',
         viewBox: '0 0 24 24'
+      },
+      'ellipsis-vertical': {
+        path: 'M12 7L12 7M12 12L12 12M12 17L12 17',
+        viewBox: '0 0 24 24'
+      },
+      'check': {
+        path: 'M5 13l4 4L19 7',
+        viewBox: '0 0 24 24'
+      },
+      'right-from-bracket': {
+        path: 'M16 8L21 12L16 16M21 12H9M9 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H9',
+        viewBox: '0 0 24 24'
+      },
+      'id-badge': {
+        path: 'M10 9h4m-4 3h2m-2 3h4m5 4H7c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2zm-6-5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
+        viewBox: '0 0 24 24'
       }
     };
     

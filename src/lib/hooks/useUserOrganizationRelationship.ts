@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context/AuthContext';
-import { fetchUserRelationship, toggleCommunityMembership } from '../services/UserOrganizationService';
-import { UserNonprofitRelationship } from '../models/UserNonprofitRelationship';
+import { doc, getDoc, collection, query, where, getDocs, setDoc, Timestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase/config';
+import { UserNonprofitRelationship, relationshipFromFirestore } from '@/lib/models/UserNonprofitRelationship';
 
 export function useUserOrganizationRelationship(organizationId: string | null) {
   const { user } = useAuth();
@@ -23,8 +24,37 @@ export function useUserOrganizationRelationship(organizationId: string | null) {
     
     try {
       setLoading(true);
-      const rel = await fetchUserRelationship(user.uid, organizationId);
-      setRelationship(rel);
+      
+      // First try with direct document ID lookup (most reliable)
+      const relationshipId = `${user.uid}:${organizationId}`;
+      const directDocRef = doc(db, 'user_nonprofit_relationships', relationshipId);
+      const directDocSnap = await getDoc(directDocRef);
+      
+      if (directDocSnap.exists()) {
+        const relationshipData = relationshipFromFirestore(directDocSnap);
+        setRelationship(relationshipData);
+        setError(null);
+        setLoading(false);
+        return;
+      }
+      
+      // Fall back to query if direct lookup fails
+      const relationshipsRef = collection(db, 'user_nonprofit_relationships');
+      const q = query(
+        relationshipsRef,
+        where('user', '==', doc(db, 'users', user.uid)),
+        where('nonprofit', '==', doc(db, 'nonprofits', organizationId))
+      );
+      
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        setRelationship(null);
+      } else {
+        const relationshipData = relationshipFromFirestore(querySnapshot.docs[0]);
+        setRelationship(relationshipData);
+      }
+      
       setError(null);
     } catch (err) {
       console.error('Error fetching relationship:', err);
@@ -43,12 +73,49 @@ export function useUserOrganizationRelationship(organizationId: string | null) {
     
     try {
       setLoading(true);
-      const result = await toggleCommunityMembership(user.uid, organizationId);
       
-      // Refresh the relationship after toggling
-      await refreshRelationship();
+      // Determine the relationship ID
+      const relationshipId = relationship?.id || `${user.uid}:${organizationId}`;
+      const relationshipRef = doc(db, 'user_nonprofit_relationships', relationshipId);
       
-      return result;
+      if (!relationship || !relationship.isCommunity || !relationship.isActive) {
+        // User is not in community or relationship is inactive - join community
+        await setDoc(relationshipRef, {
+          user: doc(db, 'users', user.uid),
+          nonprofit: doc(db, 'nonprofits', organizationId),
+          is_manager: false,
+          is_member: false,
+          is_community: true,
+          is_active: true,
+          created_time: Timestamp.now(),
+          display_filter: 'community'
+        });
+        
+        // Refresh relationship after toggle
+        await refreshRelationship();
+        return true; // Joined successfully
+      } else {
+        // User is in community - leave community
+        // Don't allow leaving if they're a member
+        if (relationship.isMember) {
+          return false;
+        }
+        
+        await setDoc(relationshipRef, {
+          user: doc(db, 'users', user.uid),
+          nonprofit: doc(db, 'nonprofits', organizationId),
+          is_manager: false,
+          is_member: false,
+          is_community: false,
+          is_active: false,
+          created_time: Timestamp.now(),
+          display_filter: 'community'
+        });
+        
+        // Refresh relationship after toggle
+        await refreshRelationship();
+        return false; // Left successfully (returning false indicates no longer in community)
+      }
     } catch (err) {
       console.error('Error toggling community membership:', err);
       setError('Failed to update community membership');
