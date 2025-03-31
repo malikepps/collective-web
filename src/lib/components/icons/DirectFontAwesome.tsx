@@ -4,6 +4,7 @@ interface DirectFontAwesomeProps {
   icon: string;
   size?: number;
   color?: string;
+  style?: React.CSSProperties;
 }
 
 /**
@@ -13,7 +14,8 @@ interface DirectFontAwesomeProps {
 const DirectFontAwesome: React.FC<DirectFontAwesomeProps> = ({
   icon,
   size = 24,
-  color = '#ffffff'
+  color = '#ffffff',
+  style
 }) => {
   // Log what we're trying to render
   useEffect(() => {
@@ -24,6 +26,10 @@ const DirectFontAwesome: React.FC<DirectFontAwesomeProps> = ({
   const getSvgPath = (iconName: string): { path: string; viewBox?: string } => {
     // Common icons
     const icons: Record<string, { path: string; viewBox?: string }> = {
+      'bars': { 
+        path: 'M3 6h18M3 12h18M3 18h18',
+        viewBox: '0 0 24 24'
+      },
       'chevron-left': { 
         path: 'M15 18l-6-6 6-6',
         viewBox: '0 0 24 24'
@@ -73,6 +79,7 @@ const DirectFontAwesome: React.FC<DirectFontAwesomeProps> = ({
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      style={style}
     >
       <path d={path} />
     </svg>

@@ -62,12 +62,13 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
       <div className="fixed top-12 left-4 z-10">
         <button 
           onClick={() => router.back()}
-          className="bg-black/50 w-10 h-10 rounded-full flex items-center justify-center overflow-hidden"
+          className="flex items-center justify-center overflow-hidden"
         >
           <DirectFontAwesome 
-            icon="chevron-left"
-            size={20}
+            icon="bars"
+            size={25}
             color="#ffffff"
+            style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
           />
         </button>
       </div>
