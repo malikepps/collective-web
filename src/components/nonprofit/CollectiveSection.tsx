@@ -3,6 +3,8 @@ import { Organization } from '@/lib/models/Organization';
 import { db } from '@/lib/firebase/config';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import PersonCircleView, { Member, PersonCircleStyle } from './PersonCircleView';
+import { DirectFontAwesome } from '@/lib/components/icons';
+import { useTheme } from '@/lib/context/ThemeContext';
 
 interface CollectiveSectionProps {
   organization: Organization;
@@ -18,6 +20,8 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
   const [communityMembers, setCommunityMembers] = useState<Member[]>([]);
   const [displayFilter, setDisplayFilter] = useState('all');
   const [loading, setLoading] = useState(true);
+  const { getTheme } = useTheme();
+  const theme = getTheme(organization.themeId);
   
   useEffect(() => {
     const fetchMembers = async () => {
@@ -125,20 +129,30 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
     return PersonCircleStyle.COMMUNITY;
   };
   
+  // Get secondary color from theme
+  const secondaryColor = theme?.secondaryColor ? `#${theme.secondaryColor}` : '#ADD3FF';
+  
   return (
     <div className="bg-card p-4 text-white continuous-corner">
       {/* Header with filter button */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center mb-4">
         <h2 className="text-white font-marfa font-semibold text-2xl">Collective</h2>
         
         <button 
           onClick={onShowFilterSheet}
-          className="bg-white/20 ios-rounded-sm px-2 h-8 flex items-center"
+          className="ml-3 h-8 flex items-center"
         >
-          <span className="text-white/70 text-xs font-marfa mr-1">Filter</span>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white/70" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-          </svg>
+          <span 
+            className="text-sm font-marfa font-light mr-1"
+            style={{ color: secondaryColor }}
+          >
+            Filter
+          </span>
+          <DirectFontAwesome 
+            icon="bars-filter"
+            size={16}
+            color={secondaryColor}
+          />
         </button>
       </div>
       

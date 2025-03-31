@@ -34,7 +34,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
     <div className="bg-card p-6 text-white continuous-corner">
       {/* Top buttons row */}
       <div className="flex items-center justify-start mb-4">
-        <button className="px-2 h-8 flex items-center">
+        <button className="h-8 flex items-center">
           <span className="mr-1">📍</span>
           <span className="text-gray-400 text-sm font-marfa font-light">
             {organization.location || "No location"}
@@ -46,7 +46,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
             <span className="text-gray-500 mx-1">•</span>
             <button 
               onClick={onShowLinks}
-              className="px-2 h-8 flex items-center"
+              className="h-8 flex items-center"
             >
               <span className="mr-1">🔗</span>
               <span className="text-gray-400 text-sm font-marfa font-light">links</span>
@@ -57,7 +57,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
         <span className="text-gray-500 mx-1">•</span>
         <button 
           onClick={onShowMission}
-          className="px-2 h-8 flex items-center"
+          className="h-8 flex items-center"
         >
           <span className="text-gray-400 text-sm font-marfa font-light">mission</span>
           <DirectFontAwesome 
