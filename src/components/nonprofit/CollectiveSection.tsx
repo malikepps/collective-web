@@ -11,6 +11,7 @@ import { CollectiveUser, userFromFirestore } from '@/lib/models/User';
 interface CollectiveSectionProps {
   organization: Organization;
   onShowFilterSheet: () => void;
+  displayFilter?: string;
 }
 
 // Extend Member interface to include relationship and firstName
@@ -21,10 +22,10 @@ interface MemberWithRelationship extends Member {
 
 const CollectiveSection: React.FC<CollectiveSectionProps> = ({
   organization,
-  onShowFilterSheet
+  onShowFilterSheet,
+  displayFilter = 'all'
 }) => {
   const [members, setMembers] = useState<MemberWithRelationship[]>([]);
-  const [displayFilter, setDisplayFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const { getTheme } = useTheme();
   const theme = getTheme(organization.themeId);
@@ -161,6 +162,21 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
     return 'User';
   };
   
+  // Get filter label for display
+  const getFilterLabel = (): string => {
+    switch (displayFilter) {
+      case 'manager':
+        return 'Staff';
+      case 'member':
+        return 'Members';
+      case 'community':
+        return 'Community';
+      case 'all':
+      default:
+        return 'All';
+    }
+  };
+  
   return (
     <div className="bg-card p-4 text-white continuous-corner">
       {/* Header with filter button */}
@@ -175,7 +191,7 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
             className="text-sm font-marfa mr-1"
             style={{ color: secondaryColor }}
           >
-            Filter
+            {displayFilter === 'all' ? 'Filter' : getFilterLabel()}
           </span>
           <DirectFontAwesome 
             icon="bars-filter"

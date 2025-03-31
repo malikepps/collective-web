@@ -57,6 +57,10 @@ const DirectFontAwesome: React.FC<DirectFontAwesomeProps> = ({
       'angle-right': { 
         path: 'M11 18l6-6-6-6',
         viewBox: '0 0 24 24'
+      },
+      'xmark': {
+        path: 'M6 18L18 6M6 6l12 12',
+        viewBox: '0 0 24 24'
       }
     };
     

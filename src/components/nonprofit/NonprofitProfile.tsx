@@ -38,6 +38,31 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
+  // Apply overflow hidden to body when modals are open
+  useEffect(() => {
+    const isAnyModalOpen = showLinksSheet || showMissionSheet || showMembershipOptions || showFilterSheet;
+    
+    // Get the html and body elements
+    const htmlElement = document.documentElement;
+    const bodyElement = document.body;
+    
+    if (isAnyModalOpen) {
+      // Prevent scrolling when modals are open
+      htmlElement.style.overflow = 'hidden';
+      bodyElement.style.overflow = 'hidden';
+    } else {
+      // Allow scrolling when no modals are open
+      htmlElement.style.overflow = '';
+      bodyElement.style.overflow = '';
+    }
+    
+    return () => {
+      // Cleanup: reset overflow when component unmounts
+      htmlElement.style.overflow = '';
+      bodyElement.style.overflow = '';
+    };
+  }, [showLinksSheet, showMissionSheet, showMembershipOptions, showFilterSheet]);
+  
   // Modal handlers
   const handleShowLinks = () => {
     setShowLinksSheet(true);
@@ -108,6 +133,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
           <CollectiveSection
             organization={organization}
             onShowFilterSheet={handleShowFilterSheet}
+            displayFilter={displayFilter}
           />
         </div>
         
