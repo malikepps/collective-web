@@ -13,9 +13,10 @@ interface CollectiveSectionProps {
   onShowFilterSheet: () => void;
 }
 
-// Extend Member interface to include relationship
+// Extend Member interface to include relationship and firstName
 interface MemberWithRelationship extends Member {
   relationship: UserNonprofitRelationship;
+  firstName?: string | null;
 }
 
 const CollectiveSection: React.FC<CollectiveSectionProps> = ({
@@ -57,14 +58,15 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
           if (!user) return null;
           
           // Log the user details for debugging
-          console.log(`Loaded user: ${user.id}, ${user.displayName}`);
+          console.log(`Loaded user: ${user.id}, displayName: ${user.displayName}, firstName: ${user.firstName}`);
           
           return {
             id: user.id,
             name: user.displayName || 'Unknown User', // Fallback name
             photoURL: user.photoURL || undefined,
             role: relationship.displayFilter || 'community',
-            relationship
+            relationship,
+            firstName: user.firstName
           } as MemberWithRelationship;
         });
         
@@ -74,7 +76,7 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
         console.log(`Found ${validMembers.length} valid members`);
         // Log some sample names
         validMembers.slice(0, 3).forEach(member => {
-          console.log(`Member name: ${member.name}, First name: ${getFirstName(member.name)}`);
+          console.log(`Member: id=${member.id}, name=${member.name}, firstName=${member.firstName}, displayedName=${getDisplayName(member)}`);
         });
         
         // Sort members: managers first, then members, then community
@@ -88,7 +90,7 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
           if (!a.relationship.isMember && b.relationship.isMember) return 1;
           
           // If same status, sort alphabetically by name
-          return a.name.localeCompare(b.name);
+          return getDisplayName(a).localeCompare(getDisplayName(b));
         });
         
         setMembers(validMembers);
@@ -152,10 +154,21 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
     ];
   };
   
-  // Extract first name from display name
-  const getFirstName = (fullName: string): string => {
-    if (!fullName || fullName.trim() === '') return 'User';
-    return fullName.split(' ')[0] || 'User';
+  // Replace getFirstName with getDisplayName that prioritizes firstName
+  const getDisplayName = (member: MemberWithRelationship): string => {
+    // Priority order: firstName, first part of displayName, fallback
+    if (member.firstName && member.firstName.trim() !== '') {
+      return member.firstName;
+    }
+    
+    // Fallback to the first part of the display name
+    if (member.name && member.name.trim() !== '') {
+      const firstNameFromDisplay = member.name.split(' ')[0];
+      if (firstNameFromDisplay) return firstNameFromDisplay;
+    }
+    
+    // Final fallback
+    return 'User';
   };
   
   return (
@@ -201,7 +214,7 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
               >
                 {row.map((member) => {
                   // Debug user names
-                  console.log(`Rendering member: ${member.name}, First: ${getFirstName(member.name)}`);
+                  console.log(`Rendering member: ${member.name}, firstName: ${member.firstName}, displayed: ${getDisplayName(member)}`);
                   
                   return (
                     <div key={member.id} className="flex flex-col items-center min-w-[75px]">
@@ -215,7 +228,7 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
                         className="text-white text-sm mt-1 w-20 truncate text-center font-marfa font-medium"
                         title={member.name}
                       >
-                        {getFirstName(member.name)}
+                        {getDisplayName(member)}
                       </span>
                     </div>
                   );

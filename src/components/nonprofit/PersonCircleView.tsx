@@ -7,6 +7,7 @@ export interface Member {
   name: string;
   photoURL?: string;
   role?: string;
+  firstName?: string | null; // Add firstName field to support first name display
 }
 
 export enum PersonCircleStyle {
@@ -105,6 +106,9 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
   
   // Get user's first name initial
   const getFirstInitial = (): string => {
+    if (member.firstName && member.firstName.length > 0) {
+      return member.firstName.charAt(0).toUpperCase();
+    }
     const firstName = member.name.split(' ')[0];
     return firstName.charAt(0).toUpperCase();
   };
@@ -127,7 +131,7 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
             width: `${SIZE}px`,
             height: `${SIZE}px`,
             boxShadow: shouldShowGlow() ? `0 0 15px ${glowColor()}` : 'none',
-            border: gradientColors().length > 0 ? '3px solid transparent' : 'none',
+            border: gradientColors().length > 0 ? '2px solid transparent' : 'none',
             background: gradientColors().length > 0 ? 
               `linear-gradient(to bottom, ${gradientColors().join(', ')}) border-box` : 'none'
           }}
@@ -136,7 +140,7 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
           <div 
             className="absolute inset-0 rounded-full overflow-hidden" 
             style={{
-              margin: '2px',
+              margin: '1px',
               background: 'rgb(51, 51, 51)'
             }}
           >
