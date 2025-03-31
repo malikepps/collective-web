@@ -34,6 +34,8 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   const [showLeaveConfirmation, setShowLeaveConfirmation] = useState(false);
   const [isNavbarFixed, setIsNavbarFixed] = useState(false);
   const mediaSectionRef = useRef<HTMLDivElement>(null);
+  const navbarRef = useRef<HTMLDivElement>(null);
+  const navbarHeight = 40; // Height of the navbar in pixels
   
   // Get user relationship with organization
   const { 
@@ -67,14 +69,27 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
       // Check if we should fix the navbar
       if (mediaSectionRef.current) {
         // Set navbar to fixed when we've scrolled past the initial position
-        const shouldBeFixed = window.scrollY > 10;
-        setIsNavbarFixed(shouldBeFixed);
+        const threshold = 10; // Scroll threshold to trigger fixed position
+        const shouldBeFixed = window.scrollY > threshold;
+        
+        if (shouldBeFixed !== isNavbarFixed) {
+          setIsNavbarFixed(shouldBeFixed);
+          
+          // Add padding to the content to prevent jump when navbar becomes fixed
+          if (shouldBeFixed) {
+            // When becoming fixed, add padding to compensate for the navbar height
+            mediaSectionRef.current.style.paddingTop = `${navbarHeight}px`;
+          } else {
+            // When returning to normal position, remove the padding
+            mediaSectionRef.current.style.paddingTop = '0px';
+          }
+        }
       }
     };
     
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isNavbarFixed]);
   
   // Apply overflow hidden to body when modals are open
   useEffect(() => {
@@ -147,18 +162,21 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
         top: 0,
         left: 0,
         right: 0,
+        height: `${navbarHeight}px`,
         backgroundColor: `rgba(0, 0, 0, ${navbarBgOpacity})`,
         backdropFilter: `blur(${blurIntensity}px)`,
         WebkitBackdropFilter: `blur(${blurIntensity}px)`,
         zIndex: 50, // Higher z-index when fixed
-        transition: 'background-color 0.3s ease, backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease'
+        transition: 'background-color 0.3s ease, backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease, transform 0.3s ease',
+        transform: 'translateY(0)'
       } as React.CSSProperties
     : {
         position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
-        backgroundColor: 'transparent',
+        height: `${navbarHeight}px`,
+        backgroundColor: 'transparent', // Fully transparent background when not fixed
         zIndex: 20, // Lower z-index when not fixed
       } as React.CSSProperties;
   
@@ -191,7 +209,8 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
         <div ref={mediaSectionRef} className="relative">
           {/* Navigation bar - positioned relative to MediaSection on initial load, then fixed */}
           <div 
-            className="h-10 flex items-center justify-between px-4"
+            ref={navbarRef}
+            className="flex items-center justify-between px-4"
             style={navbarStyles}
           >
             {/* Back button */}
@@ -232,7 +251,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
             </button>
           </div>
           
-          <MediaSection organization={organization} />
+          <MediaSection organization={organization} navbarHeight={navbarHeight} />
         </div>
         
         {/* Content Sections */}
