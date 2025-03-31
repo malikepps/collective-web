@@ -2,6 +2,8 @@
 export { default as FAIcon } from './FAIcon';
 export { default as FontAwesomeIcon } from './FontAwesomeIcon';
 export { default as IconDemo } from './IconDemo';
+export { default as DebugIcon } from './DebugIcon';
+export { default as DirectFontAwesome } from './DirectFontAwesome';
 
 // Export types and utilities
 export { IconStyle } from './FontAwesomeIcon';

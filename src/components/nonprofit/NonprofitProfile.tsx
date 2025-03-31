@@ -8,7 +8,7 @@ import OrganizationDetailsView from './OrganizationDetailsView';
 import MembershipOptionsView from './MembershipOptionsView';
 import CollectiveSection from './CollectiveSection';
 import FilterBottomSheet from './FilterBottomSheet';
-import { FAIcon, Icon, IconStyle } from '@/lib/components/icons';
+import { FAIcon, Icon, IconStyle, DebugIcon, DirectFontAwesome } from '@/lib/components/icons';
 
 interface NonprofitProfileProps {
   organization: Organization;
@@ -64,7 +64,11 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
           onClick={() => router.back()}
           className="bg-black/50 w-10 h-10 rounded-full flex items-center justify-center overflow-hidden"
         >
-          <span className="text-white text-xl">&larr;</span>
+          <DirectFontAwesome 
+            icon="chevron-left"
+            size={20}
+            color="#ffffff"
+          />
         </button>
       </div>
       
