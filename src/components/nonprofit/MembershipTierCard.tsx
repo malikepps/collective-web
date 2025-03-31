@@ -65,12 +65,13 @@ const MembershipTierCard: React.FC<MembershipTierCardProps> = ({
           className="flex items-center justify-center py-1.5 px-3 rounded-md mb-4"
           style={{ backgroundColor: primaryColor }}
         >
-          <DirectFontAwesome
-            icon="star"
-            size={12}
-            color={textColor}
-            className="mr-2"
-          />
+          <div className="mr-2">
+            <DirectFontAwesome
+              icon="star"
+              size={12}
+              color={textColor}
+            />
+          </div>
           <span 
             className="text-sm font-marfa font-medium"
             style={{ color: textColor }}
