@@ -135,15 +135,15 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
   return (
     <div className="bg-card p-4 text-white continuous-corner">
       {/* Header with filter button */}
-      <div className="flex items-center mb-4">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-white font-marfa font-semibold text-2xl">Collective</h2>
         
         <button 
           onClick={onShowFilterSheet}
-          className="ml-3 h-8 flex items-center"
+          className="bg-white/20 ios-rounded-sm px-3 h-8 flex items-center"
         >
           <span 
-            className="text-sm font-marfa font-light mr-1"
+            className="text-sm font-marfa mr-1"
             style={{ color: secondaryColor }}
           >
             Filter

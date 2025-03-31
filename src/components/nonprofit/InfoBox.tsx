@@ -43,7 +43,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
         
         {organization.linkInBio && (
           <>
-            <span className="text-gray-500 mx-1">•</span>
+            <span className="text-gray-500 mx-2">•</span>
             <button 
               onClick={onShowLinks}
               className="h-8 flex items-center"
@@ -54,7 +54,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
           </>
         )}
         
-        <span className="text-gray-500 mx-1">•</span>
+        <span className="text-gray-500 mx-2">•</span>
         <button 
           onClick={onShowMission}
           className="h-8 flex items-center"

@@ -30,6 +30,10 @@ const DirectFontAwesome: React.FC<DirectFontAwesomeProps> = ({
         path: 'M3 6h18M3 12h18M3 18h18',
         viewBox: '0 0 24 24'
       },
+      'bars-filter': {
+        path: 'M4 6h16M4 12h10M4 18h6',
+        viewBox: '0 0 24 24'
+      },
       'chevron-left': { 
         path: 'M15 18l-6-6 6-6',
         viewBox: '0 0 24 24'
