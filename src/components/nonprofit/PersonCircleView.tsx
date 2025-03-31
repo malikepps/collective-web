@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useTheme } from '@/lib/context/ThemeContext';
 
@@ -31,51 +31,56 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
   onClick
 }) => {
   const { getTheme } = useTheme();
-  const theme = themeId ? getTheme(themeId) : null;
+  const [borderColors, setBorderColors] = useState<string[]>([]);
+  const [glowColorValue, setGlowColorValue] = useState<string>('transparent');
   
   // Circle size increased by 15%
   const SIZE = 69; // 60px + 15%
   
-  // Determine gradient colors based on style
-  const gradientColors = (): string[] => {
+  // Update colors whenever the theme or style changes
+  useEffect(() => {
+    const theme = themeId ? getTheme(themeId) : null;
+    
+    // Calculate gradient colors
+    let colors: string[] = [];
     switch (style) {
       case PersonCircleStyle.STAFF:
-        return ['#8BBEF9', '#9E91C5'];
+        colors = ['#8BBEF9', '#9E91C5'];
+        setGlowColorValue('rgba(139, 190, 249, 0.56)');
+        break;
       case PersonCircleStyle.STAFF_WITH_THEME:
         if (theme?.primaryColor) {
-          // If we have a primaryColor but no gradientColors, create a gradient from the primary color
-          if (!theme.gradientColors || theme.gradientColors.length < 2) {
-            const primaryWithHash = theme.primaryColor.startsWith('#') ? 
-              theme.primaryColor : `#${theme.primaryColor}`;
-            return [primaryWithHash, shadeColor(primaryWithHash, -20)];
+          const primaryWithHash = theme.primaryColor.startsWith('#') ? 
+            theme.primaryColor : `#${theme.primaryColor}`;
+          
+          if (theme.gradientColors && theme.gradientColors.length >= 2) {
+            colors = theme.gradientColors.map(color => `#${color}`);
+          } else {
+            colors = [primaryWithHash, shadeColor(primaryWithHash, -20)];
           }
-          return theme.gradientColors.map(color => `#${color}`);
+          
+          // Set glow color
+          const hex = theme.primaryColor.startsWith('#') ? 
+            theme.primaryColor.substring(1) : theme.primaryColor;
+          setGlowColorValue(`rgba(${hexToRgb(hex)}, 0.56)`);
+        } else {
+          colors = ['#8BBEF9', '#9E91C5'];
+          setGlowColorValue('rgba(139, 190, 249, 0.56)');
         }
-        return ['#8BBEF9', '#9E91C5'];
+        break;
       case PersonCircleStyle.MEMBER:
-        return ['#FFD700', '#FFA500']; // Gold to orange gradient
+        colors = ['#FFD700', '#FFA500']; // Gold to orange gradient
+        setGlowColorValue('transparent');
+        break;
       case PersonCircleStyle.COMMUNITY:
       default:
-        return []; // No border for community members
+        colors = []; // No border for community members
+        setGlowColorValue('transparent');
+        break;
     }
-  };
-  
-  // Determine if the style should show glow
-  const shouldShowGlow = (): boolean => {
-    return style === PersonCircleStyle.STAFF || style === PersonCircleStyle.STAFF_WITH_THEME;
-  };
-  
-  // Determine glow color based on style
-  const glowColor = (): string => {
-    if (style === PersonCircleStyle.STAFF) {
-      return 'rgba(139, 190, 249, 0.56)'; // #8BBEF9 with opacity
-    } else if (style === PersonCircleStyle.STAFF_WITH_THEME && theme?.primaryColor) {
-      // Convert hex to rgba for glow effect
-      const hex = theme.primaryColor.startsWith('#') ? theme.primaryColor.substring(1) : theme.primaryColor;
-      return `rgba(${hexToRgb(hex)}, 0.56)`;
-    }
-    return 'transparent';
-  };
+    
+    setBorderColors(colors);
+  }, [member.id, style, themeId, getTheme]);
   
   // Helper to convert hex to rgb components
   const hexToRgb = (hex: string): string => {
@@ -112,9 +117,11 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
     const firstName = member.name.split(' ')[0];
     return firstName.charAt(0).toUpperCase();
   };
-
-  // Debug log to inspect the member name
-  console.log(`Member name: ${member.name}`);
+  
+  // Determine if we should show glow
+  const shouldShowGlow = (): boolean => {
+    return style === PersonCircleStyle.STAFF || style === PersonCircleStyle.STAFF_WITH_THEME;
+  };
   
   return (
     <button 
@@ -130,10 +137,10 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
           style={{
             width: `${SIZE}px`,
             height: `${SIZE}px`,
-            boxShadow: shouldShowGlow() ? `0 0 15px ${glowColor()}` : 'none',
-            border: gradientColors().length > 0 ? '2px solid transparent' : 'none',
-            background: gradientColors().length > 0 ? 
-              `linear-gradient(to bottom, ${gradientColors().join(', ')}) border-box` : 'none'
+            boxShadow: shouldShowGlow() ? `0 0 15px ${glowColorValue}` : 'none',
+            border: borderColors.length > 0 ? '2px solid transparent' : 'none',
+            background: borderColors.length > 0 ? 
+              `linear-gradient(to bottom, ${borderColors.join(', ')}) border-box` : 'none'
           }}
         >
           {/* Inner circle container */}
