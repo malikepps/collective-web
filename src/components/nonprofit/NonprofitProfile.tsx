@@ -64,12 +64,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
           onClick={() => router.back()}
           className="bg-black/50 w-10 h-10 rounded-full flex items-center justify-center overflow-hidden"
         >
-          <FAIcon 
-            icon="chevron-left" 
-            size={20} 
-            primaryColor="ffffff" 
-            style={IconStyle.CLASSIC}
-          />
+          <span className="text-white text-xl">&larr;</span>
         </button>
       </div>
       
@@ -86,7 +81,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
       </div>
       
       {/* Media Section */}
-      <div className="mt-6">
+      <div className="mt-2 bg-black">
         <MediaSection organization={organization} />
       </div>
       
