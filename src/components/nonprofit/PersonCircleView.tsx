@@ -32,6 +32,9 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
   const { getTheme } = useTheme();
   const theme = themeId ? getTheme(themeId) : null;
   
+  // Circle size increased by 15%
+  const SIZE = 69; // 60px + 15%
+  
   // Determine gradient colors based on style
   const gradientColors = (): string[] => {
     switch (style) {
@@ -98,73 +101,64 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
     return "#" + rr + gg + bb;
   };
   
+  // Get user's first name initial
+  const getFirstInitial = (): string => {
+    const firstName = member.name.split(' ')[0];
+    return firstName.charAt(0).toUpperCase();
+  };
+  
   return (
     <button 
       onClick={onClick}
       className="relative flex items-center justify-center"
       aria-label={`View ${member.name}'s profile`}
     >
-      <div className={`w-[60px] h-[60px] rounded-full overflow-hidden relative
-        ${shouldShowGlow() ? 'shadow-lg' : ''}
-      `}
-        style={{
-          boxShadow: shouldShowGlow() ? `0 0 12px ${glowColor()}` : 'none'
-        }}
-      >
-        {member.photoURL ? (
-          // With photo - using img element instead of Image component for Firebase URLs
-          <div className="relative w-full h-full">
+      {/* Container with proper spacing for glow effect */}
+      <div className="p-2">
+        <div 
+          className="relative rounded-full overflow-hidden"
+          style={{
+            width: `${SIZE}px`,
+            height: `${SIZE}px`,
+            boxShadow: shouldShowGlow() ? `0 0 15px ${glowColor()}` : 'none'
+          }}
+        >
+          {member.photoURL ? (
+            // With photo
             <img
               src={member.photoURL}
               alt={member.name}
               className="w-full h-full object-cover rounded-full"
             />
-            
-            {/* Add border gradient if needed */}
-            {gradientColors().length > 0 && (
-              <div 
-                className="absolute inset-0 rounded-full z-10 pointer-events-none"
-                style={{
-                  background: 'transparent',
-                  border: '2px solid transparent',
-                  borderRadius: '9999px',
-                  backgroundImage: `linear-gradient(to bottom, ${gradientColors().join(', ')})`,
-                  backgroundOrigin: 'border-box',
-                  backgroundClip: 'content-box, border-box',
-                  boxSizing: 'border-box'
-                }}
-              />
-            )}
-          </div>
-        ) : (
-          // Without photo - show initials
-          <div 
-            className="flex items-center justify-center w-full h-full rounded-full"
-            style={{
-              background: 'linear-gradient(to bottom, rgb(51, 51, 51), rgb(77, 77, 77))'
-            }}
-          >
-            <span className="text-white/70 text-3xl font-marfa font-semibold">
-              {member.name.charAt(0).toUpperCase()}
-            </span>
-            
-            {/* Add border gradient if needed */}
-            {gradientColors().length > 0 && (
-              <div 
-                className="absolute inset-0 rounded-full z-10 pointer-events-none"
-                style={{
-                  background: 'transparent',
-                  border: '2px solid transparent',
-                  borderRadius: '9999px',
-                  backgroundImage: `linear-gradient(to bottom, ${gradientColors().join(', ')})`,
-                  backgroundOrigin: 'border-box',
-                  backgroundClip: 'content-box, border-box',
-                  boxSizing: 'border-box'
-                }}
-              />
-            )}
-          </div>
-        )}
+          ) : (
+            // Without photo - show initial
+            <div 
+              className="flex items-center justify-center w-full h-full rounded-full"
+              style={{
+                background: 'linear-gradient(to bottom, rgb(51, 51, 51), rgb(77, 77, 77))'
+              }}
+            >
+              <span className="text-white/70 text-3xl font-marfa font-semibold">
+                {getFirstInitial()}
+              </span>
+            </div>
+          )}
+          
+          {/* Border gradient */}
+          {gradientColors().length > 0 && (
+            <div 
+              className="absolute inset-0 rounded-full border-2 border-transparent box-border pointer-events-none"
+              style={{
+                backgroundImage: `linear-gradient(to bottom, ${gradientColors().join(', ')})`,
+                backgroundOrigin: 'border-box',
+                backgroundClip: 'border-box, border-box',
+                WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                WebkitMaskComposite: 'xor',
+                maskComposite: 'exclude'
+              }}
+            />
+          )}
+        </div>
       </div>
     </button>
   );
