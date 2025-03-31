@@ -80,4 +80,14 @@ body {
     /* Add iOS-style subtle shadow */
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   }
+  
+  /* Hide scrollbars but keep functionality */
+  .hide-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
 }

@@ -9,6 +9,7 @@ import MembershipOptionsView from './MembershipOptionsView';
 import CollectiveSection from './CollectiveSection';
 import FilterBottomSheet from './FilterBottomSheet';
 import { FAIcon, Icon, IconStyle, DebugIcon, DirectFontAwesome } from '@/lib/components/icons';
+import { useTheme } from '@/lib/context/ThemeContext';
 
 interface NonprofitProfileProps {
   organization: Organization;
@@ -18,6 +19,8 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   organization
 }) => {
   const router = useRouter();
+  const { getTheme } = useTheme();
+  const theme = organization.themeId ? getTheme(organization.themeId) : undefined;
   const [scrollOffset, setScrollOffset] = useState(0);
   const [showLinksSheet, setShowLinksSheet] = useState(false);
   const [showMissionSheet, setShowMissionSheet] = useState(false);
@@ -141,6 +144,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
         onFilterChange={handleFilterChange}
         isOpen={showFilterSheet}
         onClose={() => setShowFilterSheet(false)}
+        theme={theme}
       />
     </div>
   );

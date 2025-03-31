@@ -38,15 +38,19 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
       case PersonCircleStyle.STAFF:
         return ['#8BBEF9', '#9E91C5'];
       case PersonCircleStyle.STAFF_WITH_THEME:
-        if (theme?.gradientColors && theme.gradientColors.length >= 2) {
+        if (theme?.primaryColor) {
+          // If we have a primaryColor but no gradientColors, create a gradient from the primary color
+          if (!theme.gradientColors || theme.gradientColors.length < 2) {
+            return [theme.primaryColor, shadeColor(theme.primaryColor, -20)];
+          }
           return theme.gradientColors.map(color => `#${color}`);
         }
         return ['#8BBEF9', '#9E91C5'];
       case PersonCircleStyle.MEMBER:
-        return ['#FFD700', '#FFA500'];
+        return ['#FFD700', '#FFA500']; // Gold to orange gradient
       case PersonCircleStyle.COMMUNITY:
       default:
-        return [];
+        return []; // No border for community members
     }
   };
   
@@ -58,27 +62,49 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
   // Determine glow color based on style
   const glowColor = (): string => {
     if (style === PersonCircleStyle.STAFF) {
-      return 'rgba(139, 190, 249, 0.42)'; // #8BBEF9 with opacity
+      return 'rgba(139, 190, 249, 0.56)'; // #8BBEF9 with opacity
     } else if (style === PersonCircleStyle.STAFF_WITH_THEME && theme?.primaryColor) {
-      return `rgba(${hexToRgb(theme.primaryColor)}, 0.42)`;
+      // Convert hex to rgba for glow effect
+      const hex = theme.primaryColor.startsWith('#') ? theme.primaryColor.substring(1) : theme.primaryColor;
+      return `rgba(${hexToRgb(hex)}, 0.56)`;
     }
     return 'transparent';
   };
   
-  // Helper to convert hex to rgba
+  // Helper to convert hex to rgb components
   const hexToRgb = (hex: string): string => {
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
+    // Handle both 3 and 6 digit hex codes
+    const sanitized = hex.replace(/^#/, '');
+    const r = parseInt(sanitized.length === 3 ? sanitized[0] + sanitized[0] : sanitized.substring(0, 2), 16);
+    const g = parseInt(sanitized.length === 3 ? sanitized[1] + sanitized[1] : sanitized.substring(2, 4), 16);
+    const b = parseInt(sanitized.length === 3 ? sanitized[2] + sanitized[2] : sanitized.substring(4, 6), 16);
     return `${r}, ${g}, ${b}`;
+  };
+  
+  // Helper to darken/lighten a color
+  const shadeColor = (color: string, percent: number): string => {
+    let R = parseInt(color.substring(1, 3), 16);
+    let G = parseInt(color.substring(3, 5), 16);
+    let B = parseInt(color.substring(5, 7), 16);
+
+    R = Math.min(255, Math.max(0, R + percent));
+    G = Math.min(255, Math.max(0, G + percent));
+    B = Math.min(255, Math.max(0, B + percent));
+
+    const rr = ((R.toString(16).length === 1) ? "0" + R.toString(16) : R.toString(16));
+    const gg = ((G.toString(16).length === 1) ? "0" + G.toString(16) : G.toString(16));
+    const bb = ((B.toString(16).length === 1) ? "0" + B.toString(16) : B.toString(16));
+
+    return "#" + rr + gg + bb;
   };
   
   return (
     <button 
       onClick={onClick}
       className="relative flex items-center justify-center"
+      aria-label={`View ${member.name}'s profile`}
     >
-      <div className={`w-[60px] h-[60px] rounded-full overflow-hidden
+      <div className={`w-[60px] h-[60px] rounded-full overflow-hidden relative
         ${shouldShowGlow() ? 'shadow-lg' : ''}
       `}
         style={{
@@ -91,7 +117,7 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
             <img
               src={member.photoURL}
               alt={member.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover rounded-full"
             />
             
             {/* Add border gradient if needed */}
@@ -104,7 +130,7 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
                   borderRadius: '9999px',
                   backgroundImage: `linear-gradient(to bottom, ${gradientColors().join(', ')})`,
                   backgroundOrigin: 'border-box',
-                  backgroundClip: 'padding-box, border-box',
+                  backgroundClip: 'content-box, border-box',
                   boxSizing: 'border-box'
                 }}
               />
@@ -112,18 +138,13 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
           </div>
         ) : (
           // Without photo - show initials
-          <div className={`flex items-center justify-center w-full h-full
-            ${gradientColors().length > 0 ? 'border-2 border-transparent' : ''}
-          `}
+          <div 
+            className="flex items-center justify-center w-full h-full rounded-full"
             style={{
-              background: 'linear-gradient(to bottom, rgb(51, 51, 51), rgb(77, 77, 77))',
-              backgroundOrigin: gradientColors().length > 0 ? 'border-box' : 'padding-box',
-              backgroundClip: gradientColors().length > 0 ? 'padding-box, border-box' : 'padding-box',
-              boxSizing: 'border-box',
-              position: 'relative'
+              background: 'linear-gradient(to bottom, rgb(51, 51, 51), rgb(77, 77, 77))'
             }}
           >
-            <span className="text-white/70 text-3xl font-semibold">
+            <span className="text-white/70 text-3xl font-marfa font-semibold">
               {member.name.charAt(0).toUpperCase()}
             </span>
             
@@ -137,7 +158,7 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
                   borderRadius: '9999px',
                   backgroundImage: `linear-gradient(to bottom, ${gradientColors().join(', ')})`,
                   backgroundOrigin: 'border-box',
-                  backgroundClip: 'padding-box, border-box',
+                  backgroundClip: 'content-box, border-box',
                   boxSizing: 'border-box'
                 }}
               />

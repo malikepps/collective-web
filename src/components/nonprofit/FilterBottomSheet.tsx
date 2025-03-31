@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
+import { Theme } from '@/lib/models/Theme';
 
 interface FilterBottomSheetProps {
   selectedFilter: string;
   onFilterChange: (filter: string) => void;
   isOpen: boolean;
   onClose: () => void;
+  theme?: Theme;
 }
 
 const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
   selectedFilter,
   onFilterChange,
   isOpen,
-  onClose
+  onClose,
+  theme
 }) => {
   const [tempSelection, setTempSelection] = useState(selectedFilter);
   
@@ -27,6 +30,9 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
     onFilterChange('all');
     onClose();
   };
+
+  // Get the primary color from theme
+  const primaryColor = theme?.primaryColor ? `#${theme.primaryColor}` : '#3B82F6'; // Default to blue-500
   
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
@@ -55,20 +61,34 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
         <div className="space-y-6 mb-8 px-4">
           <FilterOption 
             title="Staff" 
+            description="Leaders and administrators"
             isSelected={tempSelection === 'manager'}
             onSelect={() => setTempSelection('manager')}
+            accentColor={primaryColor}
           />
           
           <FilterOption 
             title="Members" 
+            description="Regular members of the organization"
             isSelected={tempSelection === 'member'}
             onSelect={() => setTempSelection('member')}
+            accentColor={primaryColor}
           />
           
           <FilterOption 
             title="Community" 
+            description="Supporters and followers"
             isSelected={tempSelection === 'community'}
             onSelect={() => setTempSelection('community')}
+            accentColor={primaryColor}
+          />
+
+          <FilterOption 
+            title="All" 
+            description="Everyone in the collective"
+            isSelected={tempSelection === 'all'}
+            onSelect={() => setTempSelection('all')}
+            accentColor={primaryColor}
           />
         </div>
         
@@ -83,7 +103,8 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
           
           <button
             onClick={applyFilter}
-            className="flex-1 py-3 bg-blue-500 ios-rounded-sm font-marfa font-medium text-white"
+            className="flex-1 py-3 ios-rounded-sm font-marfa font-medium text-white"
+            style={{ backgroundColor: primaryColor }}
           >
             Apply
           </button>
@@ -96,20 +117,28 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 // Filter Option component
 const FilterOption: React.FC<{
   title: string;
+  description?: string;
   isSelected: boolean;
   onSelect: () => void;
-}> = ({ title, isSelected, onSelect }) => {
+  accentColor?: string;
+}> = ({ title, description, isSelected, onSelect, accentColor = '#3B82F6' }) => {
   return (
     <button 
       onClick={onSelect}
       className="w-full flex items-center justify-between py-3"
     >
-      <span className="text-white font-marfa">{title}</span>
+      <div className="flex flex-col items-start">
+        <span className="text-white font-marfa">{title}</span>
+        {description && (
+          <span className="text-gray-400 text-sm font-marfa">{description}</span>
+        )}
+      </div>
       
       <div 
         className={`w-6 h-6 rounded-full flex items-center justify-center
-          ${isSelected ? 'border-0 bg-blue-500' : 'border border-gray-600'}
+          ${isSelected ? 'border-0' : 'border border-gray-600'}
         `}
+        style={{ backgroundColor: isSelected ? accentColor : 'transparent' }}
       >
         {isSelected && (
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">

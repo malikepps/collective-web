@@ -1,23 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Organization } from '@/lib/models/Organization';
 import { db } from '@/lib/firebase/config';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, getDoc, doc } from 'firebase/firestore';
 import PersonCircleView, { Member, PersonCircleStyle } from './PersonCircleView';
 import { DirectFontAwesome } from '@/lib/components/icons';
 import { useTheme } from '@/lib/context/ThemeContext';
+import { UserNonprofitRelationship, relationshipFromFirestore } from '@/lib/models/UserNonprofitRelationship';
+import { CollectiveUser, userFromFirestore } from '@/lib/models/User';
 
 interface CollectiveSectionProps {
   organization: Organization;
   onShowFilterSheet: () => void;
 }
 
+// Extend Member interface to include relationship
+interface MemberWithRelationship extends Member {
+  relationship: UserNonprofitRelationship;
+}
+
 const CollectiveSection: React.FC<CollectiveSectionProps> = ({
   organization,
   onShowFilterSheet
 }) => {
-  const [staffMembers, setStaffMembers] = useState<Member[]>([]);
-  const [regularMembers, setRegularMembers] = useState<Member[]>([]);
-  const [communityMembers, setCommunityMembers] = useState<Member[]>([]);
+  const [members, setMembers] = useState<MemberWithRelationship[]>([]);
   const [displayFilter, setDisplayFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const { getTheme } = useTheme();
@@ -29,69 +34,54 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
       
       setLoading(true);
       try {
-        // Staff members (managers)
-        const staffIds = organization.staff || [];
-        const managersPromises = staffIds.map(async (userId) => {
-          const userDoc = await getDoc(doc(db, 'users', userId));
-          if (userDoc.exists()) {
-            return {
-              id: userId,
-              name: userDoc.data().display_name || 'Unknown User',
-              photoURL: userDoc.data().photo_url,
-              role: 'staff'
-            } as Member;
-          }
-          return null;
+        // Query the user_nonprofit_relationships collection
+        const relationshipsRef = collection(db, 'user_nonprofit_relationships');
+        const relationshipsQuery = query(
+          relationshipsRef,
+          where('nonprofit', '==', doc(db, 'nonprofits', organization.id)),
+          where('is_active', '==', true)
+        );
+        
+        const relationshipsSnapshot = await getDocs(relationshipsQuery);
+        
+        // Process relationships and fetch user data
+        const membersPromises = relationshipsSnapshot.docs.map(async (relationshipDoc) => {
+          const relationship = relationshipFromFirestore(relationshipDoc);
+          if (!relationship) return null;
+          
+          // Fetch user data
+          const userDoc = await getDoc(doc(db, 'users', relationship.userId));
+          const user = userFromFirestore(userDoc);
+          
+          if (!user) return null;
+          
+          return {
+            id: user.id,
+            name: user.displayName,
+            photoURL: user.photoURL || undefined,
+            role: relationship.displayFilter || 'community',
+            relationship
+          } as MemberWithRelationship;
         });
         
-        // Regular members
-        const memberIds = organization.members || [];
-        const membersPromises = memberIds
-          .filter(id => !staffIds.includes(id)) // exclude staff
-          .map(async (userId) => {
-            const userDoc = await getDoc(doc(db, 'users', userId));
-            if (userDoc.exists()) {
-              return {
-                id: userId,
-                name: userDoc.data().display_name || 'Unknown User',
-                photoURL: userDoc.data().photo_url,
-                role: 'member'
-              } as Member;
-            }
-            return null;
-          });
+        const membersResult = await Promise.all(membersPromises);
+        const validMembers = membersResult.filter((m): m is MemberWithRelationship => m !== null);
         
-        // Community members (simplified for now)
-        const communityPromises: Promise<Member | null>[] = [];
-        if (organization.id) {
-          const relationsRef = collection(db, 'user_nonprofit_relationships');
-          // This is a placeholder - would need proper query in production
-          // This would normally query relationships where is_community=true
-          communityPromises.push(
-            Promise.resolve({
-              id: 'community1',
-              name: 'Community User',
-              photoURL: undefined,
-              role: 'community'
-            })
-          );
-        }
+        // Sort members: managers first, then members, then community
+        validMembers.sort((a, b) => {
+          // First sort by manager status (managers first)
+          if (a.relationship.isManager && !b.relationship.isManager) return -1;
+          if (!a.relationship.isManager && b.relationship.isManager) return 1;
+          
+          // Then sort by member status (members before community)
+          if (a.relationship.isMember && !b.relationship.isMember) return -1;
+          if (!a.relationship.isMember && b.relationship.isMember) return 1;
+          
+          // If same status, sort alphabetically by name
+          return a.name.localeCompare(b.name);
+        });
         
-        // Resolve all promises
-        const [staffResults, memberResults, communityResults] = await Promise.all([
-          Promise.all(managersPromises),
-          Promise.all(membersPromises),
-          Promise.all(communityPromises)
-        ]);
-        
-        // Filter out nulls
-        const staff = staffResults.filter((member): member is Member => member !== null);
-        const members = memberResults.filter((member): member is Member => member !== null);
-        const community = communityResults.filter((member): member is Member => member !== null);
-        
-        setStaffMembers(staff);
-        setRegularMembers(members);
-        setCommunityMembers(community);
+        setMembers(validMembers);
       } catch (error) {
         console.error('Error fetching members:', error);
       } finally {
@@ -100,30 +90,30 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
     };
     
     fetchMembers();
-  }, [organization.id, organization.staff, organization.members]);
+  }, [organization.id]);
   
   // Function to filter members based on selected filter
   const filteredMembers = () => {
     switch (displayFilter) {
       case 'manager':
-        return staffMembers;
+        return members.filter(m => m.relationship.isManager);
       case 'member':
-        return regularMembers;
+        return members.filter(m => m.relationship.isMember && !m.relationship.isManager);
       case 'community':
-        return communityMembers;
+        return members.filter(m => m.relationship.isCommunity);
       case 'all':
       default:
-        return [...staffMembers, ...regularMembers, ...communityMembers];
+        return members;
     }
   };
   
   // Helper to determine member style
-  const getMemberStyle = (member: Member): PersonCircleStyle => {
-    if (staffMembers.some(staff => staff.id === member.id)) {
+  const getMemberStyle = (member: MemberWithRelationship): PersonCircleStyle => {
+    if (member.relationship.isManager || member.relationship.isStaff) {
       return organization.themeId
         ? PersonCircleStyle.STAFF_WITH_THEME
         : PersonCircleStyle.STAFF;
-    } else if (regularMembers.some(m => m.id === member.id)) {
+    } else if (member.relationship.isMember) {
       return PersonCircleStyle.MEMBER;
     }
     return PersonCircleStyle.COMMUNITY;
@@ -131,6 +121,26 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
   
   // Get secondary color from theme
   const secondaryColor = theme?.secondaryColor ? `#${theme.secondaryColor}` : '#ADD3FF';
+  
+  // Determine if we should show two rows (when more than 5 members)
+  const showTwoRows = filteredMembers().length > 5;
+  
+  // Split members into rows
+  const getRows = () => {
+    const filtered = filteredMembers();
+    if (!showTwoRows) {
+      return [filtered];
+    }
+    
+    // Calculate number of items per row to balance both rows
+    const totalMembers = filtered.length;
+    const itemsFirstRow = Math.ceil(totalMembers / 2);
+    
+    return [
+      filtered.slice(0, itemsFirstRow),
+      filtered.slice(itemsFirstRow)
+    ];
+  };
   
   return (
     <div className="bg-card p-4 text-white continuous-corner">
@@ -166,22 +176,30 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
           <p className="text-white/50">No members found</p>
         </div>
       ) : (
-        <div className="overflow-x-auto pb-2">
-          <div className="flex space-x-3 px-2">
-            {filteredMembers().map((member) => (
-              <div key={member.id} className="flex flex-col items-center">
-                <PersonCircleView 
-                  member={member} 
-                  style={getMemberStyle(member)}
-                  themeId={organization.themeId || undefined}
-                  onClick={() => console.log('Member clicked:', member.name)}
-                />
-                <span className="text-white text-xs mt-1 w-16 truncate text-center font-marfa">
-                  {member.name.split(' ')[0]}
-                </span>
+        <div className="overflow-hidden">
+          {getRows().map((row, rowIndex) => (
+            <div 
+              key={`row-${rowIndex}`} 
+              className="overflow-x-auto pb-4 hide-scrollbar"
+              style={{ marginBottom: rowIndex === 0 && showTwoRows ? '12px' : '0' }}
+            >
+              <div className="flex space-x-4 px-2 min-w-min">
+                {row.map((member) => (
+                  <div key={member.id} className="flex flex-col items-center min-w-[66px]">
+                    <PersonCircleView 
+                      member={member} 
+                      style={getMemberStyle(member)}
+                      themeId={organization.themeId || undefined}
+                      onClick={() => console.log('Member clicked:', member.name)}
+                    />
+                    <span className="text-white text-xs mt-2 w-16 truncate text-center font-marfa">
+                      {member.name.split(' ')[0]}
+                    </span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
