@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { Organization } from '@/lib/models/Organization';
 import MediaSection from './MediaSection';
@@ -32,6 +32,8 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   const [showFilterSheet, setShowFilterSheet] = useState(false);
   const [displayFilter, setDisplayFilter] = useState('all');
   const [showLeaveConfirmation, setShowLeaveConfirmation] = useState(false);
+  const [isNavbarFixed, setIsNavbarFixed] = useState(false);
+  const mediaSectionRef = useRef<HTMLDivElement>(null);
   
   // Get user relationship with organization
   const { 
@@ -57,10 +59,17 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
     });
   }, [organization.id, relationship, isUserMember, isUserInCommunity, isUserStaff, relationshipLoading, relationshipError]);
   
-  // Handle scroll events to adjust header opacity
+  // Handle scroll events to adjust header opacity and position
   useEffect(() => {
     const handleScroll = () => {
       setScrollOffset(window.scrollY);
+      
+      // Check if we should fix the navbar
+      if (mediaSectionRef.current) {
+        // Set navbar to fixed when we've scrolled past the initial position
+        const shouldBeFixed = window.scrollY > 10;
+        setIsNavbarFixed(shouldBeFixed);
+      }
     };
     
     window.addEventListener('scroll', handleScroll);
@@ -131,6 +140,28 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   // Calculate blur intensity based on scroll
   const blurIntensity = Math.min(8, scrollOffset / 40);
   
+  // Navbar styling based on fixed or initial position
+  const navbarStyles = isNavbarFixed
+    ? {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: `rgba(0, 0, 0, ${navbarBgOpacity})`,
+        backdropFilter: `blur(${blurIntensity}px)`,
+        WebkitBackdropFilter: `blur(${blurIntensity}px)`,
+        zIndex: 50, // Higher z-index when fixed
+        transition: 'background-color 0.3s ease, backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease'
+      } as React.CSSProperties
+    : {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: 'transparent',
+        zIndex: 20, // Lower z-index when not fixed
+      } as React.CSSProperties;
+  
   return (
     <>
       <Head>
@@ -156,57 +187,51 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
       </Head>
       
       <div className="min-h-screen bg-black overflow-hidden">
-        {/* Navigation bar - fixed position with darkening effect and blur */}
-        <div 
-          className="fixed top-0 left-0 right-0 z-10 h-10 flex items-center justify-between px-4"
-          style={{ 
-            backgroundColor: `rgba(0, 0, 0, ${navbarBgOpacity})`,
-            backdropFilter: `blur(${blurIntensity}px)`,
-            WebkitBackdropFilter: `blur(${blurIntensity}px)`,
-            transition: 'background-color 0.3s ease, backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease'
-          }}
-        >
-          {/* Back button */}
-          <button 
-            onClick={() => router.back()}
-            className="flex items-center justify-center overflow-hidden"
+        {/* Media Section with reference */}
+        <div ref={mediaSectionRef} className="relative">
+          {/* Navigation bar - positioned relative to MediaSection on initial load, then fixed */}
+          <div 
+            className="h-10 flex items-center justify-between px-4"
+            style={navbarStyles}
           >
-            <DirectFontAwesome 
-              icon="bars"
-              size={25}
-              color="#ffffff"
-              style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
-            />
-          </button>
-          
-          {/* Username in center */}
-          <div
-            style={{ 
-              opacity: scrollOffset > 50 ? Math.min(1, (scrollOffset - 50) / 100) : 0,
-              transition: 'opacity 0.3s ease'
-            }}
-          >
-            <p className="text-white font-marfa font-medium">
+            {/* Back button */}
+            <button 
+              onClick={() => router.back()}
+              className="flex items-center justify-center overflow-hidden"
+            >
+              <DirectFontAwesome 
+                icon="bars"
+                size={25}
+                color="#ffffff"
+                style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
+              />
+            </button>
+            
+            {/* Username in center - truly centered */}
+            <p
+              className="absolute left-1/2 transform -translate-x-1/2 font-marfa font-medium text-white"
+              style={{ 
+                opacity: scrollOffset > 50 ? Math.min(1, (scrollOffset - 50) / 100) : 0,
+                transition: 'opacity 0.3s ease'
+              }}
+            >
               @{organization.username || organization.name.toLowerCase().replace(/\s/g, '')}
             </p>
+            
+            {/* Ellipsis menu button */}
+            <button
+              onClick={() => setShowLeaveConfirmation(true)}
+              className="flex items-center justify-center overflow-hidden"
+            >
+              <DirectFontAwesome
+                icon="ellipsis"
+                size={50}
+                color="#ffffff"
+                style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
+              />
+            </button>
           </div>
           
-          {/* Ellipsis menu button */}
-          <button
-            onClick={() => setShowLeaveConfirmation(true)}
-            className="flex items-center justify-center overflow-hidden"
-          >
-            <DirectFontAwesome
-              icon="ellipsis"
-              size={50}
-              color="#ffffff"
-              style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
-            />
-          </button>
-        </div>
-        
-        {/* Media Section */}
-        <div className="mt-2 bg-black">
           <MediaSection organization={organization} />
         </div>
         

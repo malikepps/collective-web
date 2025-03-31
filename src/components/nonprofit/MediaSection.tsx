@@ -9,9 +9,9 @@ interface MediaSectionProps {
 
 const MediaSection: React.FC<MediaSectionProps> = ({ organization }) => {
   return (
-    <div className="relative">
+    <div className="w-full">
       {/* Video content with rounded bottom corners */}
-      <div className="w-full h-[39vh] bg-black overflow-hidden continuous-corner">
+      <div className="w-full h-[39vh] bg-black overflow-hidden continuous-corner pt-10">
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-black" style={{ borderTopLeftRadius: '15px', borderTopRightRadius: '15px' }}></div>
         {organization.hero_video_url ? (
           <LoopingVideoPlayer
