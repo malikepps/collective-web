@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Organization } from '@/lib/models/Organization';
 import { useTheme } from '@/lib/context/ThemeContext';
 import { DirectFontAwesome } from '@/lib/components/icons';
@@ -20,6 +20,7 @@ const MembershipOptionsView: React.FC<MembershipOptionsViewProps> = ({
   const { getTheme } = useTheme();
   const theme = organization.themeId ? getTheme(organization.themeId) : undefined;
   const [showCustomSheet, setShowCustomSheet] = useState(false);
+  const hasInitialized = useRef(false);
   
   // Fetch membership tiers
   const { 
@@ -30,14 +31,20 @@ const MembershipOptionsView: React.FC<MembershipOptionsViewProps> = ({
     refreshTiers 
   } = useMembershipTiers(organization.id);
   
-  // Refresh tiers when component opens
+  // Refresh tiers only once when component opens
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !hasInitialized.current) {
+      console.log('[DEBUG] Initializing membership tiers for first time');
+      hasInitialized.current = true;
       refreshTiers();
     }
   }, [isOpen, refreshTiers]);
   
-  if (!isOpen) return null;
+  if (!isOpen) {
+    // Reset initialization flag when closed
+    hasInitialized.current = false;
+    return null;
+  }
   
   return (
     <div className="fixed inset-0 z-50 bg-[#111214] overflow-hidden">

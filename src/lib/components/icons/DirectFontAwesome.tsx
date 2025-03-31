@@ -81,6 +81,14 @@ const DirectFontAwesome: React.FC<DirectFontAwesomeProps> = ({
       'id-badge': {
         path: 'M10 9h4m-4 3h2m-2 3h4m5 4H7c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2zm-6-5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
         viewBox: '0 0 24 24'
+      },
+      'star': {
+        path: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
+        viewBox: '0 0 24 24'
+      },
+      'crown': {
+        path: 'M5 16V9l3 3 4-4 4 4 3-3v7H5z',
+        viewBox: '0 0 24 24'
       }
     };
     

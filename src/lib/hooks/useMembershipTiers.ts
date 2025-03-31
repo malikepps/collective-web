@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { collection, getDocs, query, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { MembershipTier, tierFromFirestore, standardTiers } from '@/lib/models/MembershipTier';
@@ -8,8 +8,17 @@ export function useMembershipTiers(organizationId: string | null) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [recommendedTier, setRecommendedTier] = useState<MembershipTier | null>(null);
+  const [loadCount, setLoadCount] = useState(0); // Add a counter to prevent excessive loading
 
-  const loadTiers = async () => {
+  // Use useCallback to memoize the loadTiers function
+  const refreshTiers = useCallback(async () => {
+    // Limit the number of load attempts to prevent infinite loops
+    if (loadCount > 2) {
+      console.log('[DEBUG] Too many load attempts, stopping to prevent infinite loop');
+      setLoading(false);
+      return;
+    }
+
     if (!organizationId) {
       setTiers([]);
       setLoading(false);
@@ -18,7 +27,8 @@ export function useMembershipTiers(organizationId: string | null) {
 
     try {
       setLoading(true);
-      console.log('[DEBUG] Loading membership tiers for nonprofit:', organizationId);
+      setLoadCount(prevCount => prevCount + 1);
+      console.log('[DEBUG] Loading membership tiers for nonprofit:', organizationId, 'attempt:', loadCount + 1);
       
       // Get reference to the nonprofit's membership_tiers subcollection
       const tiersRef = collection(db, 'nonprofits', organizationId, 'membershipTiers');
@@ -62,18 +72,18 @@ export function useMembershipTiers(organizationId: string | null) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId, loadCount]);
 
-  // Load tiers when organizationId changes
+  // Load tiers only once when organizationId changes
   useEffect(() => {
-    loadTiers();
-  }, [organizationId]);
+    refreshTiers();
+  }, [organizationId]); // Deliberately not including refreshTiers in dependencies
 
   return {
     tiers,
     loading,
     error,
     recommendedTier,
-    refreshTiers: loadTiers
+    refreshTiers
   };
 } 
