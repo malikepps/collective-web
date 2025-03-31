@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Organization } from '@/lib/models/Organization';
 import { db } from '@/lib/firebase/config';
 import { collection, getDocs, query, where, getDoc, doc } from 'firebase/firestore';
@@ -27,10 +27,6 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
   const [loading, setLoading] = useState(true);
   const { getTheme } = useTheme();
   const theme = getTheme(organization.themeId);
-  
-  // Refs for linked scrolling
-  const containerRef = useRef<HTMLDivElement>(null);
-  const scrollTrackingRef = useRef(false);
   
   useEffect(() => {
     const fetchMembers = async () => {
@@ -96,46 +92,6 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
     fetchMembers();
   }, [organization.id]);
   
-  // Setup synchronous scrolling for both rows
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    
-    const handleScroll = (e: Event) => {
-      if (scrollTrackingRef.current) return;
-      
-      const target = e.target as HTMLElement;
-      const scrollLeft = target.scrollLeft;
-      
-      // Set tracking flag to avoid infinite scroll loop
-      scrollTrackingRef.current = true;
-      
-      // Apply the same scroll position to all row containers
-      Array.from(container.querySelectorAll('.member-row-scroll')).forEach(el => {
-        if (el !== target) {
-          (el as HTMLElement).scrollLeft = scrollLeft;
-        }
-      });
-      
-      // Reset tracking flag after a short delay
-      setTimeout(() => {
-        scrollTrackingRef.current = false;
-      }, 50);
-    };
-    
-    // Add event listeners to all scrollable rows
-    const rows = container.querySelectorAll('.member-row-scroll');
-    rows.forEach(row => {
-      row.addEventListener('scroll', handleScroll);
-    });
-    
-    return () => {
-      rows.forEach(row => {
-        row.removeEventListener('scroll', handleScroll);
-      });
-    };
-  }, [members.length, displayFilter]);
-  
   // Function to filter members based on selected filter
   const filteredMembers = () => {
     switch (displayFilter) {
@@ -186,6 +142,11 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
     ];
   };
   
+  // Extract first name from display name
+  const getFirstName = (fullName: string): string => {
+    return fullName.split(' ')[0];
+  };
+  
   return (
     <div className="bg-card p-4 text-white continuous-corner">
       {/* Header with filter button */}
@@ -220,14 +181,13 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
           <p className="text-white/50">No members found</p>
         </div>
       ) : (
-        <div className="overflow-hidden" ref={containerRef}>
-          {getRows().map((row, rowIndex) => (
-            <div 
-              key={`row-${rowIndex}`} 
-              className="overflow-x-auto pb-4 hide-scrollbar member-row-scroll"
-              style={{ marginBottom: rowIndex === 0 && showTwoRows ? '12px' : '0' }}
-            >
-              <div className="flex space-x-4 px-2 min-w-min">
+        <div className="overflow-x-auto hide-scrollbar">
+          <div className="flex flex-col space-y-1 min-w-min">
+            {getRows().map((row, rowIndex) => (
+              <div 
+                key={`row-${rowIndex}`} 
+                className="flex space-x-4 px-2"
+              >
                 {row.map((member) => (
                   <div key={member.id} className="flex flex-col items-center min-w-[75px]">
                     <PersonCircleView 
@@ -236,14 +196,14 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
                       themeId={organization.themeId || undefined}
                       onClick={() => console.log('Member clicked:', member.name)}
                     />
-                    <span className="text-white text-xs mt-2 w-16 truncate text-center font-marfa">
-                      {member.name.split(' ')[0]}
+                    <span className="text-white text-sm mt-1 w-16 truncate text-center font-marfa font-medium">
+                      {getFirstName(member.name)}
                     </span>
                   </div>
                 ))}
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -107,6 +107,14 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
     return firstName.charAt(0).toUpperCase();
   };
   
+  // Get border gradient
+  const getBorderGradient = () => {
+    const colors = gradientColors();
+    if (colors.length === 0) return 'none';
+    
+    return `linear-gradient(to bottom, ${colors.join(', ')})`;
+  };
+  
   return (
     <button 
       onClick={onClick}
@@ -116,48 +124,50 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
       {/* Container with proper spacing for glow effect */}
       <div className="p-2">
         <div 
-          className="relative rounded-full overflow-hidden"
+          className="relative rounded-full"
           style={{
             width: `${SIZE}px`,
             height: `${SIZE}px`,
             boxShadow: shouldShowGlow() ? `0 0 15px ${glowColor()}` : 'none'
           }}
         >
-          {member.photoURL ? (
-            // With photo
-            <img
-              src={member.photoURL}
-              alt={member.name}
-              className="w-full h-full object-cover rounded-full"
-            />
-          ) : (
-            // Without photo - show initial
-            <div 
-              className="flex items-center justify-center w-full h-full rounded-full"
-              style={{
-                background: 'linear-gradient(to bottom, rgb(51, 51, 51), rgb(77, 77, 77))'
-              }}
-            >
-              <span className="text-white/70 text-3xl font-marfa font-semibold">
-                {getFirstInitial()}
-              </span>
-            </div>
-          )}
-          
-          {/* Border gradient */}
+          {/* Actual border - using a separate div for the border */}
           {gradientColors().length > 0 && (
             <div 
-              className="absolute inset-0 rounded-full border-2 border-transparent box-border pointer-events-none"
+              className="absolute inset-0 rounded-full z-20 pointer-events-none"
               style={{
-                backgroundImage: `linear-gradient(to bottom, ${gradientColors().join(', ')})`,
-                backgroundOrigin: 'border-box',
-                backgroundClip: 'border-box, border-box',
-                WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                WebkitMaskComposite: 'xor',
-                maskComposite: 'exclude'
+                padding: '2px', // Border width
+                backgroundImage: getBorderGradient(),
+                backgroundClip: 'padding-box, border-box',
+                border: '2px solid transparent',
+                borderRadius: '9999px',
               }}
             />
           )}
+          
+          {/* Content container */}
+          <div className="absolute inset-[3px] rounded-full overflow-hidden z-10">
+            {member.photoURL ? (
+              // With photo
+              <img
+                src={member.photoURL}
+                alt={member.name}
+                className="w-full h-full object-cover rounded-full"
+              />
+            ) : (
+              // Without photo - show initial
+              <div 
+                className="flex items-center justify-center w-full h-full rounded-full"
+                style={{
+                  background: 'linear-gradient(to bottom, rgb(51, 51, 51), rgb(77, 77, 77))'
+                }}
+              >
+                <span className="text-white/70 text-3xl font-marfa font-semibold">
+                  {getFirstInitial()}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </button>
