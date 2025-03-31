@@ -9,13 +9,19 @@ interface InfoBoxProps {
   onShowLinks: () => void;
   onShowMission: () => void;
   onShowMembershipOptions: () => void;
+  isUserMember?: boolean;
+  isUserInCommunity?: boolean;
+  onToggleCommunity?: () => Promise<boolean>;
 }
 
 const InfoBox: React.FC<InfoBoxProps> = ({
   organization,
   onShowLinks,
   onShowMission,
-  onShowMembershipOptions
+  onShowMembershipOptions,
+  isUserMember = false,
+  isUserInCommunity = false,
+  onToggleCommunity
 }) => {
   const { getTheme } = useTheme();
   const theme = getTheme(organization.themeId);
@@ -28,6 +34,12 @@ const InfoBox: React.FC<InfoBoxProps> = ({
     }
     // Default text color if theme doesn't exist
     return '#000000';
+  };
+  
+  const handleToggleCommunity = async () => {
+    if (onToggleCommunity) {
+      await onToggleCommunity();
+    }
   };
   
   return (
@@ -75,27 +87,69 @@ const InfoBox: React.FC<InfoBoxProps> = ({
       
       {/* Action buttons */}
       <div className="space-y-2">
-        <button 
-          onClick={onShowMembershipOptions}
-          className="w-full h-11 ios-rounded-sm font-marfa font-semibold text-base transition-all duration-200 hover:opacity-90 relative overflow-hidden"
-          style={{ 
-            backgroundColor: theme?.primaryColor || '#ADD3FF',
-            color: buttonTextColor()
-          }}
-        >
-          {/* Add subtle glow animation similar to iOS app */}
-          <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity duration-700"></div>
-          <span className="relative z-10">See membership options</span>
-        </button>
+        {isUserMember ? (
+          // Member badge for members
+          <div 
+            className="w-full h-11 ios-rounded-sm font-marfa font-semibold text-base flex items-center justify-center"
+            style={{ 
+              backgroundColor: 'rgba(255, 255, 255, 0.1)'
+            }}
+          >
+            <span className="text-[#FFD966]">✨ Member</span>
+          </div>
+        ) : (
+          // Membership options button for non-members
+          <button 
+            onClick={onShowMembershipOptions}
+            className="w-full h-11 ios-rounded-sm font-marfa font-semibold text-base transition-all duration-200 hover:opacity-90 relative overflow-hidden"
+            style={{ 
+              backgroundColor: theme?.primaryColor || '#ADD3FF',
+              color: buttonTextColor()
+            }}
+          >
+            {/* Add subtle glow animation similar to iOS app */}
+            <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity duration-700"></div>
+            <span className="relative z-10">See membership options</span>
+          </button>
+        )}
         
-        <button 
-          className="bg-white/20 w-full h-11 ios-rounded-sm font-marfa font-semibold text-base"
-          style={{ 
-            color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#ADD3FF' 
-          }}
-        >
-          Join community
-        </button>
+        {/* Only show Join Community button if user is not already in community */}
+        {!isUserInCommunity && (
+          <button 
+            onClick={handleToggleCommunity}
+            className="bg-white/20 w-full h-11 ios-rounded-sm font-marfa font-semibold text-base"
+            style={{ 
+              color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#ADD3FF' 
+            }}
+          >
+            Join community
+          </button>
+        )}
+        
+        {/* For users who are already in community but not members, show a subtle indicator */}
+        {isUserInCommunity && !isUserMember && (
+          <div 
+            className="w-full h-11 ios-rounded-sm font-marfa font-semibold text-base flex items-center justify-center"
+            style={{ 
+              backgroundColor: 'rgba(255, 255, 255, 0.05)'
+            }}
+          >
+            <div className="mr-2">
+              <DirectFontAwesome
+                icon="check"
+                size={16}
+                color={theme?.secondaryColor ? `#${theme.secondaryColor}` : '#ADD3FF'}
+              />
+            </div>
+            <span 
+              style={{ 
+                color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#ADD3FF' 
+              }}
+            >
+              You're in the community
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

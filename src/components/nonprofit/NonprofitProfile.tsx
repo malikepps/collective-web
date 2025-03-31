@@ -11,6 +11,7 @@ import FilterBottomSheet from './FilterBottomSheet';
 import { FAIcon, Icon, IconStyle, DebugIcon, DirectFontAwesome } from '@/lib/components/icons';
 import { useTheme } from '@/lib/context/ThemeContext';
 import Head from 'next/head';
+import { useUserOrganizationRelationship } from '@/lib/hooks/useUserOrganizationRelationship';
 
 interface NonprofitProfileProps {
   organization: Organization;
@@ -28,6 +29,16 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   const [showMembershipOptions, setShowMembershipOptions] = useState(false);
   const [showFilterSheet, setShowFilterSheet] = useState(false);
   const [displayFilter, setDisplayFilter] = useState('all');
+  const [showLeaveConfirmation, setShowLeaveConfirmation] = useState(false);
+  
+  // Get user relationship with organization
+  const { 
+    isUserMember, 
+    isUserInCommunity, 
+    isUserStaff,
+    loading: relationshipLoading,
+    toggleCommunity
+  } = useUserOrganizationRelationship(organization.id);
   
   // Handle scroll events to adjust header opacity
   useEffect(() => {
@@ -41,7 +52,8 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   
   // Apply overflow hidden to body when modals are open
   useEffect(() => {
-    const isAnyModalOpen = showLinksSheet || showMissionSheet || showMembershipOptions || showFilterSheet;
+    const isAnyModalOpen = showLinksSheet || showMissionSheet || showMembershipOptions || 
+                          showFilterSheet || showLeaveConfirmation;
     
     // Get the html and body elements
     const htmlElement = document.documentElement;
@@ -68,7 +80,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
       htmlElement.style.scrollbarWidth = '';
       bodyElement.style.scrollbarWidth = '';
     };
-  }, [showLinksSheet, showMissionSheet, showMembershipOptions, showFilterSheet]);
+  }, [showLinksSheet, showMissionSheet, showMembershipOptions, showFilterSheet, showLeaveConfirmation]);
   
   // Modal handlers
   const handleShowLinks = () => {
@@ -89,6 +101,11 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   
   const handleFilterChange = (filter: string) => {
     setDisplayFilter(filter);
+  };
+  
+  const handleLeaveCommunity = async () => {
+    await toggleCommunity();
+    setShowLeaveConfirmation(false);
   };
   
   return (
@@ -143,6 +160,23 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
           </p>
         </div>
         
+        {/* Ellipsis menu - fixed position */}
+        <div className="fixed top-12 right-4 z-10">
+          <div className="relative inline-block text-left">
+            <button
+              onClick={() => setShowLeaveConfirmation(true)}
+              className="flex items-center justify-center p-2"
+            >
+              <DirectFontAwesome
+                icon="ellipsis-vertical"
+                size={20}
+                color="#ffffff"
+                style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
+              />
+            </button>
+          </div>
+        </div>
+        
         {/* Media Section */}
         <div className="mt-2 bg-black">
           <MediaSection organization={organization} />
@@ -156,6 +190,9 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
             onShowLinks={handleShowLinks}
             onShowMission={handleShowMission}
             onShowMembershipOptions={handleShowMembershipOptions}
+            isUserMember={isUserMember}
+            isUserInCommunity={isUserInCommunity}
+            onToggleCommunity={toggleCommunity}
           />
           
           {/* Collective Section */}
@@ -202,6 +239,65 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
           onClose={() => setShowFilterSheet(false)}
           theme={theme}
         />
+        
+        {/* Leave confirmation dialog */}
+        {showLeaveConfirmation && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 px-4">
+            <div className="bg-gray-800 rounded-xl p-6 max-w-sm w-full">
+              <h3 className="text-white text-lg font-semibold mb-4">
+                {isUserInCommunity ? "Leave Community" : "Options"}
+              </h3>
+              
+              <div className="space-y-4">
+                {isUserInCommunity && (
+                  <button
+                    onClick={handleLeaveCommunity}
+                    className="w-full py-3 px-4 text-red-500 font-medium text-left flex items-center"
+                  >
+                    <div className="mr-3">
+                      <DirectFontAwesome
+                        icon="right-from-bracket"
+                        size={16}
+                        color="#ef4444"
+                      />
+                    </div>
+                    Leave community
+                  </button>
+                )}
+                
+                {isUserMember && (
+                  <button
+                    onClick={() => {
+                      setShowLeaveConfirmation(false);
+                      handleShowMembershipOptions();
+                    }}
+                    className="w-full py-3 px-4 text-white font-medium text-left flex items-center"
+                  >
+                    <div className="mr-3">
+                      <DirectFontAwesome
+                        icon="id-badge"
+                        size={16}
+                        color="#ffffff"
+                      />
+                    </div>
+                    Your membership
+                  </button>
+                )}
+                
+                {!isUserInCommunity && !isUserMember && (
+                  <p className="text-gray-400 text-center py-2">No options available</p>
+                )}
+              </div>
+              
+              <button
+                onClick={() => setShowLeaveConfirmation(false)}
+                className="w-full mt-4 py-3 bg-gray-700 rounded-lg text-white font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
