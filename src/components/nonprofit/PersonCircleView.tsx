@@ -143,7 +143,7 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
           style={{
             width: `${SIZE}px`,
             height: `${SIZE}px`,
-            boxShadow: shouldShowGlow() ? `0 0 15px ${glowColorValue}` : 'none',
+            boxShadow: shouldShowGlow() ? `0 0 10px ${glowColorValue}` : 'none',
             border: borderColors.length > 0 ? '2px solid transparent' : 'none',
             background: borderColors.length > 0 ? 
               `linear-gradient(to bottom, ${borderColors.join(', ')}) border-box` : 'none'

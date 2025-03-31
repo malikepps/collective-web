@@ -60,7 +60,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   };
   
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black overflow-hidden">
       {/* Back button - fixed position */}
       <div className="fixed top-12 left-4 z-10">
         <button 

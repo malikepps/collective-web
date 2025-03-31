@@ -200,7 +200,7 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
             {getRows().map((row, rowIndex) => (
               <div 
                 key={`row-${rowIndex}`} 
-                className="flex space-x-3 px-2"
+                className="flex space-x-2 px-2"
               >
                 {row.map((member) => (
                   <div key={member.id} className="flex flex-col items-center min-w-[73px]">

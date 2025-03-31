@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Theme } from '@/lib/models/Theme';
+import { DirectFontAwesome } from '@/lib/components/icons';
 
 interface FilterBottomSheetProps {
   selectedFilter: string;
@@ -32,7 +33,12 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
   };
 
   // Get the primary color from theme
-  const primaryColor = theme?.primaryColor ? `#${theme.primaryColor}` : '#3B82F6'; // Default to blue-500
+  const primaryColor = theme?.primaryColor ? 
+    (theme.primaryColor.startsWith('#') ? theme.primaryColor : `#${theme.primaryColor}`) : '#3B82F6';
+  
+  // Get secondary color
+  const secondaryColor = theme?.secondaryColor ? 
+    (theme.secondaryColor.startsWith('#') ? theme.secondaryColor : `#${theme.secondaryColor}`) : primaryColor;
   
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
@@ -44,9 +50,22 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
       
       {/* Sheet */}
       <div 
-        className="relative w-full max-w-md bg-[#111214] ios-sheet-top p-4 pb-10"
+        className="relative w-full max-w-md bg-[#1E1E24] ios-sheet-top p-4 pb-10"
         onClick={e => e.stopPropagation()}
       >
+        {/* Close button */}
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 text-white p-2"
+          aria-label="Close filter sheet"
+        >
+          <DirectFontAwesome 
+            icon="xmark" 
+            size={20} 
+            color="#FFFFFF" 
+          />
+        </button>
+        
         {/* Drag indicator */}
         <div className="flex justify-center mb-6">
           <div className="w-10 h-1 bg-gray-500 rounded-full" />
@@ -69,7 +88,7 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
           
           <FilterOption 
             title="Members" 
-            description="Regular members of the organization"
+            description="Active financial contributors"
             isSelected={tempSelection === 'member'}
             onSelect={() => setTempSelection('member')}
             accentColor={primaryColor}
@@ -85,7 +104,7 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 
           <FilterOption 
             title="All" 
-            description="Everyone in the collective"
+            description="Everyone"
             isSelected={tempSelection === 'all'}
             onSelect={() => setTempSelection('all')}
             accentColor={primaryColor}
@@ -96,7 +115,11 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
         <div className="flex space-x-4 px-4">
           <button
             onClick={clearFilter}
-            className="flex-1 py-3 bg-white/20 ios-rounded-sm font-marfa font-medium text-white"
+            className="flex-1 py-3 ios-rounded-sm font-marfa font-medium text-white"
+            style={{ 
+              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              color: secondaryColor
+            }}
           >
             Clear All
           </button>
