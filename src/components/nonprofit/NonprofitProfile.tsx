@@ -33,7 +33,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   const [displayFilter, setDisplayFilter] = useState('all');
   const [showLeaveConfirmation, setShowLeaveConfirmation] = useState(false);
   const [isNavbarFixed, setIsNavbarFixed] = useState(false);
-  const mediaSectionRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const navbarRef = useRef<HTMLDivElement>(null);
   const navbarHeight = 40; // Height of the navbar in pixels
   
@@ -67,23 +67,11 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
       setScrollOffset(window.scrollY);
       
       // Check if we should fix the navbar
-      if (mediaSectionRef.current) {
-        // Set navbar to fixed when we've scrolled past the initial position
-        const threshold = 10; // Scroll threshold to trigger fixed position
-        const shouldBeFixed = window.scrollY > threshold;
-        
-        if (shouldBeFixed !== isNavbarFixed) {
-          setIsNavbarFixed(shouldBeFixed);
-          
-          // Add padding to the content to prevent jump when navbar becomes fixed
-          if (shouldBeFixed) {
-            // When becoming fixed, add padding to compensate for the navbar height
-            mediaSectionRef.current.style.paddingTop = `${navbarHeight}px`;
-          } else {
-            // When returning to normal position, remove the padding
-            mediaSectionRef.current.style.paddingTop = '0px';
-          }
-        }
+      const threshold = 10; // Scroll threshold to trigger fixed position
+      const shouldBeFixed = window.scrollY > threshold;
+      
+      if (shouldBeFixed !== isNavbarFixed) {
+        setIsNavbarFixed(shouldBeFixed);
       }
     };
     
@@ -166,9 +154,8 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
         backgroundColor: `rgba(0, 0, 0, ${navbarBgOpacity})`,
         backdropFilter: `blur(${blurIntensity}px)`,
         WebkitBackdropFilter: `blur(${blurIntensity}px)`,
-        zIndex: 50, // Higher z-index when fixed
-        transition: 'background-color 0.3s ease, backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease, transform 0.3s ease',
-        transform: 'translateY(0)'
+        zIndex: 50,
+        transition: 'background-color 0.3s ease, backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease'
       } as React.CSSProperties
     : {
         position: 'absolute',
@@ -176,8 +163,8 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
         left: 0,
         right: 0,
         height: `${navbarHeight}px`,
-        backgroundColor: 'transparent', // Fully transparent background when not fixed
-        zIndex: 20, // Lower z-index when not fixed
+        backgroundColor: 'transparent',
+        zIndex: 20
       } as React.CSSProperties;
   
   return (
@@ -204,53 +191,53 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
         `}</style>
       </Head>
       
-      <div className="min-h-screen bg-black overflow-hidden">
-        {/* Media Section with reference */}
-        <div ref={mediaSectionRef} className="relative">
-          {/* Navigation bar - positioned relative to MediaSection on initial load, then fixed */}
-          <div 
-            ref={navbarRef}
-            className="flex items-center justify-between px-4"
-            style={navbarStyles}
+      <div className="min-h-screen bg-black overflow-hidden" ref={contentRef}>
+        {/* Navbar - either fixed or absolute */}
+        <div 
+          ref={navbarRef}
+          className="flex items-center justify-between px-4"
+          style={navbarStyles}
+        >
+          {/* Back button */}
+          <button 
+            onClick={() => router.back()}
+            className="flex items-center justify-center overflow-hidden"
           >
-            {/* Back button */}
-            <button 
-              onClick={() => router.back()}
-              className="flex items-center justify-center overflow-hidden"
-            >
-              <DirectFontAwesome 
-                icon="bars"
-                size={25}
-                color="#ffffff"
-                style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
-              />
-            </button>
-            
-            {/* Username in center - truly centered */}
-            <p
-              className="absolute left-1/2 transform -translate-x-1/2 font-marfa font-medium text-white"
-              style={{ 
-                opacity: scrollOffset > 50 ? Math.min(1, (scrollOffset - 50) / 100) : 0,
-                transition: 'opacity 0.3s ease'
-              }}
-            >
-              @{organization.username || organization.name.toLowerCase().replace(/\s/g, '')}
-            </p>
-            
-            {/* Ellipsis menu button */}
-            <button
-              onClick={() => setShowLeaveConfirmation(true)}
-              className="flex items-center justify-center overflow-hidden"
-            >
-              <DirectFontAwesome
-                icon="ellipsis"
-                size={50}
-                color="#ffffff"
-                style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
-              />
-            </button>
-          </div>
+            <DirectFontAwesome 
+              icon="bars"
+              size={25}
+              color="#ffffff"
+              style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
+            />
+          </button>
           
+          {/* Username in center - truly centered */}
+          <p
+            className="absolute left-1/2 transform -translate-x-1/2 font-marfa font-medium text-white"
+            style={{ 
+              opacity: scrollOffset > 50 ? Math.min(1, (scrollOffset - 50) / 100) : 0,
+              transition: 'opacity 0.3s ease'
+            }}
+          >
+            @{organization.username || organization.name.toLowerCase().replace(/\s/g, '')}
+          </p>
+          
+          {/* Ellipsis menu button */}
+          <button
+            onClick={() => setShowLeaveConfirmation(true)}
+            className="flex items-center justify-center overflow-hidden"
+          >
+            <DirectFontAwesome
+              icon="ellipsis"
+              size={50}
+              color="#ffffff"
+              style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
+            />
+          </button>
+        </div>
+        
+        {/* Media Section - separate from navbar */}
+        <div className="w-full">
           <MediaSection organization={organization} navbarHeight={navbarHeight} />
         </div>
         

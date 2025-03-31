@@ -13,18 +13,17 @@ const MediaSection: React.FC<MediaSectionProps> = ({
   navbarHeight = 40 // Default height if not provided
 }) => {
   return (
-    <div className="w-full">
-      {/* Video content with rounded bottom corners */}
+    <div className="w-full relative">
+      {/* Video content with rounded bottom corners - no explicit padding top */}
       <div 
         className="w-full h-[39vh] bg-black overflow-hidden continuous-corner"
-        style={{ paddingTop: `${navbarHeight}px` }} // Dynamic padding based on navbar height
       >
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-black" style={{ borderTopLeftRadius: '15px', borderTopRightRadius: '15px' }}></div>
         {organization.hero_video_url ? (
           <LoopingVideoPlayer
             videoURL={organization.hero_video_url}
             isMuted={true}
-            className="w-full h-full"
+            className="w-full h-full object-cover"
           />
         ) : (
           <div className="relative w-full h-full">
