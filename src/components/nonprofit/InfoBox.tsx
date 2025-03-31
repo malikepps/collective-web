@@ -2,6 +2,7 @@ import React from 'react';
 import { Organization } from '@/lib/models/Organization';
 import { useTheme } from '@/lib/context/ThemeContext';
 import { isColorLight } from '@/lib/models/Theme';
+import { DirectFontAwesome } from '@/lib/components/icons';
 
 interface InfoBoxProps {
   organization: Organization;
@@ -33,9 +34,9 @@ const InfoBox: React.FC<InfoBoxProps> = ({
     <div className="bg-card p-6 text-white continuous-corner">
       {/* Top buttons row */}
       <div className="flex items-center space-x-2 mb-4">
-        <button className="bg-white/20 ios-rounded-sm px-2 h-8 flex items-center">
+        <button className="px-2 h-8 flex items-center">
           <span className="mr-1">📍</span>
-          <span className="text-white/70 text-xs font-marfa">
+          <span className="text-gray-400 text-xs font-marfa font-light">
             {organization.location || "No location"}
           </span>
         </button>
@@ -43,19 +44,23 @@ const InfoBox: React.FC<InfoBoxProps> = ({
         {organization.linkInBio && (
           <button 
             onClick={onShowLinks}
-            className="bg-white/20 ios-rounded-sm px-2 h-8 flex items-center"
+            className="px-2 h-8 flex items-center"
           >
             <span className="mr-1">🔗</span>
-            <span className="text-white/70 text-xs font-marfa">links</span>
+            <span className="text-gray-400 text-xs font-marfa font-light">links</span>
           </button>
         )}
         
         <button 
           onClick={onShowMission}
-          className="bg-white/20 ios-rounded-sm px-2 h-8 flex items-center"
+          className="px-2 h-8 flex items-center"
         >
-          <span className="text-white/70 text-xs font-marfa">mission</span>
-          <span className="text-white/70 text-xs ml-1">→</span>
+          <span className="text-gray-400 text-xs font-marfa font-light">mission</span>
+          <DirectFontAwesome 
+            icon="chevron-right"
+            size={14}
+            color="#9ca3af"
+          />
         </button>
       </div>
       
