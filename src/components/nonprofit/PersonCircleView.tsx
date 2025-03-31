@@ -49,21 +49,27 @@ const PersonCircleView: React.FC<PersonCircleViewProps> = ({
         setGlowColorValue('rgba(139, 190, 249, 0.56)');
         break;
       case PersonCircleStyle.STAFF_WITH_THEME:
-        if (theme?.primaryColor) {
+        if (theme && theme.primaryColor) {
+          // Ensure primaryColor has proper format (with #)
           const primaryWithHash = theme.primaryColor.startsWith('#') ? 
             theme.primaryColor : `#${theme.primaryColor}`;
           
+          // Generate gradient colors
           if (theme.gradientColors && theme.gradientColors.length >= 2) {
-            colors = theme.gradientColors.map(color => `#${color}`);
+            // Use theme's gradient colors
+            colors = theme.gradientColors.map(color => 
+              color.startsWith('#') ? color : `#${color}`
+            );
           } else {
+            // Generate gradient from primary color
             colors = [primaryWithHash, shadeColor(primaryWithHash, -20)];
           }
           
           // Set glow color
-          const hex = theme.primaryColor.startsWith('#') ? 
-            theme.primaryColor.substring(1) : theme.primaryColor;
-          setGlowColorValue(`rgba(${hexToRgb(hex)}, 0.56)`);
+          const rgb = hexToRgb(primaryWithHash.replace('#', ''));
+          setGlowColorValue(`rgba(${rgb}, 0.56)`);
         } else {
+          // Fallback colors if theme is missing
           colors = ['#8BBEF9', '#9E91C5'];
           setGlowColorValue('rgba(139, 190, 249, 0.56)');
         }
