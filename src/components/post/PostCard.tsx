@@ -238,7 +238,7 @@ export default function PostCard({
           )}
           
           {/* Media */}
-          <div onClick={onShowDetail}>
+          <div onClick={onShowDetail} className="w-full">
             <MediaCarousel 
               mediaItems={mediaItems}
               onDoubleTap={handleDoubleTap}

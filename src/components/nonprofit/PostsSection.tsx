@@ -137,9 +137,6 @@ export default function PostsSection({
           </div>
         </div>
         
-        {/* Divider */}
-        <div className="border-b border-gray-800 mb-4"></div>
-        
         <div className="flex flex-col items-center justify-center h-32 text-center">
           <div className="mb-3">
             <DirectFontAwesome
@@ -188,9 +185,6 @@ export default function PostsSection({
           </div>
         </div>
         
-        {/* Divider */}
-        <div className="border-b border-gray-800 mb-4"></div>
-        
         <div className="flex items-center justify-center h-32">
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
         </div>
@@ -223,9 +217,6 @@ export default function PostsSection({
           </div>
         </div>
         
-        {/* Divider */}
-        <div className="border-b border-gray-800 mb-4"></div>
-        
         <div className="flex items-center justify-center h-32 text-center">
           <p className="text-red-400">Error loading posts. Please try again later.</p>
         </div>
@@ -255,9 +246,6 @@ export default function PostsSection({
           </button>
         </div>
       </div>
-      
-      {/* Divider */}
-      <div className="border-b border-gray-800 mb-4"></div>
       
       {/* Posts List */}
       <div className="space-y-4">

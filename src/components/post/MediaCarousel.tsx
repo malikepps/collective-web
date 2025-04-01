@@ -184,7 +184,7 @@ export default function MediaCarousel({
                 <img
                   src={item.url}
                   alt={`Media item ${index + 1}`}
-                  className="max-w-full max-h-full object-contain"
+                  className="w-full h-full object-cover"
                   onLoad={handleImageLoad}
                   onError={handleImageError}
                   loading="eager"
