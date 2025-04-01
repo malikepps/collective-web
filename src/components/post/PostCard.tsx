@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import Image from 'next/image';
+import React, { useState, useRef, useEffect } from 'react';
 import { Post, MediaType } from '@/lib/models/Post';
 import { Organization } from '@/lib/models/Organization';
 import MediaCarousel from './MediaCarousel';
@@ -34,6 +33,8 @@ export default function PostCard({
 }: PostCardProps) {
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [needsExpansion, setNeedsExpansion] = useState(false);
+  const captionRef = useRef<HTMLParagraphElement>(null);
   const { getTheme } = useTheme();
   
   // Format post date - changed to match the screenshot format
@@ -51,6 +52,26 @@ export default function PostCard({
       }, 800);
     }
   };
+  
+  // Check if caption needs "Show More" button when component mounts or window resizes
+  useEffect(() => {
+    const checkHeight = () => {
+      if (captionRef.current && post.caption) {
+        // If the scroll height is greater than the client height, we need to show the expansion button
+        const needsToExpand = captionRef.current.scrollHeight > captionRef.current.clientHeight;
+        setNeedsExpansion(needsToExpand);
+      }
+    };
+
+    checkHeight();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkHeight);
+    
+    return () => {
+      window.removeEventListener('resize', checkHeight);
+    };
+  }, [post.caption]);
   
   // Get media items from post
   const getMediaItems = () => {
@@ -85,6 +106,33 @@ export default function PostCard({
       ];
     }
     
+    // For Firebase JSON data format
+    if (post.image_url) {
+      return [
+        {
+          id: '0',
+          url: post.image_url,
+          type: MediaType.IMAGE,
+          order: 0,
+          thumbnailUrl: null,
+          thumbnailColor: null
+        }
+      ];
+    }
+    
+    if (post.image_url_original) {
+      return [
+        {
+          id: '0',
+          url: post.image_url_original,
+          type: MediaType.IMAGE,
+          order: 0,
+          thumbnailUrl: null,
+          thumbnailColor: null
+        }
+      ];
+    }
+    
     return [];
   };
   
@@ -109,13 +157,27 @@ export default function PostCard({
   
   // Generate solid background color from theme
   const generateBackgroundColor = () => {
-    // Get theme from the organization's themeId
+    // Consider post's background_color_hex first
+    if (post.background_color_hex) {
+      const color = post.background_color_hex.startsWith('#') ? 
+        post.background_color_hex : `#${post.background_color_hex}`;
+      return darkenColor(color, 0.5);
+    }
+    
+    // Next try post.backgroundColorHex
+    if (post.backgroundColorHex) {
+      const color = post.backgroundColorHex.startsWith('#') ? 
+        post.backgroundColorHex : `#${post.backgroundColorHex}`;
+      return darkenColor(color, 0.5);
+    }
+    
+    // Finally fall back to organization's theme
     const theme = organization.themeId ? getTheme(organization.themeId) : undefined;
     
-    // Get primary color from theme or fallback to post background color
+    // Get primary color from theme or fallback
     const themeColor = theme?.primaryColor ? 
       (theme.primaryColor.startsWith('#') ? theme.primaryColor : `#${theme.primaryColor}`) : 
-      (post.backgroundColorHex ? `#${post.backgroundColorHex}` : '#525252');
+      '#525252';
     
     // Darken the color by 50%
     return darkenColor(themeColor, 0.5);
@@ -201,10 +263,31 @@ export default function PostCard({
         {formattedDate}
       </div>
       
-      {/* Caption - increased to 4 lines and larger font */}
+      {/* Caption with fade effect - similar to MembershipTierCard */}
       {post.caption && (
-        <div className="px-4 py-2">
-          <p className="text-white text-base line-clamp-4">{post.caption}</p>
+        <div className="px-4 py-2 relative">
+          <p 
+            ref={captionRef}
+            className="text-white text-base overflow-hidden max-h-24"
+            style={{
+              maskImage: needsExpansion ? 'linear-gradient(to bottom, black 70%, transparent 100%)' : 'none',
+              WebkitMaskImage: needsExpansion ? 'linear-gradient(to bottom, black 70%, transparent 100%)' : 'none'
+            }}
+          >
+            {post.caption}
+          </p>
+          
+          {/* Show more button */}
+          {needsExpansion && (
+            <div className="w-full text-center mt-1">
+              <button 
+                onClick={onShowDetail}
+                className="text-white bg-black bg-opacity-40 rounded-full px-4 py-1 text-sm font-medium"
+              >
+                Show more
+              </button>
+            </div>
+          )}
         </div>
       )}
       
