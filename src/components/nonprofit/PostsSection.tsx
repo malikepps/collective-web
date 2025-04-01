@@ -62,12 +62,13 @@ export default function PostsSection({
         </div>
         
         <div className="flex flex-col items-center justify-center h-32 text-center">
-          <DirectFontAwesome
-            icon="photo-film"
-            size={32}
-            color="#ffffff50"
-            className="mb-3"
-          />
+          <div className="mb-3">
+            <DirectFontAwesome
+              icon="photo-film"
+              size={32}
+              color="#ffffff50"
+            />
+          </div>
           <p className="text-white/50">
             {displayFilter === 'all' 
               ? 'No posts yet' 
