@@ -64,10 +64,10 @@ const InfoBox: React.FC<InfoBoxProps> = ({
   };
   
   return (
-    <div className="bg-card p-6 text-white continuous-corner">
+    <div className="bg-card p-5 text-white continuous-corner">
       {/* Top buttons row */}
-      <div className="flex items-center justify-start mb-4">
-        <button className="h-8 flex items-center">
+      <div className="flex items-center justify-start mb-3">
+        <button className="h-7 flex items-center">
           <span className="mr-1">📍</span>
           <span className="text-gray-400 text-sm font-marfa font-light">
             {organization.location || "No location"}
@@ -79,7 +79,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
             <span className="text-gray-500 mx-2">•</span>
             <button 
               onClick={onShowLinks}
-              className="h-8 flex items-center"
+              className="h-7 flex items-center"
             >
               <span className="mr-1">🔗</span>
               <span className="text-gray-400 text-sm font-marfa font-light">links</span>
@@ -90,7 +90,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
         <span className="text-gray-500 mx-2">•</span>
         <button 
           onClick={onShowMission}
-          className="h-8 flex items-center"
+          className="h-7 flex items-center"
         >
           <span className="text-gray-400 text-sm font-marfa font-light">mission</span>
           <DirectFontAwesome 
@@ -102,13 +102,13 @@ const InfoBox: React.FC<InfoBoxProps> = ({
       </div>
       
       {/* Description */}
-      <p className="text-white/90 text-center text-base font-marfa font-light mb-6 leading-relaxed">
+      <p className="text-white/90 text-center text-base font-marfa font-light mb-4 leading-relaxed">
         {organization.description}
       </p>
       
       {/* Action buttons - with extra debug info */}
       <div 
-        className="space-y-2"
+        className="space-y-1.5"
         data-member={isUserMember ? "true" : "false"}
         data-community={isUserInCommunity ? "true" : "false"}
         data-relationship={hasRelationship ? "true" : "false"}
@@ -117,7 +117,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
           // Member badge for members - more compact with internal padding
           <div className="flex justify-center">
             <div 
-              className="ios-rounded-sm font-marfa font-semibold text-base flex items-center justify-center px-6 py-2"
+              className="ios-rounded-sm font-marfa font-semibold text-base flex items-center justify-center px-6 py-1.5"
               style={{ 
                 backgroundColor: 'rgba(255, 255, 255, 0.1)'
               }}
@@ -135,7 +135,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
               console.log("[DEBUG] See membership options clicked");
               onShowMembershipOptions();
             }}
-            className="w-full h-11 ios-rounded-sm font-marfa font-semibold text-base transition-all duration-200 hover:opacity-90 relative overflow-hidden"
+            className="w-full h-10 ios-rounded-sm font-marfa font-semibold text-base transition-all duration-200 hover:opacity-90 relative overflow-hidden"
             style={{ 
               backgroundColor: theme?.primaryColor || '#ADD3FF',
               color: buttonTextColor()
@@ -151,7 +151,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
         {!hasRelationship && (
           <button 
             onClick={handleToggleCommunity}
-            className="bg-white/20 w-full h-11 ios-rounded-sm font-marfa font-semibold text-base"
+            className="bg-white/20 w-full h-10 ios-rounded-sm font-marfa font-semibold text-base"
             style={{ 
               color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#ADD3FF' 
             }}
@@ -163,7 +163,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
         {/* For users who are already in community but not members, show a subtle indicator */}
         {isUserInCommunity && !isUserMember && (
           <div 
-            className="w-full h-11 ios-rounded-sm font-marfa font-semibold text-base flex items-center justify-center"
+            className="w-full h-10 ios-rounded-sm font-marfa font-semibold text-base flex items-center justify-center"
             style={{ 
               backgroundColor: 'rgba(255, 255, 255, 0.05)'
             }}
