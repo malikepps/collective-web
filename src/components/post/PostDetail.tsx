@@ -323,7 +323,7 @@ export default function PostDetail({
                     <DirectFontAwesome
                       icon="heart"
                       size={20}
-                      color="rgba(255, 255, 255, 0.5)"
+                      color="rgba(255, 255, 255, 0.8)"
                     />
                   </div>
                 )}
@@ -360,7 +360,7 @@ export default function PostDetail({
                 <DirectFontAwesome
                   icon={isBoosted ? "rocket-launch" : "rocket"}
                   size={20}
-                  color={isBoosted ? "#ff9500" : "rgba(255, 255, 255, 0.5)"}
+                  color={isBoosted ? "#ff9500" : "rgba(255, 255, 255, 0.8)"}
                   style={IconStyle.REGULAR}
                 />
               </button>

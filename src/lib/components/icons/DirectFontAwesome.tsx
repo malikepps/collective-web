@@ -153,7 +153,7 @@ const DirectFontAwesome: React.FC<DirectFontAwesomeProps> = ({
         viewBox: '0 0 24 24'
       },
       'rocket-launch': {
-        path: 'M22 2L15 22l-3-6-6-3L22 2z M6 13L2 18 M8 15L5 20',
+        path: 'M22 2L15 22l-3-6-6-3L22 2z',
         viewBox: '0 0 24 24'
       },
       'share': {
