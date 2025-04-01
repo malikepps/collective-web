@@ -2,7 +2,72 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Font imports */
+/* FontAwesome Pro font faces - with better cross-browser compatibility */
+@font-face {
+  font-family: 'FontAwesome6Pro-Solid';
+  src: url('/fonts/fa-solid-900.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Font Awesome 6 Pro Solid';
+  src: url('/fonts/fa-solid-900.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'FontAwesome6Pro-Regular';
+  src: url('/fonts/fa-regular-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Font Awesome 6 Pro Regular';
+  src: url('/fonts/fa-regular-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'FontAwesome6Brands-Regular';
+  src: url('/fonts/fa-brands-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Font Awesome 6 Brands Regular';
+  src: url('/fonts/fa-brands-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'FontAwesome6Duotone-Solid';
+  src: url('/fonts/fa-duotone-900.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Font Awesome 6 Duotone Solid';
+  src: url('/fonts/fa-duotone-900.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: block;
+}
+
+/* Marfa fonts */
 @font-face {
   font-family: 'Marfa';
   src: url('/fonts/ABCMarfa-Light-Trial.woff2') format('woff2');

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface DirectFontAwesomeProps {
   icon: string;
@@ -17,13 +17,53 @@ const DirectFontAwesome: React.FC<DirectFontAwesomeProps> = ({
   color = '#ffffff',
   style
 }) => {
-  // Log what we're trying to render
+  const [fontStatus, setFontStatus] = useState<string>('checking');
+  
+  // Log what we're trying to render and check font status
   useEffect(() => {
-    console.log(`DirectFontAwesome: Rendering icon ${icon}`);
-  }, [icon]);
+    console.log(`[DEBUG-ICON] DirectFontAwesome: Rendering icon "${icon}" with size=${size}, color=${color}`);
+    
+    // Check if we're using client-side rendering
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      // Check font loading status
+      const fonts = document.fonts;
+      if (fonts) {
+        console.log(`[DEBUG-ICON] Checking font availability...`);
+        fonts.ready.then(() => {
+          const fontFamilies = [
+            '"Font Awesome 6 Pro Solid"',
+            '"FontAwesome6Pro-Solid"',
+            '"Font Awesome 6 Pro Regular"',
+            '"FontAwesome6Pro-Regular"',
+            '"Font Awesome 6 Duotone Solid"',
+            '"FontAwesome6Duotone-Solid"'
+          ];
+          
+          const results = fontFamilies.map(fontFamily => ({
+            fontFamily,
+            loaded: fonts.check(`1em ${fontFamily}`)
+          }));
+          
+          console.table(results);
+          
+          const anyLoaded = results.some(r => r.loaded);
+          setFontStatus(anyLoaded ? 'loaded' : 'failed');
+          
+          console.log(`[DEBUG-ICON] Font loading status: ${anyLoaded ? 'SUCCESS' : 'FAILED'}`);
+          
+          if (!anyLoaded) {
+            console.warn(`[DEBUG-ICON] No FontAwesome fonts loaded, using SVG fallback for "${icon}"`);
+          }
+        });
+      }
+    }
+  }, [icon, size, color]);
   
   // Map icon names to SVG paths
   const getSvgPath = (iconName: string): { path: string; viewBox?: string } => {
+    // Log the icon name we're trying to get
+    console.log(`[DEBUG-ICON] Getting SVG path for icon: "${iconName}"`);
+    
     // Common icons
     const icons: Record<string, { path: string; viewBox?: string }> = {
       'bars': { 
@@ -135,31 +175,42 @@ const DirectFontAwesome: React.FC<DirectFontAwesomeProps> = ({
     
     // Handle fa- prefix
     const cleanName = iconName.replace(/^fa-/, '');
+    const result = icons[cleanName];
     
-    return icons[cleanName] || { path: '' };
+    if (!result) {
+      console.error(`[DEBUG-ICON] No SVG path found for icon "${iconName}" (cleaned: "${cleanName}")`);
+    } else {
+      console.log(`[DEBUG-ICON] Found SVG path for icon "${iconName}"`);
+    }
+    
+    return result || { path: '' };
   };
   
   const { path, viewBox = '0 0 24 24' } = getSvgPath(icon);
   
   if (!path) {
-    console.warn(`DirectFontAwesome: No SVG path found for icon ${icon}`);
-    return <span style={{ color }}>&larr;</span>;
+    console.warn(`[DEBUG-ICON] DirectFontAwesome: No SVG path found for icon "${icon}", returning fallback`);
+    return <span style={{ color }}>[{icon}]</span>;
   }
   
   return (
-    <svg 
-      width={size} 
-      height={size} 
-      viewBox={viewBox}
-      fill="none" 
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={style}
-    >
-      <path d={path} />
-    </svg>
+    <>
+      <svg 
+        width={size} 
+        height={size} 
+        viewBox={viewBox}
+        fill="none" 
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        style={style}
+        data-icon-name={icon}
+        data-font-status={fontStatus}
+      >
+        <path d={path} />
+      </svg>
+    </>
   );
 };
 

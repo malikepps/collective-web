@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 // Define icon styles matching the Swift implementation
 export enum IconStyle {
@@ -141,6 +141,53 @@ const FontAwesomeIcon: React.FC<FontAwesomeIconProps> = ({
   secondaryColor,
   style = IconStyle.CLASSIC,
 }) => {
+  const [fontStatus, setFontStatus] = useState<string>('checking');
+  
+  // Check font loading status on component mount
+  useEffect(() => {
+    // Check if we're using client-side rendering
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      // Convert icon to string if it's an enum
+      const iconName = typeof icon === 'string' ? icon : icon.toString();
+      console.log(`[DEBUG-FONT] FontAwesomeIcon: Rendering icon "${iconName}" with style=${style}`);
+      
+      // Check font loading status
+      const fonts = document.fonts;
+      if (fonts) {
+        console.log(`[DEBUG-FONT] Checking font availability for FontAwesomeIcon...`);
+        fonts.ready.then(() => {
+          const fontFamilies = [
+            '"Font Awesome 6 Pro Solid"',
+            '"FontAwesome6Pro-Solid"',
+            '"Font Awesome 6 Pro Regular"',
+            '"FontAwesome6Pro-Regular"',
+            '"Font Awesome 6 Duotone Solid"',
+            '"FontAwesome6Duotone-Solid"',
+            '"Font Awesome 6 Duotone Regular"',
+            '"FontAwesome6Duotone-Regular"',
+          ];
+          
+          const results = fontFamilies.map(fontFamily => ({
+            fontFamily,
+            loaded: fonts.check(`1em ${fontFamily}`)
+          }));
+          
+          console.table(results);
+          
+          const anyLoaded = results.some(r => r.loaded);
+          setFontStatus(anyLoaded ? 'loaded' : 'failed');
+          
+          console.log(`[DEBUG-FONT] Font loading status for FontAwesomeIcon: ${anyLoaded ? 'SUCCESS' : 'FAILED'}`);
+          
+          if (!anyLoaded) {
+            console.warn(`[DEBUG-FONT] No FontAwesome fonts loaded for FontAwesomeIcon. Icons may not display correctly.`);
+            console.warn(`[DEBUG-FONT] Make sure CSS in globals.css or FontAwesome.tsx is loading fonts properly.`);
+          }
+        });
+      }
+    }
+  }, [icon, style]);
+  
   // Format colors
   const primary = isActive ? hexToColor(primaryColor) : '#808080';
   const secondary = isActive && secondaryColor ? hexToColor(secondaryColor) : '#808080';
@@ -151,25 +198,31 @@ const FontAwesomeIcon: React.FC<FontAwesomeIconProps> = ({
   // Get the Unicode character for the icon
   const unicode = ICON_UNICODE_MAP[iconName];
   if (!unicode) {
-    console.warn(`Icon not found: ${iconName}`);
+    console.warn(`[DEBUG-FONT] Icon not found in unicode map: "${iconName}"`);
     return <span style={{ color: primary, fontSize: `${size}px` }}>?</span>;
+  } else {
+    console.log(`[DEBUG-FONT] Found unicode for icon "${iconName}": ${unicode} (hex: ${unicode.codePointAt(0)?.toString(16)})`);
   }
   
   // Font family based on style
   const getFontFamily = () => {
     switch (style) {
       case IconStyle.REGULAR:
+        console.log(`[DEBUG-FONT] Using REGULAR font family for "${iconName}"`);
         return '"Font Awesome 6 Pro Regular", "FontAwesome6Pro-Regular"';
       case IconStyle.DUOTONE:
+        console.log(`[DEBUG-FONT] Using DUOTONE font family for "${iconName}"`);
         return '"Font Awesome 6 Duotone Solid", "FontAwesome6Duotone-Solid"';
       case IconStyle.CLASSIC:
       default:
+        console.log(`[DEBUG-FONT] Using CLASSIC (solid) font family for "${iconName}"`);
         return '"Font Awesome 6 Pro Solid", "FontAwesome6Pro-Solid"';
     }
   };
 
   // Get duotone secondary font family
   const getDuotoneSecondaryFontFamily = () => {
+    console.log(`[DEBUG-FONT] Using duotone secondary font family for "${iconName}"`);
     return '"Font Awesome 6 Duotone Regular", "FontAwesome6Duotone-Regular"';
   };
 
@@ -190,8 +243,9 @@ const FontAwesomeIcon: React.FC<FontAwesomeIconProps> = ({
     
     // If we have a specific secondary unicode for duotone
     if (secondaryUnicode) {
+      console.log(`[DEBUG-FONT] Found secondary unicode for duotone icon "${iconName}": ${secondaryUnicode}`);
       return (
-        <div style={{ position: 'relative', width: `${size * 1.5}px`, height: `${size}px` }}>
+        <div style={{ position: 'relative', width: `${size * 1.5}px`, height: `${size}px` }} data-icon={iconName} data-font-status={fontStatus}>
           {/* Secondary layer */}
           <span style={{
             ...iconStyle,
@@ -219,8 +273,9 @@ const FontAwesomeIcon: React.FC<FontAwesomeIconProps> = ({
     }
     
     // Fallback for duotone without specific secondary code
+    console.log(`[DEBUG-FONT] No secondary unicode found for duotone icon "${iconName}", using opacity fallback`);
     return (
-      <div style={{ position: 'relative', width: `${size * 1.5}px`, height: `${size}px` }}>
+      <div style={{ position: 'relative', width: `${size * 1.5}px`, height: `${size}px` }} data-icon={iconName} data-font-status={fontStatus}>
         {/* Fallback secondary layer using opacity */}
         <span style={{
           ...iconStyle,
@@ -248,8 +303,9 @@ const FontAwesomeIcon: React.FC<FontAwesomeIconProps> = ({
   }
   
   // Standard single-layer icon
+  console.log(`[DEBUG-FONT] Rendering standard single-layer icon "${iconName}"`);
   return (
-    <span style={iconStyle}>
+    <span style={iconStyle} data-icon={iconName} data-font-status={fontStatus}>
       {unicode}
     </span>
   );

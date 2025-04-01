@@ -114,9 +114,14 @@ export const DuotoneColorPresets = {
 
 // Helper function to load FontAwesome CSS
 export const loadFontAwesomeCSS = (): void => {
+  console.log('[DEBUG-FONTS] Attempting to load FontAwesome CSS...');
+  
   // Check if the style element already exists
   const existingStyle = document.getElementById('fontawesome-css');
-  if (existingStyle) return;
+  if (existingStyle) {
+    console.log('[DEBUG-FONTS] FontAwesome CSS already loaded, skipping');
+    return;
+  }
 
   // Create style element
   const style = document.createElement('style');
@@ -263,26 +268,75 @@ export const loadFontAwesomeCSS = (): void => {
   // Append to head
   document.head.appendChild(style);
   
-  console.log('FontAwesome and Marfa fonts CSS loaded');
+  console.log('[DEBUG-FONTS] FontAwesome and Marfa fonts CSS injected into document head');
+  
+  // Try to check if the fonts are being loaded
+  setTimeout(() => {
+    printAvailableFonts();
+  }, 1000);
 };
 
 // Debug function to print available fonts (for development purposes)
 export const printAvailableFonts = (): void => {
-  console.log('🔍 Checking for FontAwesome fonts...');
+  console.log('[DEBUG-FONTS] 🔍 Checking for FontAwesome fonts...');
   
   // For browser environment
   if (typeof document !== 'undefined') {
     const fonts = document.fonts;
     if (fonts) {
       fonts.ready.then(() => {
-        console.log('FontAwesome fonts loaded:', 
-          fonts.check('1em "FontAwesome6Pro-Solid"'),
-          fonts.check('1em "FontAwesome6Pro-Regular"'),
-          fonts.check('1em "FontAwesome6Brands-Regular"'),
-          fonts.check('1em "FontAwesome6Duotone-Solid"')
-        );
+        // Check standard format
+        const standardFamilies = [
+          '"Font Awesome 6 Pro Solid"',
+          '"Font Awesome 6 Pro Regular"',
+          '"Font Awesome 6 Brands Regular"',
+          '"Font Awesome 6 Duotone Solid"'
+        ];
+        
+        // Check alternate format
+        const alternateFamilies = [
+          'FontAwesome6Pro-Solid',
+          'FontAwesome6Pro-Regular',
+          'FontAwesome6Brands-Regular',
+          'FontAwesome6Duotone-Solid'
+        ];
+        
+        console.log('[DEBUG-FONTS] Standard font family format availability:');
+        standardFamilies.forEach(family => {
+          console.log(`[DEBUG-FONTS] ${family}: ${fonts.check(`1em ${family}`) ? 'LOADED ✅' : 'NOT LOADED ❌'}`);
+        });
+        
+        console.log('[DEBUG-FONTS] Alternate font family format availability:');
+        alternateFamilies.forEach(family => {
+          console.log(`[DEBUG-FONTS] ${family}: ${fonts.check(`1em ${family}`) ? 'LOADED ✅' : 'NOT LOADED ❌'}`);
+        });
+        
+        // Check if fonts are missing
+        const anyStandardLoaded = standardFamilies.some(family => fonts.check(`1em ${family}`));
+        const anyAlternateLoaded = alternateFamilies.some(family => fonts.check(`1em ${family}`));
+        
+        if (!anyStandardLoaded && !anyAlternateLoaded) {
+          console.error('[DEBUG-FONTS] ⚠️ NO FontAwesome fonts detected. Icons will not display correctly!');
+          console.error('[DEBUG-FONTS] Please check that font files exist in the /public/fonts directory.');
+          console.error('[DEBUG-FONTS] Font files needed: fa-solid-900.woff2, fa-regular-400.woff2, etc.');
+        } else {
+          console.log('[DEBUG-FONTS] ✅ FontAwesome fonts detected and loaded successfully.');
+        }
+        
+        // Log all loaded fonts for debugging
+        console.log('[DEBUG-FONTS] All loaded fonts in document.fonts:');
+        try {
+          const loadedFonts = Array.from(fonts).map(font => `${font.family} (${font.style}, ${font.weight})`);
+          console.table(loadedFonts);
+        } catch (e) {
+          console.error('[DEBUG-FONTS] Error listing loaded fonts:', e);
+        }
       });
+    } else {
+      console.error('[DEBUG-FONTS] document.fonts not available - font loading cannot be verified');
     }
+  } else {
+    console.warn('[DEBUG-FONTS] document not available - running in a non-browser environment');
   }
 };
 

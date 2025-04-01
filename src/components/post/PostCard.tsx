@@ -301,6 +301,9 @@ export default function PostCard({
                   icon="comment"
                   size={14}
                   color="#9ca3af"
+                  style={{ 
+                    border: process.env.NODE_ENV === 'development' ? '1px dotted rgba(255,255,255,0.2)' : undefined 
+                  }}
                 />
               </span>
               <span className="mr-3">{post.numComments}</span>
@@ -312,6 +315,7 @@ export default function PostCard({
                 className={`flex items-center justify-center w-8 h-8 mr-3 ${isLiked ? 'text-red-500' : 'text-white'}`}
                 onClick={onToggleLike}
                 aria-label={isLiked ? "Unlike post" : "Like post"}
+                data-debug="like-button"
               >
                 {isLiked ? (
                   <span className="text-xl">❤️</span>
@@ -320,6 +324,9 @@ export default function PostCard({
                     icon="heart"
                     size={20}
                     color="#ffffff"
+                    style={{ 
+                      border: process.env.NODE_ENV === 'development' ? '1px dotted rgba(255,255,255,0.2)' : undefined 
+                    }}
                   />
                 )}
               </button>
@@ -329,11 +336,15 @@ export default function PostCard({
                 className="flex items-center justify-center w-8 h-8"
                 onClick={onToggleBoost}
                 aria-label={isBoosted ? "Remove boost" : "Boost post"}
+                data-debug="boost-button"
               >
                 <DirectFontAwesome
                   icon={isBoosted ? "rocket-launch" : "rocket"}
                   size={20}
                   color={isBoosted ? "#ff9500" : "#ffffff"}
+                  style={{ 
+                    border: process.env.NODE_ENV === 'development' ? '1px dotted rgba(255,255,255,0.2)' : undefined 
+                  }}
                 />
               </button>
             </div>
