@@ -11,13 +11,13 @@ export const postService = {
   /**
    * Get posts for an organization
    */
-  async getPosts(organizationId: string, filterOption: 'all' | 'members' | 'media' = 'all', limit = 20): Promise<Post[]> {
+  async getPosts(organizationId: string, filterOption: 'all' | 'members' | 'media' = 'all', limitCount = 20): Promise<Post[]> {
     try {
       // Base query filters
       let constraints = [
         where('nonprofit', '==', doc(db, 'nonprofits', organizationId)),
         orderBy('created_date', 'desc'),
-        limit(limit)
+        limit(limitCount)
       ];
 
       // Add filter for members-only content if needed
