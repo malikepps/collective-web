@@ -126,8 +126,8 @@ export default function PostCard({
       className="bg-card rounded-xl overflow-hidden shadow-lg mb-4"
       style={{ backgroundColor: generateBackgroundColor() }}
     >
-      {/* Media Content */}
-      <div className="relative">
+      {/* Media Content - No rounded corners at bottom */}
+      <div className="relative rounded-t-xl overflow-hidden">
         {/* Staff Menu Button - now positioned on top of media */}
         {isUserStaff && (
           <div className="absolute top-2 right-2 z-20">
@@ -196,15 +196,20 @@ export default function PostCard({
         </div>
       </div>
       
-      {/* Caption */}
+      {/* Date moved above caption */}
+      <div className="px-4 pt-3 text-gray-300 text-sm">
+        {formattedDate}
+      </div>
+      
+      {/* Caption - increased to 4 lines and larger font */}
       {post.caption && (
-        <div className="px-4 py-3">
-          <p className="text-white text-sm line-clamp-3">{post.caption}</p>
+        <div className="px-4 py-2">
+          <p className="text-white text-base line-clamp-4">{post.caption}</p>
         </div>
       )}
       
-      {/* Actions */}
-      <div className="px-4 py-3 border-t border-gray-700 flex items-center justify-between">
+      {/* Actions - removed border-t */}
+      <div className="px-4 py-3 flex items-center justify-between">
         <div className="flex items-center text-gray-300 text-sm">
           <span className="mr-2">
             <DirectFontAwesome
@@ -214,7 +219,6 @@ export default function PostCard({
             />
           </span>
           <span className="mr-3">{post.numComments}</span>
-          <span className="mr-1">{formattedDate}</span>
         </div>
         
         <div className="flex items-center">
