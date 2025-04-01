@@ -118,8 +118,8 @@ export default function MediaCarousel({
     <div 
       className="relative overflow-hidden bg-gray-900"
       style={{ 
-        aspectRatio: String(aspectRatio), 
-        width: '100%' 
+        width: '100%',
+        paddingBottom: `${(1 / aspectRatio) * 100}%` // Create a fixed aspect ratio container using padding
       }}
       ref={carouselRef}
       onTouchStart={handleTouchStart}
@@ -136,7 +136,7 @@ export default function MediaCarousel({
 
       {/* Media Slider */}
       <div 
-        className="flex transition-transform duration-300 ease-out h-full w-full"
+        className="flex transition-transform duration-300 ease-out absolute inset-0"
         style={{ 
           transform: `translateX(-${currentPage * 100}%)`,
         }}
@@ -150,15 +150,20 @@ export default function MediaCarousel({
               // Video Thumbnail with Play Button
               <div className="relative w-full h-full flex items-center justify-center bg-black">
                 {(item.thumbnailUrl || item.url) && (
-                  <img
-                    src={item.thumbnailUrl || item.url}
-                    alt="Video thumbnail"
-                    className="w-full h-full object-cover"
-                    style={{ objectPosition: 'center', maxHeight: '100%', maxWidth: '100%' }}
-                    onLoad={handleImageLoad}
-                    onError={handleImageError}
-                    loading="eager"
-                  />
+                  <div className="w-full h-full overflow-hidden">
+                    <img
+                      src={item.thumbnailUrl || item.url}
+                      alt="Video thumbnail"
+                      className="w-full"
+                      style={{ 
+                        display: 'block',
+                        margin: '0 auto'
+                      }}
+                      onLoad={handleImageLoad}
+                      onError={handleImageError}
+                      loading="eager"
+                    />
+                  </div>
                 )}
                 
                 {showPlayButton && (
@@ -182,15 +187,20 @@ export default function MediaCarousel({
             ) : (
               // Image
               <div className="relative w-full h-full flex items-center justify-center bg-black">
-                <img
-                  src={item.url}
-                  alt={`Media item ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  style={{ objectPosition: 'center', maxHeight: '100%', maxWidth: '100%' }}
-                  onLoad={handleImageLoad}
-                  onError={handleImageError}
-                  loading="eager"
-                />
+                <div className="w-full h-full overflow-hidden">
+                  <img
+                    src={item.url}
+                    alt={`Media item ${index + 1}`}
+                    className="w-full"
+                    style={{ 
+                      display: 'block',
+                      margin: '0 auto'
+                    }}
+                    onLoad={handleImageLoad}
+                    onError={handleImageError}
+                    loading="eager"
+                  />
+                </div>
               </div>
             )}
           </div>
