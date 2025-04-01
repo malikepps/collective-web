@@ -1,4 +1,4 @@
-import { collection, deleteDoc, doc, getDoc, getDocs, limit, orderBy, query, where, writeBatch, DocumentReference, Timestamp } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, limit, orderBy, query, where, writeBatch, DocumentReference, Timestamp, QueryDocumentSnapshot } from 'firebase/firestore';
 import { deleteObject, ref } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { Post, postFromFirestore } from '@/lib/models/Post';
