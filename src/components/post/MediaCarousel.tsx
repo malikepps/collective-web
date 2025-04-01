@@ -116,7 +116,7 @@ export default function MediaCarousel({
 
   return (
     <div 
-      className="relative overflow-hidden rounded-lg bg-gray-900"
+      className="relative overflow-hidden bg-gray-900"
       style={{ 
         aspectRatio: String(aspectRatio), 
         width: '100%' 
