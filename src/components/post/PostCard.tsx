@@ -143,12 +143,13 @@ export default function PostCard({
                     onDeletePost && onDeletePost();
                   }}
                 >
-                  <DirectFontAwesome
-                    icon="trash-can"
-                    size={14}
-                    color="#ef4444"
-                    className="mr-2"
-                  /> 
+                  <div className="mr-2">
+                    <DirectFontAwesome
+                      icon="trash-can"
+                      size={14}
+                      color="#ef4444"
+                    />
+                  </div>
                   Delete
                 </button>
               </div>
