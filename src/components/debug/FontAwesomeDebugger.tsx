@@ -3,7 +3,7 @@ import {
   DebugFontAwesome, 
   DirectFontAwesome, 
   FontAwesomeIcon, 
-  IconStyle, 
+  FontIconStyle, 
   loadFontAwesomeCSS, 
   printAvailableFonts 
 } from '@/lib/components/icons';

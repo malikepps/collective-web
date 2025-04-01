@@ -10,6 +10,7 @@ export { default as ProperFontAwesome } from './ProperFontAwesome';
 // Export types and utilities
 export { IconStyle as FontIconStyle } from './FontAwesomeIcon';
 export { IconStyle as ProperIconStyle } from './ProperFontAwesome';
+export { IconStyle } from './FontAwesomeIcon';
 export { 
   Icon, 
   colorFromHex, 

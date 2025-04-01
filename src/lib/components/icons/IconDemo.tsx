@@ -1,5 +1,6 @@
 import React from 'react';
-import { FAIcon, Icon, IconStyle } from './index';
+import { FAIcon, Icon } from './index';
+import { IconStyle } from './FontAwesomeIcon';
 
 /**
  * A demo component to showcase FontAwesome icons
