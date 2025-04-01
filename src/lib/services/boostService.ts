@@ -1,6 +1,6 @@
 import { collection, deleteDoc, doc, getDoc, getDocs, limit, orderBy, query, setDoc, where, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Post } from '@/lib/models/Post';
+import { Post, MediaType } from '@/lib/models/Post';
 import { auth } from '@/lib/firebase';
 import { MediaItem } from '../models/MediaItem';
 
@@ -148,7 +148,7 @@ export const boostService = {
           mediaItems = [{
             id: '0',
             url: data.legacy_image_url,
-            type: 'IMAGE',
+            type: MediaType.IMAGE,
             order: 0,
             thumbnailUrl: null,
             thumbnailColor: null
@@ -157,7 +157,7 @@ export const boostService = {
           mediaItems = [{
             id: '0',
             url: data.legacy_video_url,
-            type: 'VIDEO',
+            type: MediaType.VIDEO,
             order: 0,
             thumbnailUrl: null,
             thumbnailColor: null
