@@ -189,6 +189,10 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
             -ms-overflow-style: none;
             scrollbar-width: none;
           }
+          
+          .icon-shadow {
+            filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25));
+          }
         `}</style>
       </Head>
       
@@ -202,13 +206,13 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
           {/* Back button */}
           <button 
             onClick={() => router.back()}
-            className="flex items-center justify-center overflow-hidden"
+            className="flex items-center justify-center overflow-hidden icon-shadow"
           >
             <DirectFontAwesome 
               icon="bars"
               size={25}
               color="#ffffff"
-              style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
+              style={IconStyle.CLASSIC}
             />
           </button>
           
@@ -226,13 +230,13 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
           {/* Ellipsis menu button */}
           <button
             onClick={() => setShowLeaveConfirmation(true)}
-            className="flex items-center justify-center overflow-hidden"
+            className="flex items-center justify-center overflow-hidden icon-shadow"
           >
             <DirectFontAwesome
               icon="ellipsis"
               size={50}
               color="#ffffff"
-              style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25))' }}
+              style={IconStyle.CLASSIC}
             />
           </button>
         </div>
