@@ -4,7 +4,8 @@ import { Post, MediaType } from '@/lib/models/Post';
 import { Organization } from '@/lib/models/Organization';
 import MediaCarousel from './MediaCarousel';
 import { DirectFontAwesome } from '@/lib/components/icons';
-import { formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
+import { useTheme } from '@/lib/context/ThemeContext';
 
 interface PostCardProps {
   post: Post;
@@ -33,9 +34,10 @@ export default function PostCard({
 }: PostCardProps) {
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const { getTheme } = useTheme();
   
-  // Format post date
-  const formattedDate = formatDistanceToNow(post.createdDate, { addSuffix: true });
+  // Format post date - changed to match the screenshot format
+  const formattedDate = format(post.createdDate, 'MMMM d, yyyy');
   
   // Handle double tap to like
   const handleDoubleTap = () => {
@@ -86,43 +88,51 @@ export default function PostCard({
     return [];
   };
   
-  // Calculate background gradient
-  const generateGradient = () => {
-    const color = post.backgroundColorHex || '525252';
+  // Function to darken a hex color by a percentage
+  const darkenColor = (hexColor: string, amount: number = 0.5): string => {
+    // Ensure the hex color is in the correct format
+    const hex = hexColor.startsWith('#') ? hexColor.slice(1) : hexColor;
     
-    return `linear-gradient(to bottom, #${color}, #111)`;
+    // Convert to RGB
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    
+    // Darken each RGB component
+    const darkR = Math.floor(r * (1 - amount));
+    const darkG = Math.floor(g * (1 - amount));
+    const darkB = Math.floor(b * (1 - amount));
+    
+    // Convert back to hex
+    return `#${darkR.toString(16).padStart(2, '0')}${darkG.toString(16).padStart(2, '0')}${darkB.toString(16).padStart(2, '0')}`;
+  };
+  
+  // Generate solid background color from theme
+  const generateBackgroundColor = () => {
+    // Get theme from the organization's themeId
+    const theme = organization.themeId ? getTheme(organization.themeId) : undefined;
+    
+    // Get primary color from theme or fallback to post background color
+    const themeColor = theme?.primaryColor ? 
+      (theme.primaryColor.startsWith('#') ? theme.primaryColor : `#${theme.primaryColor}`) : 
+      (post.backgroundColorHex ? `#${post.backgroundColorHex}` : '#525252');
+    
+    // Darken the color by 50%
+    return darkenColor(themeColor, 0.5);
   };
 
   return (
     <div 
       className="bg-card rounded-xl overflow-hidden shadow-lg mb-4"
-      style={{ background: generateGradient() }}
+      style={{ backgroundColor: generateBackgroundColor() }}
     >
-      {/* Organization Header */}
-      <div className="p-3 flex items-center justify-between">
-        <div className="flex items-center">
-          <div className="h-10 w-10 relative rounded-full overflow-hidden mr-3">
-            <Image
-              src={organization.photoURL}
-              alt={organization.name}
-              fill
-              sizes="40px"
-              className="object-cover"
-            />
-          </div>
-          <div>
-            <h3 className="text-white font-medium text-base">{organization.name}</h3>
-            <p className="text-gray-300 text-xs">
-              {isUserStaff ? 'Staff' : isUserMember ? 'Member' : 'Community'}
-            </p>
-          </div>
-        </div>
-        
-        {/* Menu Button (for staff) */}
+      {/* Media Content */}
+      <div className="relative">
+        {/* Staff Menu Button - now positioned on top of media */}
         {isUserStaff && (
-          <div className="relative">
+          <div className="absolute top-2 right-2 z-20">
             <button 
-              className="text-white p-2" 
+              className="bg-black bg-opacity-50 text-white p-2 rounded-full" 
               onClick={() => setShowMenu(!showMenu)}
               aria-label="Post options"
             >
@@ -156,10 +166,7 @@ export default function PostCard({
             )}
           </div>
         )}
-      </div>
-      
-      {/* Media Content */}
-      <div className="relative">
+        
         {/* Members Only Badge */}
         {post.isForMembersOnly && (
           <div className="absolute top-2 left-2 z-10">
