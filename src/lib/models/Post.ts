@@ -73,6 +73,7 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
   // Parse nonprofit reference
   let nonprofitId: string | null = null;
   
+  console.log(`[DEBUG] Processing nonprofit field for post ${doc.id}`);
   console.log(`[DEBUG] Nonprofit reference type: ${typeof data.nonprofit}`);
   if (data.nonprofit) {
     // Check if it's a string path to a document
@@ -103,6 +104,19 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
     // Some documents might have the ID directly in a separate field
     console.log(`[DEBUG] Found standalone nonprofitId field: ${data.nonprofitId}`);
     nonprofitId = data.nonprofitId;
+  } else if (data.community && typeof data.community === 'string' && !data.community.includes('/')) {
+    // In some cases, the ID might be in the community field
+    console.log(`[DEBUG] No nonprofit reference found, using community as fallback: ${data.community}`);
+    nonprofitId = data.community;
+  } else if (doc.id.includes('_')) {
+    // Last resort: try to extract from post ID if it follows pattern like "nonprofitId_postId"
+    const potentialId = doc.id.split('_')[0];
+    if (potentialId && potentialId.length > 10) { // Typical Firebase ID length check
+      console.log(`[DEBUG] Extracted potential nonprofitId from post ID: ${potentialId}`);
+      nonprofitId = potentialId;
+    } else {
+      console.log(`[DEBUG] No nonprofit reference found for post: ${doc.id}`);
+    }
   } else {
     console.log(`[DEBUG] No nonprofit reference found for post: ${doc.id}`);
   }

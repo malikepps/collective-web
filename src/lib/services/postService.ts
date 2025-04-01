@@ -56,7 +56,8 @@ export const postService = {
       );
       
       // Query 4: Check for posts with a direct nonprofitId field
-      console.log(`[DEBUG] Query 4: Using nonprofitId field`);
+      // This query requires a composite index that might not exist yet
+      console.log(`[DEBUG] Query 4: Using nonprofitId field (requires composite index)`);
       const query4 = query(
         collection(db, 'posts'),
         where('nonprofitId', '==', organizationId),
@@ -64,32 +65,69 @@ export const postService = {
         limit(limitCount)
       );
       
-      // Execute all queries in parallel
-      const [snapshot1, snapshot2, snapshot3, snapshot4] = await Promise.all([
-        getDocs(query1),
-        getDocs(query2),
-        getDocs(query3),
-        getDocs(query4)
-      ]);
+      // Execute queries in parallel, but handle potential index errors
+      let snapshot1Results, snapshot2Results, snapshot3Results, snapshot4Results;
+      let useFallback = false;
       
-      console.log(`[DEBUG] Query 1 returned ${snapshot1.docs.length} posts`);
-      console.log(`[DEBUG] Query 2 returned ${snapshot2.docs.length} posts`);
-      console.log(`[DEBUG] Query 3 returned ${snapshot3.docs.length} posts`);
-      console.log(`[DEBUG] Query 4 returned ${snapshot4.docs.length} posts`);
-      
-      // Merge the results, avoiding duplicates by using a Map with document ID as key
-      const docMap = new Map();
-      
-      // Add docs from all queries
-      [...snapshot1.docs, ...snapshot2.docs, ...snapshot3.docs, ...snapshot4.docs].forEach(doc => {
-        if (!docMap.has(doc.id)) {
-          docMap.set(doc.id, doc);
+      try {
+        // Execute the first three queries that typically don't require special indexes
+        [snapshot1Results, snapshot2Results, snapshot3Results] = await Promise.all([
+          getDocs(query1),
+          getDocs(query2),
+          getDocs(query3)
+        ]);
+        
+        // Try the fourth query separately since it may fail due to missing index
+        try {
+          snapshot4Results = await getDocs(query4);
+          console.log(`[DEBUG] Query 4 returned ${snapshot4Results.docs.length} posts`);
+        } catch (error: any) {
+          // Log the index creation link if this is an index error
+          if (error.code === 'failed-precondition' || error.message?.includes('index')) {
+            console.warn(
+              `[DEBUG] Query 4 requires a composite index. Missing index for nonprofitId + created_date. ` +
+              `To improve post fetching, please create this index using the link in the error message above.`
+            );
+            snapshot4Results = { docs: [] };
+          } else {
+            // Rethrow if it's not an index error
+            throw error;
+          }
         }
-      });
+      } catch (error) {
+        console.error('[DEBUG] Error executing queries:', error);
+        console.log('[DEBUG] Falling back to client-side filtering method');
+        useFallback = true;
+      }
       
-      // Convert the merged set to an array
-      const mergedDocs = Array.from(docMap.values());
-      console.log(`[DEBUG] Combined queries returned ${mergedDocs.length} unique documents`);
+      let mergedDocs: QueryDocumentSnapshot[] = [];
+      
+      if (!useFallback) {
+        console.log(`[DEBUG] Query 1 returned ${snapshot1Results.docs.length} posts`);
+        console.log(`[DEBUG] Query 2 returned ${snapshot2Results.docs.length} posts`);
+        console.log(`[DEBUG] Query 3 returned ${snapshot3Results.docs.length} posts`);
+        
+        // Merge the results, avoiding duplicates by using a Map with document ID as key
+        const docMap = new Map();
+        
+        // Add docs from all queries
+        [...snapshot1Results.docs, ...snapshot2Results.docs, ...snapshot3Results.docs, ...(snapshot4Results ? snapshot4Results.docs : [])].forEach(doc => {
+          if (!docMap.has(doc.id)) {
+            docMap.set(doc.id, doc);
+          }
+        });
+        
+        // Convert the merged set to an array
+        mergedDocs = Array.from(docMap.values());
+        console.log(`[DEBUG] Combined queries returned ${mergedDocs.length} unique documents`);
+      }
+      
+      // If we got no results or an error, try the fallback method (client-side filtering)
+      if (useFallback || mergedDocs.length === 0) {
+        console.log('[DEBUG] No posts found with direct queries, using fallback method');
+        const fallbackPosts = await this.getAllPostsFallback(organizationId, limitCount);
+        return fallbackPosts;
+      }
       
       // Log each document for debugging
       mergedDocs.forEach((doc, index) => {
@@ -140,6 +178,46 @@ export const postService = {
     } catch (error) {
       console.error('[DEBUG] Error getting posts:', error);
       throw error;
+    }
+  },
+
+  /**
+   * Fallback method to get all posts and filter by nonprofit client-side
+   * This is less efficient but works when indexes are missing
+   */
+  async getAllPostsFallback(organizationId: string, limitCount = 100): Promise<Post[]> {
+    console.log(`[DEBUG] Using fallback method to get posts for ${organizationId}`);
+    try {
+      // Get the most recent posts without filtering by nonprofit
+      const q = query(
+        collection(db, 'posts'),
+        orderBy('created_date', 'desc'),
+        limit(limitCount * 5) // Get more posts since we'll filter most out
+      );
+      
+      const snapshot = await getDocs(q);
+      console.log(`[DEBUG] Fallback query returned ${snapshot.docs.length} total posts`);
+      
+      // Parse all posts
+      const allPosts = snapshot.docs
+        .map(doc => postFromFirestore(doc))
+        .filter(post => post !== null) as Post[];
+      
+      // Filter to only posts for this nonprofit
+      const filteredPosts = allPosts.filter(post => {
+        const matches = post.nonprofitId === organizationId;
+        return matches;
+      });
+      
+      console.log(`[DEBUG] Fallback method found ${filteredPosts.length} posts for ${organizationId}`);
+      
+      // Sort by date and limit
+      return filteredPosts
+        .sort((a, b) => b.createdDate.getTime() - a.createdDate.getTime())
+        .slice(0, limitCount);
+    } catch (error) {
+      console.error('[DEBUG] Error in fallback post fetching:', error);
+      return [];
     }
   },
 
