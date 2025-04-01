@@ -29,11 +29,20 @@ const MembershipTierCard: React.FC<MembershipTierCardProps> = ({
   // Format description to replace (nonprofit) with actual organization name
   const formattedDescription = tier.description.replace(/\(nonprofit\)/g, organizationName);
 
-  // Theme colors with fallbacks
-  const primaryColor = theme?.primaryColor ? `#${theme.primaryColor}` : '#ADD3FF';
-  const textColor = theme?.primaryColor && theme?.textOnPrimaryColor 
-    ? `#${theme.textOnPrimaryColor}` 
-    : (isColorLight(theme?.primaryColor || 'ADD3FF') ? '#000000' : '#FFFFFF');
+  // Get theme colors with proper formatting
+  const primaryColor = theme?.primaryColor ? 
+    (theme.primaryColor.startsWith('#') ? theme.primaryColor : `#${theme.primaryColor}`) : 
+    '#ADD3FF';
+  
+  // Get secondary color for "Show more" text
+  const secondaryColor = theme?.secondaryColor ? 
+    (theme.secondaryColor.startsWith('#') ? theme.secondaryColor : `#${theme.secondaryColor}`) : 
+    primaryColor;
+
+  // Get proper text color for primary color background
+  const textColor = theme?.primaryColor && theme?.textOnPrimaryColor ? 
+    (theme.textOnPrimaryColor.startsWith('#') ? theme.textOnPrimaryColor : `#${theme.textOnPrimaryColor}`) : 
+    (isColorLight(theme?.primaryColor || 'ADD3FF') ? '#000000' : '#FFFFFF');
 
   // Parse description to handle bullet points
   const descriptionLines = formattedDescription.split('\n').map((line, index) => {
@@ -142,7 +151,7 @@ const MembershipTierCard: React.FC<MembershipTierCardProps> = ({
           {descriptionLines}
         </div>
         
-        {/* Show more button */}
+        {/* Show more button with theme's secondary color for text */}
         {needsExpansion && (
           <button 
             onClick={(e) => {
@@ -151,13 +160,16 @@ const MembershipTierCard: React.FC<MembershipTierCardProps> = ({
             }}
             className="w-full py-2 mt-2 flex items-center justify-center"
           >
-            <span className="text-white/70 font-marfa text-sm mr-2">
+            <span 
+              className="font-marfa text-sm mr-2"
+              style={{ color: secondaryColor }}
+            >
               {expanded ? 'Show less' : 'Show more'}
             </span>
             <DirectFontAwesome
               icon={expanded ? 'chevron-up' : 'chevron-down'}
               size={12}
-              color="rgba(255, 255, 255, 0.7)"
+              color={secondaryColor}
             />
           </button>
         )}

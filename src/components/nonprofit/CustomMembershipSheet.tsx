@@ -23,11 +23,20 @@ const CustomMembershipSheet: React.FC<CustomMembershipSheetProps> = ({
 
   if (!isOpen) return null;
 
-  // Theme colors with fallbacks
-  const primaryColor = theme?.primaryColor ? `#${theme.primaryColor}` : '#ADD3FF';
-  const textColor = theme?.primaryColor && theme?.textOnPrimaryColor 
-    ? `#${theme.textOnPrimaryColor}` 
-    : (isColorLight(theme?.primaryColor || 'ADD3FF') ? '#000000' : '#FFFFFF');
+  // Get the primary color from theme
+  const primaryColor = theme?.primaryColor ? 
+    (theme.primaryColor.startsWith('#') ? theme.primaryColor : `#${theme.primaryColor}`) : 
+    '#ADD3FF';
+  
+  // Get secondary color
+  const secondaryColor = theme?.secondaryColor ? 
+    (theme.secondaryColor.startsWith('#') ? theme.secondaryColor : `#${theme.secondaryColor}`) : 
+    primaryColor;
+
+  // Get text color for buttons with theme background
+  const textColor = theme?.primaryColor && theme?.textOnPrimaryColor ? 
+    (theme.textOnPrimaryColor.startsWith('#') ? theme.textOnPrimaryColor : `#${theme.textOnPrimaryColor}`) : 
+    (isColorLight(theme?.primaryColor || 'ADD3FF') ? '#000000' : '#FFFFFF');
 
   return (
     <div className="fixed inset-0 z-50 bg-opacity-75 bg-black flex items-center justify-center">
