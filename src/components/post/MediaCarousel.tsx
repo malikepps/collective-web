@@ -154,6 +154,7 @@ export default function MediaCarousel({
                     src={item.thumbnailUrl || item.url}
                     alt="Video thumbnail"
                     className="w-full h-full object-cover"
+                    style={{ objectPosition: 'center', maxHeight: '100%', maxWidth: '100%' }}
                     onLoad={handleImageLoad}
                     onError={handleImageError}
                     loading="eager"
@@ -185,6 +186,7 @@ export default function MediaCarousel({
                   src={item.url}
                   alt={`Media item ${index + 1}`}
                   className="w-full h-full object-cover"
+                  style={{ objectPosition: 'center', maxHeight: '100%', maxWidth: '100%' }}
                   onLoad={handleImageLoad}
                   onError={handleImageError}
                   loading="eager"
