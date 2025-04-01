@@ -13,43 +13,115 @@ export const postService = {
    */
   async getPosts(organizationId: string, filterOption: 'all' | 'members' | 'media' = 'all', limitCount = 50): Promise<Post[]> {
     try {
-      console.log(`Fetching posts for organization: ${organizationId}, filter: ${filterOption}, limit: ${limitCount}`);
+      console.log(`[DEBUG] Fetching posts for organization: ${organizationId}, filter: ${filterOption}, limit: ${limitCount}`);
       
       // Create reference to nonprofit document
       const nonprofitRef = doc(db, 'nonprofits', organizationId);
+      console.log(`[DEBUG] Using nonprofit ref path: ${nonprofitRef.path}`);
       
-      // Base query filters - allow more posts by default
-      let constraints = [
+      // The problem is that posts might have different formats for the nonprofit field:
+      // 1. DocumentReference: nonprofit field is a reference to a nonprofit doc
+      // 2. String path: nonprofit field is a string like "nonprofits/{id}"
+      // 3. Direct ID: nonprofit field might be just the ID
+      
+      // Unfortunately, Firestore doesn't support OR queries directly, so we need to do multiple queries
+      // and merge the results
+      
+      // Query 1: Using the nonprofit document reference (most common format)
+      console.log(`[DEBUG] Query 1: Using nonprofit document reference`);
+      const query1 = query(
+        collection(db, 'posts'),
         where('nonprofit', '==', nonprofitRef),
         orderBy('created_date', 'desc'),
         limit(limitCount)
-      ];
+      );
+      
+      // Query 2: Using the nonprofit document path as string (alternate format)
+      console.log(`[DEBUG] Query 2: Using nonprofit path string`);
+      const nonprofitPath = `nonprofits/${organizationId}`;
+      const query2 = query(
+        collection(db, 'posts'),
+        where('nonprofit', '==', nonprofitPath),
+        orderBy('created_date', 'desc'),
+        limit(limitCount)
+      );
 
-      // Add filter for members-only content if needed
-      if (filterOption === 'members') {
-        constraints.push(where('is_for_members_only', '==', true));
-      }
-
-      // Create and execute the query
-      const postsCollection = collection(db, 'posts');
-      const q = query(postsCollection, ...constraints);
-      console.log('Executing Firestore query for posts');
-      const querySnapshot = await getDocs(q);
-      console.log(`Found ${querySnapshot.docs.length} post documents`);
-
-      // Convert to Post objects
-      const posts = querySnapshot.docs
+      // Query 3: Using direct ID as the nonprofit field value
+      console.log(`[DEBUG] Query 3: Using direct ID in nonprofit field`);
+      const query3 = query(
+        collection(db, 'posts'),
+        where('nonprofit', '==', organizationId),
+        orderBy('created_date', 'desc'),
+        limit(limitCount)
+      );
+      
+      // Query 4: Check for posts with a direct nonprofitId field
+      console.log(`[DEBUG] Query 4: Using nonprofitId field`);
+      const query4 = query(
+        collection(db, 'posts'),
+        where('nonprofitId', '==', organizationId),
+        orderBy('created_date', 'desc'),
+        limit(limitCount)
+      );
+      
+      // Execute all queries in parallel
+      const [snapshot1, snapshot2, snapshot3, snapshot4] = await Promise.all([
+        getDocs(query1),
+        getDocs(query2),
+        getDocs(query3),
+        getDocs(query4)
+      ]);
+      
+      console.log(`[DEBUG] Query 1 returned ${snapshot1.docs.length} posts`);
+      console.log(`[DEBUG] Query 2 returned ${snapshot2.docs.length} posts`);
+      console.log(`[DEBUG] Query 3 returned ${snapshot3.docs.length} posts`);
+      console.log(`[DEBUG] Query 4 returned ${snapshot4.docs.length} posts`);
+      
+      // Merge the results, avoiding duplicates by using a Map with document ID as key
+      const docMap = new Map();
+      
+      // Add docs from all queries
+      [...snapshot1.docs, ...snapshot2.docs, ...snapshot3.docs, ...snapshot4.docs].forEach(doc => {
+        if (!docMap.has(doc.id)) {
+          docMap.set(doc.id, doc);
+        }
+      });
+      
+      // Convert the merged set to an array
+      const mergedDocs = Array.from(docMap.values());
+      console.log(`[DEBUG] Combined queries returned ${mergedDocs.length} unique documents`);
+      
+      // Log each document for debugging
+      mergedDocs.forEach((doc, index) => {
+        const data = doc.data();
+        console.log(`[DEBUG] Post #${index + 1} ID: ${doc.id}`);
+        console.log(`[DEBUG] Post #${index + 1} nonprofit ref:`, data.nonprofit);
+        if (data.nonprofit && typeof data.nonprofit === 'object') {
+          console.log(`[DEBUG] Post #${index + 1} nonprofit path: ${data.nonprofit.path}`);
+        }
+      });
+      
+      // Parse posts
+      let posts = mergedDocs
         .map(doc => {
           const post = postFromFirestore(doc);
           if (!post) {
-            console.warn(`Failed to parse post document: ${doc.id}`);
+            console.warn(`[DEBUG] Failed to parse post document: ${doc.id}`);
+          } else {
+            console.log(`[DEBUG] Successfully parsed post: ${doc.id}, for nonprofit: ${post.nonprofitId}`);
           }
           return post;
         })
         .filter(post => post !== null) as Post[];
       
-      console.log(`Successfully parsed ${posts.length} posts`);
-
+      console.log(`[DEBUG] Successfully parsed ${posts.length} posts`);
+      
+      // Filter for members-only content if requested
+      if (filterOption === 'members') {
+        posts = posts.filter(post => post.isForMembersOnly);
+        console.log(`[DEBUG] Filtered to ${posts.length} members-only posts`);
+      }
+      
       // Additional client-side filtering for media
       if (filterOption === 'media') {
         const mediaPosts = posts.filter(post => 
@@ -57,13 +129,16 @@ export const postService = {
           post.postImage || 
           post.videoUrl
         );
-        console.log(`Filtered to ${mediaPosts.length} media posts`);
+        console.log(`[DEBUG] Filtered to ${mediaPosts.length} media posts`);
         return mediaPosts;
       }
-
+      
+      // Sort posts by created date
+      posts.sort((a, b) => b.createdDate.getTime() - a.createdDate.getTime());
+      
       return posts;
     } catch (error) {
-      console.error('Error getting posts:', error);
+      console.error('[DEBUG] Error getting posts:', error);
       throw error;
     }
   },

@@ -41,9 +41,12 @@ const parseReference = (ref: DocumentReference | string | null): string | null =
   
   if (typeof ref === 'string') {
     // Handle path strings
-    return ref.split('/').pop() || null;
+    const id = ref.split('/').pop() || null;
+    console.log(`[DEBUG] Parsed string reference: ${ref} -> ID: ${id}`);
+    return id;
   } else {
     // Handle DocumentReference objects
+    console.log(`[DEBUG] Parsed DocumentReference: path=${ref.path} -> ID: ${ref.id}`);
     return ref.id;
   }
 };
@@ -51,21 +54,57 @@ const parseReference = (ref: DocumentReference | string | null): string | null =
 export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot): Post | null => {
   const data = doc.data();
   
-  if (!data) return null;
+  if (!data) {
+    console.log(`[DEBUG] No data found for document: ${doc.id}`);
+    return null;
+  }
+  
+  console.log(`[DEBUG] Processing post document: ${doc.id}`);
   
   // Required fields
   const caption = data.caption as string;
   const timestamp = (data.created_time || data.created_date) as Timestamp;
   
   if (!caption || !timestamp) {
-    console.error('Missing required post fields');
+    console.error(`[DEBUG] Missing required post fields for doc: ${doc.id}. caption: ${!!caption}, timestamp: ${!!timestamp}`);
     return null;
   }
   
   // Parse nonprofit reference
   let nonprofitId: string | null = null;
+  
+  console.log(`[DEBUG] Nonprofit reference type: ${typeof data.nonprofit}`);
   if (data.nonprofit) {
-    nonprofitId = parseReference(data.nonprofit);
+    // Check if it's a string path to a document
+    if (typeof data.nonprofit === 'string') {
+      // Check if it's a path or just an ID
+      if (data.nonprofit.includes('/')) {
+        console.log(`[DEBUG] Found nonprofit as string path: ${data.nonprofit}`);
+        nonprofitId = parseReference(data.nonprofit);
+      } else {
+        // It's just an ID string
+        console.log(`[DEBUG] Found nonprofit as direct ID string: ${data.nonprofit}`);
+        nonprofitId = data.nonprofit;
+      }
+    } 
+    // Check if it's a DocumentReference
+    else if (typeof data.nonprofit === 'object' && data.nonprofit.path) {
+      console.log(`[DEBUG] Found nonprofit as DocumentReference with path: ${data.nonprofit.path}`);
+      nonprofitId = parseReference(data.nonprofit);
+    }
+    // Special case for handling other formats
+    else if (data.nonprofitId) {
+      console.log(`[DEBUG] Found direct nonprofitId field: ${data.nonprofitId}`);
+      nonprofitId = data.nonprofitId;
+    }
+    
+    console.log(`[DEBUG] Resolved nonprofitId for post ${doc.id}: ${nonprofitId}`);
+  } else if (data.nonprofitId) {
+    // Some documents might have the ID directly in a separate field
+    console.log(`[DEBUG] Found standalone nonprofitId field: ${data.nonprofitId}`);
+    nonprofitId = data.nonprofitId;
+  } else {
+    console.log(`[DEBUG] No nonprofit reference found for post: ${doc.id}`);
   }
   
   // Parse user reference
@@ -90,6 +129,7 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
   if (Array.isArray(data.media)) {
     // New format with media array
     const mediaArray = data.media as Record<string, any>[];
+    console.log(`[DEBUG] Post ${doc.id} has ${mediaArray.length} media items`);
     
     // Parse media type from data
     if (data.media_type) {
@@ -98,8 +138,10 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
       mediaType = Object.values(MediaType).find(
         type => type.toLowerCase() === mediaTypeString.toLowerCase()
       ) as MediaType || MediaType.IMAGE;
+      console.log(`[DEBUG] Using specified media_type: ${mediaTypeString} -> ${mediaType}`);
     } else {
       mediaType = mediaArray.length > 1 ? MediaType.CAROUSEL_ALBUM : MediaType.IMAGE;
+      console.log(`[DEBUG] Inferring media_type from count: ${mediaType}`);
     }
     
     // Parse media items
@@ -140,9 +182,11 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
       };
     });
   } else {
+    console.log(`[DEBUG] Post ${doc.id} using legacy media format`);
     // Legacy format - Single image or video
     if (data.video || data.video_url) {
       mediaType = MediaType.VIDEO;
+      console.log(`[DEBUG] Post ${doc.id} is a legacy video post`);
       
       // Create a single media item for the video
       mediaItems = [{
@@ -155,6 +199,7 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
       }];
     } else if (data.image_url) {
       mediaType = MediaType.IMAGE;
+      console.log(`[DEBUG] Post ${doc.id} is a legacy image post`);
       
       // Create a single media item for the image
       mediaItems = [{
@@ -168,7 +213,7 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
     }
   }
   
-  return {
+  const post = {
     id: doc.id,
     caption,
     createdDate: timestamp.toDate(),
@@ -187,4 +232,8 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
     isForMembersOnly: data.is_for_members_only || false,
     isForBroaderEcosystem: data.is_for_broader_ecosystem || false
   };
+  
+  console.log(`[DEBUG] Successfully created post object: ${doc.id}, nonprofitId: ${nonprofitId}`);
+  
+  return post;
 }; 
