@@ -142,8 +142,8 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
   }
   
   // Handle media
-  let mediaType: MediaType | null = null;
-  let mediaItems: MediaItem[] | null = null;
+  let mediaType: MediaType | undefined = undefined;
+  let mediaItems: MediaItem[] | undefined = undefined;
   
   // Check for the media array
   if (Array.isArray(data.media)) {
@@ -157,7 +157,7 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
       const mediaTypeString = data.media_type as string;
       mediaType = Object.values(MediaType).find(
         type => type.toLowerCase() === mediaTypeString.toLowerCase()
-      ) as MediaType || MediaType.IMAGE;
+      ) as MediaType;
       console.log(`[DEBUG] Using specified media_type: ${mediaTypeString} -> ${mediaType}`);
     } else {
       mediaType = mediaArray.length > 1 ? MediaType.CAROUSEL_ALBUM : MediaType.IMAGE;
@@ -233,7 +233,7 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
     }
   }
   
-  const post = {
+  const post: Post = {
     id: doc.id,
     caption,
     createdDate: timestamp.toDate(),
