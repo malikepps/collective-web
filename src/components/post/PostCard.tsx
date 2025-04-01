@@ -106,33 +106,6 @@ export default function PostCard({
       ];
     }
     
-    // For Firebase JSON data format
-    if (post.image_url) {
-      return [
-        {
-          id: '0',
-          url: post.image_url,
-          type: MediaType.IMAGE,
-          order: 0,
-          thumbnailUrl: null,
-          thumbnailColor: null
-        }
-      ];
-    }
-    
-    if (post.image_url_original) {
-      return [
-        {
-          id: '0',
-          url: post.image_url_original,
-          type: MediaType.IMAGE,
-          order: 0,
-          thumbnailUrl: null,
-          thumbnailColor: null
-        }
-      ];
-    }
-    
     return [];
   };
   
@@ -157,21 +130,7 @@ export default function PostCard({
   
   // Generate solid background color from theme
   const generateBackgroundColor = () => {
-    // Consider post's background_color_hex first
-    if (post.background_color_hex) {
-      const color = post.background_color_hex.startsWith('#') ? 
-        post.background_color_hex : `#${post.background_color_hex}`;
-      return darkenColor(color, 0.5);
-    }
-    
-    // Next try post.backgroundColorHex
-    if (post.backgroundColorHex) {
-      const color = post.backgroundColorHex.startsWith('#') ? 
-        post.backgroundColorHex : `#${post.backgroundColorHex}`;
-      return darkenColor(color, 0.5);
-    }
-    
-    // Finally fall back to organization's theme
+    // Get theme from the organization's themeId
     const theme = organization.themeId ? getTheme(organization.themeId) : undefined;
     
     // Get primary color from theme or fallback
