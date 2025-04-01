@@ -6,21 +6,29 @@ import { ThemeProvider } from '@/lib/context/ThemeContext';
 import { useEffect } from 'react';
 import loadFontAwesomeFonts from '@/lib/utils/fontLoader';
 import { printAvailableFonts } from '@/lib/components/icons';
+import preloadFontAwesomeFonts from '@/lib/utils/fontAwesomeFontLoader';
 
 export default function App({ Component, pageProps }: AppProps) {
   // Initialize font loading when app mounts
   useEffect(() => {
     console.log('[App] Initializing font loading');
     
-    // Load FontAwesome fonts
-    loadFontAwesomeFonts()
+    // First try to load the fonts directly (preferred method)
+    preloadFontAwesomeFonts()
       .then(success => {
-        console.log(`[App] FontAwesome fonts loaded: ${success ? 'SUCCESS' : 'FAILED'}`);
+        console.log(`[App] Direct FontAwesome font loading: ${success ? 'SUCCESS' : 'FAILED'}`);
         
-        // Print available fonts for debugging
         if (!success) {
-          console.warn('[App] FontAwesome fonts failed to load, check font files');
-          printAvailableFonts();
+          // Fall back to the older font loading mechanism if direct method fails
+          loadFontAwesomeFonts()
+            .then(fallbackSuccess => {
+              console.log(`[App] Fallback FontAwesome font loading: ${fallbackSuccess ? 'SUCCESS' : 'FAILED'}`);
+              
+              if (!fallbackSuccess) {
+                console.warn('[App] All FontAwesome font loading methods failed');
+                printAvailableFonts();
+              }
+            });
         }
       })
       .catch(error => {
@@ -41,7 +49,7 @@ export default function App({ Component, pageProps }: AppProps) {
       ) {
         console.error('[App] Caught font loading error:', message);
         // Attempt to reload fonts
-        loadFontAwesomeFonts();
+        preloadFontAwesomeFonts();
       }
       
       // Call original handler
@@ -50,6 +58,26 @@ export default function App({ Component, pageProps }: AppProps) {
       }
       return false;
     };
+    
+    // Create link preload elements for critical font files
+    if (typeof document !== 'undefined') {
+      const fontFiles = [
+        '/fonts/fa-solid-900.woff2',
+        '/fonts/fa-regular-400.woff2'
+      ];
+      
+      fontFiles.forEach(fontUrl => {
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.href = fontUrl;
+        link.as = 'font';
+        link.type = 'font/woff2';
+        link.crossOrigin = 'anonymous';
+        document.head.appendChild(link);
+        
+        console.log(`[App] Preloaded font file: ${fontUrl}`);
+      });
+    }
   }, []);
   
   return (

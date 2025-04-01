@@ -1,1 +1,137 @@
 /* Font definitions have been moved to globals.css */ 
+
+/* 
+ * Font Awesome Pro Font Declarations
+ * These are the font-face declarations for FontAwesome 6 Pro
+ */
+
+/* Font Awesome Pro - SOLID */
+@font-face {
+  font-family: 'Font Awesome 6 Pro Solid';
+  font-style: normal;
+  font-weight: 900;
+  font-display: block;
+  src: url('/fonts/fa-solid-900.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'FontAwesome6Pro-Solid';
+  font-style: normal;
+  font-weight: 900;
+  font-display: block;
+  src: url('/fonts/fa-solid-900.woff2') format('woff2');
+}
+
+/* Font Awesome Pro - REGULAR */
+@font-face {
+  font-family: 'Font Awesome 6 Pro Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/fa-regular-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'FontAwesome6Pro-Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/fa-regular-400.woff2') format('woff2');
+}
+
+/* Font Awesome Pro - BRANDS */
+@font-face {
+  font-family: 'Font Awesome 6 Brands Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/fa-brands-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'FontAwesome6Brands-Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/fa-brands-400.woff2') format('woff2');
+}
+
+/* Font Awesome Pro - DUOTONE */
+@font-face {
+  font-family: 'Font Awesome 6 Duotone Solid';
+  font-style: normal;
+  font-weight: 900;
+  font-display: block;
+  src: url('/fonts/fa-duotone-900.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'FontAwesome6Duotone-Solid';
+  font-style: normal;
+  font-weight: 900;
+  font-display: block;
+  src: url('/fonts/fa-duotone-900.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Font Awesome 6 Duotone Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/fa-duotone-regular-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'FontAwesome6Duotone-Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/fa-duotone-regular-400.woff2') format('woff2');
+}
+
+/* 
+ * Traditional FontAwesome Classes
+ * These classes allow for backward compatibility with classic FontAwesome class-based usage
+ */
+
+/* FontAwesome base class */
+.fa,
+.fas,
+.fa-solid,
+.far,
+.fa-regular,
+.fab,
+.fa-brands,
+.fad,
+.fa-duotone {
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  display: inline-block;
+  font-style: normal;
+  font-variant: normal;
+  line-height: 1;
+  text-rendering: auto;
+  font-size: inherit;
+}
+
+/* FontAwesome style-specific classes */
+.fa,
+.fas,
+.fa-solid {
+  font-family: 'Font Awesome 6 Pro Solid', 'FontAwesome6Pro-Solid';
+  font-weight: 900;
+}
+
+.far,
+.fa-regular {
+  font-family: 'Font Awesome 6 Pro Regular', 'FontAwesome6Pro-Regular';
+  font-weight: 400;
+}
+
+.fab,
+.fa-brands {
+  font-family: 'Font Awesome 6 Brands Regular', 'FontAwesome6Brands-Regular';
+  font-weight: 400;
+}
+
+.fad,
+.fa-duotone {
+  font-family: 'Font Awesome 6 Duotone Solid', 'FontAwesome6Duotone-Solid';
+  font-weight: 900;
+  position: relative;
+} 

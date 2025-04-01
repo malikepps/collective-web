@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Post, MediaType } from '@/lib/models/Post';
 import { Organization } from '@/lib/models/Organization';
 import MediaCarousel from './MediaCarousel';
-import { DirectFontAwesome } from '@/lib/components/icons';
+import { DirectFontAwesome, ProperFontAwesome, ProperIconStyle } from '@/lib/components/icons';
 import { format } from 'date-fns';
 import { useTheme } from '@/lib/context/ThemeContext';
 import MediaService from '@/lib/services/MediaService';
@@ -197,10 +197,12 @@ export default function PostCard({
                 onClick={() => setShowMenu(!showMenu)}
                 aria-label="Post options"
               >
-                <DirectFontAwesome
+                {/* Using proper FontAwesome icon */}
+                <ProperFontAwesome
                   icon="ellipsis"
                   size={25}
                   color="#ffffff"
+                  style={ProperIconStyle.SOLID}
                 />
               </button>
               
@@ -215,10 +217,11 @@ export default function PostCard({
                     }}
                   >
                     <div className="mr-2">
-                      <DirectFontAwesome
+                      <ProperFontAwesome
                         icon="trash-can"
                         size={14}
                         color="#ef4444"
+                        style={ProperIconStyle.SOLID}
                       />
                     </div>
                     Delete
@@ -297,13 +300,11 @@ export default function PostCard({
           <div className="px-4 py-3 flex items-center justify-between">
             <div className="flex items-center text-gray-300 text-sm">
               <span className="mr-2">
-                <DirectFontAwesome
+                <ProperFontAwesome
                   icon="comment"
                   size={14}
                   color="#9ca3af"
-                  style={{ 
-                    border: process.env.NODE_ENV === 'development' ? '1px dotted rgba(255,255,255,0.2)' : undefined 
-                  }}
+                  style={ProperIconStyle.SOLID}
                 />
               </span>
               <span className="mr-3">{post.numComments}</span>
@@ -320,13 +321,11 @@ export default function PostCard({
                 {isLiked ? (
                   <span className="text-xl">❤️</span>
                 ) : (
-                  <DirectFontAwesome
+                  <ProperFontAwesome
                     icon="heart"
                     size={20}
                     color="#ffffff"
-                    style={{ 
-                      border: process.env.NODE_ENV === 'development' ? '1px dotted rgba(255,255,255,0.2)' : undefined 
-                    }}
+                    style={ProperIconStyle.SOLID}
                   />
                 )}
               </button>
@@ -338,13 +337,11 @@ export default function PostCard({
                 aria-label={isBoosted ? "Remove boost" : "Boost post"}
                 data-debug="boost-button"
               >
-                <DirectFontAwesome
+                <ProperFontAwesome
                   icon={isBoosted ? "rocket-launch" : "rocket"}
                   size={20}
                   color={isBoosted ? "#ff9500" : "#ffffff"}
-                  style={{ 
-                    border: process.env.NODE_ENV === 'development' ? '1px dotted rgba(255,255,255,0.2)' : undefined 
-                  }}
+                  style={ProperIconStyle.SOLID}
                 />
               </button>
             </div>
