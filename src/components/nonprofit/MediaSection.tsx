@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
+import React, { useState } from 'react';
 import { Organization } from '@/lib/models/Organization';
 import LoopingVideoPlayer from './LoopingVideoPlayer';
-import MediaService from '@/lib/services/MediaService';
 
 interface MediaSectionProps {
   organization: Organization;
@@ -13,41 +11,18 @@ const MediaSection: React.FC<MediaSectionProps> = ({
   organization,
   navbarHeight = 40 // Default height if not provided
 }) => {
-  const [resolvedPhotoUrl, setResolvedPhotoUrl] = useState<string | null>(null);
-  const [resolvedVideoUrl, setResolvedVideoUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const mediaService = MediaService.getInstance();
+  const [imageError, setImageError] = useState(false);
 
-  useEffect(() => {
-    const resolveUrls = async () => {
-      setIsLoading(true);
-      
-      try {
-        // Resolve photo URL
-        if (organization.photoURL) {
-          const photoUrl = await mediaService.resolveFirebaseStorageUrl(organization.photoURL);
-          setResolvedPhotoUrl(photoUrl);
-        }
-        
-        // Resolve video URL if it exists
-        if (organization.hero_video_url) {
-          const videoUrl = await mediaService.resolveFirebaseStorageUrl(organization.hero_video_url);
-          setResolvedVideoUrl(videoUrl);
-        }
-      } catch (error) {
-        console.error('[MediaSection] Error resolving URLs:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    resolveUrls();
-  }, [organization]);
+  // Image handlers
+  const handleImageLoad = () => {
+    setIsLoading(false);
+  };
 
-  // Image error handler
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  const handleImageError = () => {
     console.warn('[MediaSection] Failed to load organization image');
-    e.currentTarget.src = '/placeholder-image.jpg';
+    setImageError(true);
+    setIsLoading(false);
   };
 
   return (
@@ -60,23 +35,24 @@ const MediaSection: React.FC<MediaSectionProps> = ({
         
         {/* Loading state */}
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-10">
             <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
         
-        {resolvedVideoUrl ? (
+        {organization.hero_video_url ? (
           <LoopingVideoPlayer
-            videoURL={resolvedVideoUrl}
+            videoURL={organization.hero_video_url}
             isMuted={true}
             className="w-full h-full object-cover"
           />
         ) : (
           <div className="relative w-full h-full">
             <img
-              src={resolvedPhotoUrl || organization.photoURL || '/placeholder-image.jpg'}
+              src={organization.photoURL || '/placeholder-image.jpg'}
               alt={organization.name}
               className="w-full h-full object-cover"
+              onLoad={handleImageLoad}
               onError={handleImageError}
             />
           </div>
@@ -90,9 +66,10 @@ const MediaSection: React.FC<MediaSectionProps> = ({
       <div className="absolute bottom-4 left-6 flex flex-col">
         <div className="relative w-[90px] h-[90px] rounded-full overflow-hidden mb-2 border border-gray-700">
           <img
-            src={resolvedPhotoUrl || organization.photoURL || '/placeholder-avatar.jpg'}
+            src={organization.photoURL || '/placeholder-avatar.jpg'}
             alt={organization.name}
             className="w-full h-full object-cover"
+            onLoad={handleImageLoad}
             onError={handleImageError}
           />
         </div>

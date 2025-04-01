@@ -1,11 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
 import { Post, MediaType } from '@/lib/models/Post';
 import { Organization } from '@/lib/models/Organization';
 import { DirectFontAwesome } from '@/lib/components/icons';
 import { format } from 'date-fns';
 import ReactPlayer from 'react-player/lazy';
-import MediaService from '@/lib/services/MediaService';
 
 interface PostDetailProps {
   post: Post;
@@ -35,9 +33,8 @@ export default function PostDetail({
   const [currentMedia, setCurrentMedia] = useState(0);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
-  const [resolvedUrls, setResolvedUrls] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
   const playerRef = useRef<ReactPlayer>(null);
-  const mediaService = MediaService.getInstance();
   
   // Prevent scrolling on the page behind
   useEffect(() => {
@@ -49,45 +46,7 @@ export default function PostDetail({
       document.body.classList.remove('overflow-hidden');
     };
   }, []);
-  
-  // Resolve media URLs
-  useEffect(() => {
-    const resolveMediaUrls = async () => {
-      const mediaItems = getMediaItems();
-      const urlMap: Record<string, string> = {};
-      
-      await Promise.all(mediaItems.map(async (item) => {
-        try {
-          // Resolve main URL
-          urlMap[item.id] = await mediaService.resolveFirebaseStorageUrl(item.url);
-          
-          // Resolve thumbnail if it exists
-          if (item.thumbnailUrl) {
-            urlMap[`${item.id}_thumb`] = await mediaService.resolveFirebaseStorageUrl(item.thumbnailUrl);
-          }
-        } catch (error) {
-          console.error(`[PostDetail] Failed to resolve URL for item ${item.id}:`, error);
-          urlMap[item.id] = item.url;
-          if (item.thumbnailUrl) {
-            urlMap[`${item.id}_thumb`] = item.thumbnailUrl;
-          }
-        }
-      }));
-      
-      // Also resolve organization photo URL
-      try {
-        urlMap['org_photo'] = await mediaService.resolveFirebaseStorageUrl(organization.photoURL);
-      } catch (error) {
-        console.error(`[PostDetail] Failed to resolve org photo URL:`, error);
-        urlMap['org_photo'] = organization.photoURL;
-      }
-      
-      setResolvedUrls(urlMap);
-    };
-    
-    resolveMediaUrls();
-  }, [post, organization]);
-  
+
   // Format post date
   const formattedDate = format(post.createdDate, 'MMM dd, yyyy');
   
@@ -102,6 +61,17 @@ export default function PostDetail({
         setShowLikeAnimation(false);
       }, 800);
     }
+  };
+  
+  // Image handlers
+  const handleImageLoad = () => {
+    setIsLoading(false);
+  };
+  
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.warn('[PostDetail] Image loading failed');
+    e.currentTarget.src = '/placeholder-image.jpg';
+    setIsLoading(false);
   };
   
   // Get media items from post
@@ -195,16 +165,12 @@ export default function PostDetail({
         
         <div className="flex items-center">
           <div className="h-8 w-8 relative rounded-full overflow-hidden mr-3">
-            <Image
-              src={resolvedUrls['org_photo'] || organization.photoURL}
+            <img
+              src={organization.photoURL || '/placeholder-avatar.jpg'}
               alt={organization.name}
-              fill
-              sizes="32px"
-              className="object-cover"
-              onError={(e) => {
-                // Fallback image if failed to load
-                (e.target as HTMLImageElement).src = '/placeholder-avatar.jpg';
-              }}
+              className="w-full h-full object-cover"
+              onLoad={handleImageLoad}
+              onError={handleImageError}
             />
           </div>
           <div>
@@ -230,85 +196,92 @@ export default function PostDetail({
       {/* Content */}
       <div className="flex-grow overflow-y-auto" style={{ background: generateGradient() }}>
         {/* Media */}
-        <div className="relative w-full" style={{ aspectRatio: '1' }}>
-          {/* Members Only Badge */}
-          {post.isForMembersOnly && (
-            <div className="absolute top-4 left-4 z-10">
-              <span className="bg-black bg-opacity-50 text-white text-xs font-medium px-3 py-1.5 rounded-full flex items-center">
-                <span className="mr-1">✨</span> For members
-              </span>
-            </div>
-          )}
-          
-          {/* Media Content */}
-          <div className="h-full w-full relative" onDoubleClick={handleDoubleTap}>
-            {currentItem?.type === MediaType.VIDEO ? (
-              // Video Player with resolved URL
-              <div className="h-full w-full flex items-center justify-center bg-black">
-                <ReactPlayer
-                  ref={playerRef}
-                  url={resolvedUrls[currentItem.id] || currentItem.url}
-                  width="100%"
-                  height="100%"
-                  controls
-                  playing
-                  playsinline
-                  config={{
-                    file: {
-                      attributes: {
-                        controlsList: 'nodownload',
-                        disablePictureInPicture: true,
-                      },
-                    },
-                  }}
-                />
-              </div>
-            ) : (
-              // Image with resolved URL
-              <div className="h-full w-full relative">
-                <Image
-                  src={resolvedUrls[currentItem.id] || currentItem.url}
-                  alt="Post image"
-                  fill
-                  sizes="100vw"
-                  className="object-contain"
-                  priority
-                  onError={(e) => {
-                    // Fallback image if failed to load
-                    (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
-                  }}
-                />
+        {currentItem && (
+          <div className="relative w-full" style={{ aspectRatio: '1' }}>
+            {/* Loading state */}
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-10">
+                <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
               </div>
             )}
             
-            {/* Like Animation */}
-            {showLikeAnimation && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="bg-black bg-opacity-30 rounded-full p-6 animate-pulse">
-                  <div className="text-5xl animate-bounce">❤️</div>
+            {/* Members Only Badge */}
+            {post.isForMembersOnly && (
+              <div className="absolute top-4 left-4 z-10">
+                <span className="bg-black bg-opacity-50 text-white text-xs font-medium px-3 py-1.5 rounded-full flex items-center">
+                  <span className="mr-1">✨</span> For members
+                </span>
+              </div>
+            )}
+            
+            {/* Media Content */}
+            <div className="h-full w-full relative" onDoubleClick={handleDoubleTap}>
+              {currentItem?.type === MediaType.VIDEO ? (
+                // Video Player
+                <div className="h-full w-full flex items-center justify-center bg-black">
+                  <ReactPlayer
+                    ref={playerRef}
+                    url={currentItem.url}
+                    width="100%"
+                    height="100%"
+                    controls
+                    playing
+                    playsinline
+                    onReady={() => setIsLoading(false)}
+                    onError={() => setIsLoading(false)}
+                    config={{
+                      file: {
+                        attributes: {
+                          controlsList: 'nodownload',
+                          disablePictureInPicture: true,
+                        },
+                        forceVideo: true,
+                      },
+                    }}
+                  />
                 </div>
+              ) : (
+                // Image
+                <div className="h-full w-full relative">
+                  <img
+                    src={currentItem.url}
+                    alt="Post image"
+                    className="w-full h-full object-contain"
+                    onLoad={handleImageLoad}
+                    onError={handleImageError}
+                  />
+                </div>
+              )}
+              
+              {/* Like Animation */}
+              {showLikeAnimation && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="bg-black bg-opacity-30 rounded-full p-6 animate-pulse">
+                    <div className="text-5xl animate-bounce">❤️</div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Media Navigation */}
+            {mediaItems.length > 1 && (
+              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5">
+                {mediaItems.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`w-2 h-2 rounded-full ${
+                      index === currentMedia 
+                        ? 'bg-white' 
+                        : 'bg-white bg-opacity-50'
+                    }`}
+                    onClick={() => setCurrentMedia(index)}
+                    aria-label={`Go to media ${index + 1}`}
+                  />
+                ))}
               </div>
             )}
           </div>
-          
-          {/* Media Navigation */}
-          {mediaItems.length > 1 && (
-            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5">
-              {mediaItems.map((_, index) => (
-                <button
-                  key={index}
-                  className={`w-2 h-2 rounded-full ${
-                    index === currentMedia 
-                      ? 'bg-white' 
-                      : 'bg-white bg-opacity-50'
-                  }`}
-                  onClick={() => setCurrentMedia(index)}
-                  aria-label={`Go to media ${index + 1}`}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        )}
         
         {/* Caption and Actions */}
         <div className="p-4">
