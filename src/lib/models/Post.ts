@@ -86,49 +86,85 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
   let mediaType: MediaType | null = null;
   let mediaItems: MediaItem[] | null = null;
   
+  // Check for the media array
   if (Array.isArray(data.media)) {
     // New format with media array
     const mediaArray = data.media as Record<string, any>[];
     
-    // Parse media type
+    // Parse media type from data
     if (data.media_type) {
+      // Try to match the string to a MediaType enum value
       const mediaTypeString = data.media_type as string;
-      mediaType = mediaTypeString.toUpperCase() as MediaType || 
-                  mediaTypeString.toLowerCase() as MediaType;
+      mediaType = Object.values(MediaType).find(
+        type => type.toLowerCase() === mediaTypeString.toLowerCase()
+      ) as MediaType || MediaType.IMAGE;
     } else {
-      mediaType = mediaArray.length > 1 ? MediaType.CAROUSEL : MediaType.IMAGE;
+      mediaType = mediaArray.length > 1 ? MediaType.CAROUSEL_ALBUM : MediaType.IMAGE;
     }
     
     // Parse media items
     mediaItems = mediaArray.map((itemData, index) => {
-      const type = (itemData.media_type === 'video') ? MediaType.VIDEO : MediaType.IMAGE;
+      // Determine the type of media
+      let type: MediaType = MediaType.IMAGE;
+      if (itemData.media_type === 'video') {
+        type = MediaType.VIDEO;
+      } else if (itemData.media_type === 'VIDEO') {
+        type = MediaType.VIDEO;
+      } else if (itemData.media_type) {
+        // Try to match from enum
+        const foundType = Object.values(MediaType).find(
+          t => t.toLowerCase() === itemData.media_type.toLowerCase()
+        );
+        if (foundType) type = foundType;
+      }
       
-      let url: string;
-      let thumbnailUrl: string | null;
+      let url = '';
+      let thumbnailUrl: string | null = null;
       
+      // Extract URL based on media type
       if (type === MediaType.VIDEO) {
-        url = itemData.video_url || '';
-        thumbnailUrl = itemData.image_url || null;
+        url = itemData.video_url || itemData.url || '';
+        thumbnailUrl = itemData.image_url || itemData.thumbnail_url || null;
       } else {
-        url = itemData.image_url || '';
+        url = itemData.image_url || itemData.url || '';
         thumbnailUrl = null;
       }
       
       return {
-        id: itemData.id || `${index}`,
+        id: itemData.id || String(index),
         url,
         type,
-        order: index,
+        order: itemData.order || index,
         thumbnailUrl,
         thumbnailColor: itemData.thumbnail_color || null
       };
     });
   } else {
-    // Legacy format
-    if (data.media_type === 'video') {
+    // Legacy format - Single image or video
+    if (data.video || data.video_url) {
       mediaType = MediaType.VIDEO;
-    } else {
+      
+      // Create a single media item for the video
+      mediaItems = [{
+        id: '0',
+        url: data.video_url || '',
+        type: MediaType.VIDEO,
+        order: 0,
+        thumbnailUrl: data.image_url || null,
+        thumbnailColor: null
+      }];
+    } else if (data.image_url) {
       mediaType = MediaType.IMAGE;
+      
+      // Create a single media item for the image
+      mediaItems = [{
+        id: '0',
+        url: data.image_url || '',
+        type: MediaType.IMAGE,
+        order: 0,
+        thumbnailUrl: null,
+        thumbnailColor: null
+      }];
     }
   }
   

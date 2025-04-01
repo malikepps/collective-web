@@ -71,7 +71,7 @@ const DirectFontAwesome: React.FC<DirectFontAwesomeProps> = ({
         viewBox: '0 0 24 24'
       },
       'ellipsis-vertical': {
-        path: 'M12 7L12 7M12 12L12 12M12 17L12 17',
+        path: 'M12 7L12 7M12 12L12 12M12 17L17 17',
         viewBox: '0 0 24 24'
       },
       'ellipsis': {
@@ -96,6 +96,39 @@ const DirectFontAwesome: React.FC<DirectFontAwesomeProps> = ({
       },
       'crown': {
         path: 'M5 16V9l3 3 4-4 4 4 3-3v7H5z',
+        viewBox: '0 0 24 24'
+      },
+      // New icons for posts functionality
+      'heart': {
+        path: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z',
+        viewBox: '0 0 24 24'
+      },
+      'comment': {
+        path: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z',
+        viewBox: '0 0 24 24'
+      },
+      'rocket': {
+        path: 'M22 2L15 22l-3-6-6-3L22 2z',
+        viewBox: '0 0 24 24'
+      },
+      'rocket-launch': {
+        path: 'M22 2L15 22l-3-6-6-3L22 2z M22 2L12 12',
+        viewBox: '0 0 24 24'
+      },
+      'share': {
+        path: 'M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8 M16 6l-4-4-4 4 M12 2v13',
+        viewBox: '0 0 24 24'
+      },
+      'trash-can': {
+        path: 'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2 M10 11v6 M14 11v6',
+        viewBox: '0 0 24 24'
+      },
+      'circle-play': {
+        path: 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M10 8l6 4-6 4V8z',
+        viewBox: '0 0 24 24'
+      },
+      'photo-film': {
+        path: 'M15 8h.01M3 6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6z M3 16l5-5 4 4 M14 14l3-3',
         viewBox: '0 0 24 24'
       }
     };

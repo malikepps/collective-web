@@ -11,11 +11,16 @@ export const postService = {
   /**
    * Get posts for an organization
    */
-  async getPosts(organizationId: string, filterOption: 'all' | 'members' | 'media' = 'all', limitCount = 20): Promise<Post[]> {
+  async getPosts(organizationId: string, filterOption: 'all' | 'members' | 'media' = 'all', limitCount = 50): Promise<Post[]> {
     try {
-      // Base query filters
+      console.log(`Fetching posts for organization: ${organizationId}, filter: ${filterOption}, limit: ${limitCount}`);
+      
+      // Create reference to nonprofit document
+      const nonprofitRef = doc(db, 'nonprofits', organizationId);
+      
+      // Base query filters - allow more posts by default
       let constraints = [
-        where('nonprofit', '==', doc(db, 'nonprofits', organizationId)),
+        where('nonprofit', '==', nonprofitRef),
         orderBy('created_date', 'desc'),
         limit(limitCount)
       ];
@@ -25,27 +30,35 @@ export const postService = {
         constraints.push(where('is_for_members_only', '==', true));
       }
 
-      // Add filter for media content if needed
-      if (filterOption === 'media') {
-        // Media posts must have either mediaItems or postImage/videoUrl
-        // This is a bit complex with Firestore so we'll filter client-side later
-      }
-
-      const q = query(collection(db, 'posts'), ...constraints);
+      // Create and execute the query
+      const postsCollection = collection(db, 'posts');
+      const q = query(postsCollection, ...constraints);
+      console.log('Executing Firestore query for posts');
       const querySnapshot = await getDocs(q);
+      console.log(`Found ${querySnapshot.docs.length} post documents`);
 
       // Convert to Post objects
       const posts = querySnapshot.docs
-        .map(doc => postFromFirestore(doc))
+        .map(doc => {
+          const post = postFromFirestore(doc);
+          if (!post) {
+            console.warn(`Failed to parse post document: ${doc.id}`);
+          }
+          return post;
+        })
         .filter(post => post !== null) as Post[];
+      
+      console.log(`Successfully parsed ${posts.length} posts`);
 
       // Additional client-side filtering for media
       if (filterOption === 'media') {
-        return posts.filter(post => 
+        const mediaPosts = posts.filter(post => 
           (post.mediaItems && post.mediaItems.length > 0) || 
           post.postImage || 
           post.videoUrl
         );
+        console.log(`Filtered to ${mediaPosts.length} media posts`);
+        return mediaPosts;
       }
 
       return posts;

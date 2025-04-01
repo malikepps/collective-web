@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { Post, MediaType } from '@/lib/models/Post';
 import { Organization } from '@/lib/models/Organization';
@@ -35,6 +35,17 @@ export default function PostDetail({
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
   const playerRef = useRef<ReactPlayer>(null);
+  
+  // Prevent scrolling on the page behind
+  useEffect(() => {
+    // Add class to body to prevent scrolling
+    document.body.classList.add('overflow-hidden');
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove('overflow-hidden');
+    };
+  }, []);
   
   // Format post date
   const formattedDate = format(post.createdDate, 'MMM dd, yyyy');
