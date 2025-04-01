@@ -324,8 +324,8 @@ export default function PostCard({
                   <ProperFontAwesome
                     icon="heart"
                     size={20}
-                    color="#ffffff"
-                    style={ProperIconStyle.SOLID}
+                    color="rgba(255, 255, 255, 0.5)"
+                    style={ProperIconStyle.REGULAR}
                   />
                 )}
               </button>
@@ -340,8 +340,8 @@ export default function PostCard({
                 <ProperFontAwesome
                   icon={isBoosted ? "rocket-launch" : "rocket"}
                   size={20}
-                  color={isBoosted ? "#ff9500" : "#ffffff"}
-                  style={ProperIconStyle.SOLID}
+                  color={isBoosted ? "#ff9500" : "rgba(255, 255, 255, 0.5)"}
+                  style={ProperIconStyle.REGULAR}
                 />
               </button>
             </div>

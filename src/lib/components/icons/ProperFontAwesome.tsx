@@ -61,7 +61,7 @@ const ICON_UNICODE_MAP: Record<string, string> = {
   'circle-up': '\uf35b',
   'arrow-up-right': '\uf14c',
   'rocket': '\uf135',
-  'rocket-launch': '\uf135', // Custom variant
+  'rocket-launch': '\uf29e',
   'fire': '\uf06d',
   'comment-dots': '\uf4ad',
   'heart-circle': '\uf4c7',

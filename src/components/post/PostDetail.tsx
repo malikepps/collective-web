@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Post, MediaType } from '@/lib/models/Post';
 import { Organization } from '@/lib/models/Organization';
-import { DirectFontAwesome } from '@/lib/components/icons';
+import { DirectFontAwesome, IconStyle } from '@/lib/components/icons';
 import { format } from 'date-fns';
 import ReactPlayer from 'react-player/lazy';
 
@@ -323,7 +323,7 @@ export default function PostDetail({
                     <DirectFontAwesome
                       icon="heart"
                       size={20}
-                      color="#ffffff"
+                      color="rgba(255, 255, 255, 0.5)"
                     />
                   </div>
                 )}
@@ -360,7 +360,8 @@ export default function PostDetail({
                 <DirectFontAwesome
                   icon={isBoosted ? "rocket-launch" : "rocket"}
                   size={20}
-                  color={isBoosted ? "#ff9500" : "#ffffff"}
+                  color={isBoosted ? "#ff9500" : "rgba(255, 255, 255, 0.5)"}
+                  style={IconStyle.REGULAR}
                 />
               </button>
               

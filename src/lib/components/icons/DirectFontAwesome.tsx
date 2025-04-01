@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { IconStyle } from './FontAwesomeIcon';
 
 interface DirectFontAwesomeProps {
   icon: string;
   size?: number;
   color?: string;
-  style?: React.CSSProperties;
+  style?: IconStyle;
 }
 
 /**
@@ -15,7 +16,7 @@ const DirectFontAwesome: React.FC<DirectFontAwesomeProps> = ({
   icon,
   size = 24,
   color = '#ffffff',
-  style
+  style = IconStyle.CLASSIC
 }) => {
   const [fontStatus, setFontStatus] = useState<string>('checking');
   
@@ -152,7 +153,7 @@ const DirectFontAwesome: React.FC<DirectFontAwesomeProps> = ({
         viewBox: '0 0 24 24'
       },
       'rocket-launch': {
-        path: 'M22 2L15 22l-3-6-6-3L22 2z M22 2L12 12',
+        path: 'M22 2L15 22l-3-6-6-3L22 2z M6 13L2 18 M8 15L5 20',
         viewBox: '0 0 24 24'
       },
       'share': {
@@ -204,9 +205,10 @@ const DirectFontAwesome: React.FC<DirectFontAwesomeProps> = ({
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        style={style}
+        style={{}}
         data-icon-name={icon}
         data-font-status={fontStatus}
+        data-icon-style={style}
       >
         <path d={path} />
       </svg>
