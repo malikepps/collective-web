@@ -30,9 +30,9 @@ export interface Post {
   video: boolean;
   
   // New fields for multiple media
-  mediaType: MediaType | null;
-  mediaItems: MediaItem[] | null;
-  backgroundColorHex: string | null;
+  mediaType?: MediaType;
+  mediaItems?: MediaItem[];
+  backgroundColorHex?: string;
 }
 
 // Helper function to parse document references or paths

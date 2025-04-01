@@ -272,6 +272,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
               displayFilter={displayFilter}
               isUserMember={isUserMember}
               isUserStaff={isUserStaff}
+              onShowMembershipOptions={handleShowMembershipOptions}
             />
           </div>
         </div>

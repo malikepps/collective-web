@@ -5,6 +5,7 @@ import { Organization } from '@/lib/models/Organization';
 import { DirectFontAwesome } from '@/lib/components/icons';
 import { format } from 'date-fns';
 import ReactPlayer from 'react-player/lazy';
+import MediaService from '@/lib/services/MediaService';
 
 interface PostDetailProps {
   post: Post;
@@ -34,7 +35,9 @@ export default function PostDetail({
   const [currentMedia, setCurrentMedia] = useState(0);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
+  const [resolvedUrls, setResolvedUrls] = useState<Record<string, string>>({});
   const playerRef = useRef<ReactPlayer>(null);
+  const mediaService = MediaService.getInstance();
   
   // Prevent scrolling on the page behind
   useEffect(() => {
@@ -46,6 +49,44 @@ export default function PostDetail({
       document.body.classList.remove('overflow-hidden');
     };
   }, []);
+  
+  // Resolve media URLs
+  useEffect(() => {
+    const resolveMediaUrls = async () => {
+      const mediaItems = getMediaItems();
+      const urlMap: Record<string, string> = {};
+      
+      await Promise.all(mediaItems.map(async (item) => {
+        try {
+          // Resolve main URL
+          urlMap[item.id] = await mediaService.resolveFirebaseStorageUrl(item.url);
+          
+          // Resolve thumbnail if it exists
+          if (item.thumbnailUrl) {
+            urlMap[`${item.id}_thumb`] = await mediaService.resolveFirebaseStorageUrl(item.thumbnailUrl);
+          }
+        } catch (error) {
+          console.error(`[PostDetail] Failed to resolve URL for item ${item.id}:`, error);
+          urlMap[item.id] = item.url;
+          if (item.thumbnailUrl) {
+            urlMap[`${item.id}_thumb`] = item.thumbnailUrl;
+          }
+        }
+      }));
+      
+      // Also resolve organization photo URL
+      try {
+        urlMap['org_photo'] = await mediaService.resolveFirebaseStorageUrl(organization.photoURL);
+      } catch (error) {
+        console.error(`[PostDetail] Failed to resolve org photo URL:`, error);
+        urlMap['org_photo'] = organization.photoURL;
+      }
+      
+      setResolvedUrls(urlMap);
+    };
+    
+    resolveMediaUrls();
+  }, [post, organization]);
   
   // Format post date
   const formattedDate = format(post.createdDate, 'MMM dd, yyyy');
@@ -73,7 +114,7 @@ export default function PostDetail({
     if (post.video && post.videoUrl) {
       return [
         {
-          id: '0',
+          id: post.id + '_video',
           url: post.videoUrl,
           type: MediaType.VIDEO,
           order: 0,
@@ -86,7 +127,7 @@ export default function PostDetail({
     if (post.postImage) {
       return [
         {
-          id: '0',
+          id: post.id + '_image',
           url: post.postImage,
           type: MediaType.IMAGE,
           order: 0,
@@ -155,11 +196,15 @@ export default function PostDetail({
         <div className="flex items-center">
           <div className="h-8 w-8 relative rounded-full overflow-hidden mr-3">
             <Image
-              src={organization.photoURL}
+              src={resolvedUrls['org_photo'] || organization.photoURL}
               alt={organization.name}
               fill
               sizes="32px"
               className="object-cover"
+              onError={(e) => {
+                // Fallback image if failed to load
+                (e.target as HTMLImageElement).src = '/placeholder-avatar.jpg';
+              }}
             />
           </div>
           <div>
@@ -198,11 +243,11 @@ export default function PostDetail({
           {/* Media Content */}
           <div className="h-full w-full relative" onDoubleClick={handleDoubleTap}>
             {currentItem?.type === MediaType.VIDEO ? (
-              // Video Player
+              // Video Player with resolved URL
               <div className="h-full w-full flex items-center justify-center bg-black">
                 <ReactPlayer
                   ref={playerRef}
-                  url={currentItem.url}
+                  url={resolvedUrls[currentItem.id] || currentItem.url}
                   width="100%"
                   height="100%"
                   controls
@@ -219,15 +264,19 @@ export default function PostDetail({
                 />
               </div>
             ) : (
-              // Image
+              // Image with resolved URL
               <div className="h-full w-full relative">
                 <Image
-                  src={currentItem?.url || ''}
+                  src={resolvedUrls[currentItem.id] || currentItem.url}
                   alt="Post image"
                   fill
                   sizes="100vw"
                   className="object-contain"
                   priority
+                  onError={(e) => {
+                    // Fallback image if failed to load
+                    (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
+                  }}
                 />
               </div>
             )}
