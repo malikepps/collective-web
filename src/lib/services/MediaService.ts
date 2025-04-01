@@ -152,7 +152,8 @@ class MediaService {
    * Preloads images by resolving their URLs and triggering browser caching
    */
   public async preloadImages(urls: string[]): Promise<void> {
-    const uniqueUrls = [...new Set(urls)];
+    // Convert to Set and back to array for deduplication, without using spread operator
+    const uniqueUrls: string[] = Array.from(new Set(urls));
     
     console.log(`[MediaService] Preloading ${uniqueUrls.length} images`);
     
