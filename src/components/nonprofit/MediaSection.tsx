@@ -30,6 +30,7 @@ const MediaSection: React.FC<MediaSectionProps> = ({
       {/* Video content with rounded bottom corners - no explicit padding top */}
       <div 
         className="w-full h-[39vh] bg-black overflow-hidden continuous-corner"
+        style={{ minHeight: '250px' }}
       >
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-black" style={{ borderTopLeftRadius: '15px', borderTopRightRadius: '15px' }}></div>
         
@@ -47,13 +48,15 @@ const MediaSection: React.FC<MediaSectionProps> = ({
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="relative w-full h-full">
+          <div className="w-full h-full flex items-center justify-center bg-black">
             <img
               src={organization.photoURL || '/placeholder-image.jpg'}
               alt={organization.name}
               className="w-full h-full object-cover"
+              style={{ objectPosition: 'center' }}
               onLoad={handleImageLoad}
               onError={handleImageError}
+              loading="eager"
             />
           </div>
         )}
@@ -64,13 +67,14 @@ const MediaSection: React.FC<MediaSectionProps> = ({
       
       {/* Organization info - positioning matches iOS app */}
       <div className="absolute bottom-4 left-6 flex flex-col">
-        <div className="relative w-[90px] h-[90px] rounded-full overflow-hidden mb-2 border border-gray-700">
+        <div className="relative w-[90px] h-[90px] rounded-full overflow-hidden mb-2 border border-gray-700 flex items-center justify-center bg-gray-900">
           <img
             src={organization.photoURL || '/placeholder-avatar.jpg'}
             alt={organization.name}
             className="w-full h-full object-cover"
             onLoad={handleImageLoad}
             onError={handleImageError}
+            loading="eager"
           />
         </div>
         <h1 className="font-marfa font-semibold text-4xl text-white">

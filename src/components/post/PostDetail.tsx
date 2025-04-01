@@ -38,13 +38,23 @@ export default function PostDetail({
   
   // Prevent scrolling on the page behind
   useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
     // Add class to body to prevent scrolling
-    document.body.classList.add('overflow-hidden');
+    document.body.style.overflow = 'hidden';
     
     // Cleanup on unmount
     return () => {
-      document.body.classList.remove('overflow-hidden');
+      document.body.style.overflow = originalStyle;
     };
+  }, []);
+
+  // Set loading to false after a timeout to prevent indefinite loading state
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 3000);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   // Format post date
@@ -164,13 +174,14 @@ export default function PostDetail({
         </button>
         
         <div className="flex items-center">
-          <div className="h-8 w-8 relative rounded-full overflow-hidden mr-3">
+          <div className="h-8 w-8 relative rounded-full overflow-hidden mr-3 flex items-center justify-center bg-gray-900">
             <img
               src={organization.photoURL || '/placeholder-avatar.jpg'}
               alt={organization.name}
               className="w-full h-full object-cover"
               onLoad={handleImageLoad}
               onError={handleImageError}
+              loading="eager"
             />
           </div>
           <div>
@@ -197,7 +208,7 @@ export default function PostDetail({
       <div className="flex-grow overflow-y-auto" style={{ background: generateGradient() }}>
         {/* Media */}
         {currentItem && (
-          <div className="relative w-full" style={{ aspectRatio: '1' }}>
+          <div className="relative w-full" style={{ aspectRatio: '1', maxHeight: '70vh' }}>
             {/* Loading state */}
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-10">
@@ -234,6 +245,8 @@ export default function PostDetail({
                         attributes: {
                           controlsList: 'nodownload',
                           disablePictureInPicture: true,
+                          playsInline: true,
+                          webkitPlaysInline: true,
                         },
                         forceVideo: true,
                       },
@@ -242,13 +255,14 @@ export default function PostDetail({
                 </div>
               ) : (
                 // Image
-                <div className="h-full w-full relative">
+                <div className="h-full w-full flex items-center justify-center bg-black">
                   <img
                     src={currentItem.url}
                     alt="Post image"
-                    className="w-full h-full object-contain"
+                    className="max-w-full max-h-full object-contain"
                     onLoad={handleImageLoad}
                     onError={handleImageError}
+                    loading="eager"
                   />
                 </div>
               )}
@@ -265,7 +279,7 @@ export default function PostDetail({
             
             {/* Media Navigation */}
             {mediaItems.length > 1 && (
-              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5">
+              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 z-20">
                 {mediaItems.map((_, index) => (
                   <button
                     key={index}

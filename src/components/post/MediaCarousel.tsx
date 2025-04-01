@@ -34,7 +34,7 @@ export default function MediaCarousel({
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 5000); // 5 second timeout
+    }, 3000); // 3 second timeout to prevent indefinite loading
     
     return () => clearTimeout(timer);
   }, []);
@@ -117,7 +117,10 @@ export default function MediaCarousel({
   return (
     <div 
       className="relative overflow-hidden rounded-lg bg-gray-900"
-      style={{ aspectRatio: String(aspectRatio) }}
+      style={{ 
+        aspectRatio: String(aspectRatio), 
+        width: '100%' 
+      }}
       ref={carouselRef}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -140,12 +143,12 @@ export default function MediaCarousel({
       >
         {sortedMediaItems.map((item, index) => (
           <div 
-            key={item.id} 
+            key={item.id || `item-${index}`} 
             className="min-w-full h-full flex-shrink-0 relative"
           >
             {item.type === MediaType.VIDEO ? (
               // Video Thumbnail with Play Button
-              <div className="relative w-full h-full">
+              <div className="relative w-full h-full flex items-center justify-center bg-black">
                 {(item.thumbnailUrl || item.url) && (
                   <img
                     src={item.thumbnailUrl || item.url}
@@ -153,6 +156,7 @@ export default function MediaCarousel({
                     className="w-full h-full object-cover"
                     onLoad={handleImageLoad}
                     onError={handleImageError}
+                    loading="eager"
                   />
                 )}
                 
@@ -176,13 +180,14 @@ export default function MediaCarousel({
               </div>
             ) : (
               // Image
-              <div className="relative w-full h-full">
+              <div className="relative w-full h-full flex items-center justify-center bg-black">
                 <img
                   src={item.url}
                   alt={`Media item ${index + 1}`}
-                  className="w-full h-full object-cover"
+                  className="max-w-full max-h-full object-contain"
                   onLoad={handleImageLoad}
                   onError={handleImageError}
+                  loading="eager"
                 />
               </div>
             )}
