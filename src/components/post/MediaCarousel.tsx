@@ -150,15 +150,11 @@ export default function MediaCarousel({
               // Video Thumbnail with Play Button
               <div className="relative w-full h-full flex items-center justify-center bg-black">
                 {(item.thumbnailUrl || item.url) && (
-                  <div className="w-full h-full overflow-hidden">
+                  <div className="w-full h-full overflow-hidden flex items-center justify-center">
                     <img
                       src={item.thumbnailUrl || item.url}
                       alt="Video thumbnail"
-                      className="w-full"
-                      style={{ 
-                        display: 'block',
-                        margin: '0 auto'
-                      }}
+                      className="min-w-full min-h-full object-cover"
                       onLoad={handleImageLoad}
                       onError={handleImageError}
                       loading="eager"
@@ -187,15 +183,11 @@ export default function MediaCarousel({
             ) : (
               // Image
               <div className="relative w-full h-full flex items-center justify-center bg-black">
-                <div className="w-full h-full overflow-hidden">
+                <div className="w-full h-full overflow-hidden flex items-center justify-center">
                   <img
                     src={item.url}
                     alt={`Media item ${index + 1}`}
-                    className="w-full"
-                    style={{ 
-                      display: 'block',
-                      margin: '0 auto'
-                    }}
+                    className="min-w-full min-h-full object-cover"
                     onLoad={handleImageLoad}
                     onError={handleImageError}
                     loading="eager"

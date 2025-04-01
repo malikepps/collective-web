@@ -188,7 +188,7 @@ export default function PostCard({
     >
       {/* Media Content - No rounded corners at bottom */}
       {mediaItems.length > 0 && (
-        <div className="relative overflow-hidden" style={{ borderTopLeftRadius: '0.75rem', borderTopRightRadius: '0.75rem' }}>
+        <div className="relative overflow-hidden w-full" style={{ borderTopLeftRadius: '0.75rem', borderTopRightRadius: '0.75rem' }}>
           {/* Staff Menu Button - now positioned on top of media */}
           {isUserStaff && (
             <div className="absolute top-2 right-2 z-20">
