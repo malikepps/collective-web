@@ -32,7 +32,7 @@ export const postService = {
       const query1 = query(
         collection(db, 'posts'),
         where('nonprofit', '==', nonprofitRef),
-        orderBy('created_date', 'desc'),
+        orderBy('created_time', 'desc'),
         limit(limitCount)
       );
       
@@ -42,7 +42,7 @@ export const postService = {
       const query2 = query(
         collection(db, 'posts'),
         where('nonprofit', '==', nonprofitPath),
-        orderBy('created_date', 'desc'),
+        orderBy('created_time', 'desc'),
         limit(limitCount)
       );
 
@@ -51,7 +51,7 @@ export const postService = {
       const query3 = query(
         collection(db, 'posts'),
         where('nonprofit', '==', organizationId),
-        orderBy('created_date', 'desc'),
+        orderBy('created_time', 'desc'),
         limit(limitCount)
       );
       
@@ -61,7 +61,7 @@ export const postService = {
       const query4 = query(
         collection(db, 'posts'),
         where('nonprofitId', '==', organizationId),
-        orderBy('created_date', 'desc'),
+        orderBy('created_time', 'desc'),
         limit(limitCount)
       );
       
@@ -85,7 +85,7 @@ export const postService = {
           // Log the index creation link if this is an index error
           if (error.code === 'failed-precondition' || error.message?.includes('index')) {
             console.warn(
-              `[DEBUG] Query 4 requires a composite index. Missing index for nonprofitId + created_date. ` +
+              `[DEBUG] Query 4 requires a composite index. Missing index for nonprofitId + created_time. ` +
               `To improve post fetching, please create this index using the link in the error message above.`
             );
             snapshot4Results = { docs: [] };
@@ -191,7 +191,7 @@ export const postService = {
       // Get the most recent posts without filtering by nonprofit
       const q = query(
         collection(db, 'posts'),
-        orderBy('created_date', 'desc'),
+        orderBy('created_time', 'desc'),
         limit(limitCount * 5) // Get more posts since we'll filter most out
       );
       

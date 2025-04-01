@@ -63,6 +63,12 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
   
   // Required fields
   const caption = data.caption as string;
+  
+  // Check for the timestamp field with logging
+  console.log(`[DEBUG] Checking timestamp fields for post ${doc.id}:`);
+  console.log(`[DEBUG] - created_time exists: ${data.created_time !== undefined}`);
+  console.log(`[DEBUG] - created_date exists: ${data.created_date !== undefined}`);
+  
   const timestamp = (data.created_time || data.created_date) as Timestamp;
   
   if (!caption || !timestamp) {
