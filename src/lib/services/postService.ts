@@ -66,16 +66,23 @@ export const postService = {
       );
       
       // Execute queries in parallel, but handle potential index errors
-      let snapshot1Results, snapshot2Results, snapshot3Results, snapshot4Results;
+      let snapshot1Results: any = { docs: [] };
+      let snapshot2Results: any = { docs: [] };
+      let snapshot3Results: any = { docs: [] };
+      let snapshot4Results: any = { docs: [] };
       let useFallback = false;
       
       try {
         // Execute the first three queries that typically don't require special indexes
-        [snapshot1Results, snapshot2Results, snapshot3Results] = await Promise.all([
+        const results = await Promise.all([
           getDocs(query1),
           getDocs(query2),
           getDocs(query3)
         ]);
+        
+        snapshot1Results = results[0];
+        snapshot2Results = results[1];
+        snapshot3Results = results[2];
         
         // Try the fourth query separately since it may fail due to missing index
         try {
@@ -110,8 +117,13 @@ export const postService = {
         // Merge the results, avoiding duplicates by using a Map with document ID as key
         const docMap = new Map();
         
-        // Add docs from all queries
-        [...snapshot1Results.docs, ...snapshot2Results.docs, ...snapshot3Results.docs, ...(snapshot4Results ? snapshot4Results.docs : [])].forEach(doc => {
+        // Add docs from all queries, with null checks
+        [
+          ...(snapshot1Results?.docs || []), 
+          ...(snapshot2Results?.docs || []), 
+          ...(snapshot3Results?.docs || []), 
+          ...(snapshot4Results?.docs || [])
+        ].forEach(doc => {
           if (!docMap.has(doc.id)) {
             docMap.set(doc.id, doc);
           }
