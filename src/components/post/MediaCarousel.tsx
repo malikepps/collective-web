@@ -24,19 +24,56 @@ export default function MediaCarousel({
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const imageRefs = useRef<(HTMLImageElement | null)[]>([]);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [lastTapTime, setLastTapTime] = useState(0);
+  const [imageDimensions, setImageDimensions] = useState<{width: number, height: number, naturalWidth: number, naturalHeight: number}[]>([]);
 
   // Sort media items by order
   const sortedMediaItems = [...mediaItems].sort((a, b) => a.order - b.order);
 
+  // Initialize image refs array
+  useEffect(() => {
+    // Create refs for each media item
+    imageRefs.current = Array(sortedMediaItems.length).fill(null);
+    
+    // Log the media items we're working with
+    console.log('[MediaCarousel] Media items:', sortedMediaItems);
+    console.log('[MediaCarousel] Container aspect ratio:', aspectRatio);
+  }, [sortedMediaItems.length, aspectRatio]);
+  
   // Set loading to false after a timeout even if images haven't loaded
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
+      console.log('[MediaCarousel] Forcing loading complete after timeout');
     }, 3000); // 3 second timeout to prevent indefinite loading
     
     return () => clearTimeout(timer);
+  }, []);
+
+  // Log container dimensions on mount and resize
+  useEffect(() => {
+    const logContainerDimensions = () => {
+      if (carouselRef.current) {
+        const rect = carouselRef.current.getBoundingClientRect();
+        console.log('[MediaCarousel] Container dimensions:', {
+          width: rect.width,
+          height: rect.height,
+          aspectRatio: rect.width / rect.height
+        });
+      }
+    };
+    
+    // Log on mount
+    logContainerDimensions();
+    
+    // Log on resize
+    window.addEventListener('resize', logContainerDimensions);
+    
+    return () => {
+      window.removeEventListener('resize', logContainerDimensions);
+    };
   }, []);
 
   // Swipe handlers
@@ -103,13 +140,61 @@ export default function MediaCarousel({
   }, []);
 
   // Handle image load event
-  const handleImageLoad = () => {
+  const handleImageLoad = (index: number) => {
     setIsLoading(false);
+    
+    // Get and log the image dimensions
+    const imageElement = imageRefs.current[index];
+    if (imageElement) {
+      const newDimensions = {
+        width: imageElement.width,
+        height: imageElement.height,
+        naturalWidth: imageElement.naturalWidth,
+        naturalHeight: imageElement.naturalHeight
+      };
+      
+      setImageDimensions(prev => {
+        const updated = [...prev];
+        updated[index] = newDimensions;
+        return updated;
+      });
+      
+      console.log(`[MediaCarousel] Image ${index} loaded:`, {
+        src: imageElement.src,
+        displayDimensions: {
+          width: imageElement.width,
+          height: imageElement.height
+        },
+        naturalDimensions: {
+          width: imageElement.naturalWidth, 
+          height: imageElement.naturalHeight
+        },
+        aspectRatio: imageElement.naturalWidth / imageElement.naturalHeight
+      });
+      
+      // Log how the image is being displayed relative to its container
+      const containerRect = carouselRef.current?.getBoundingClientRect();
+      const imageRect = imageElement.getBoundingClientRect();
+      
+      if (containerRect) {
+        console.log(`[MediaCarousel] Image ${index} display metrics:`, {
+          containerWidth: containerRect.width,
+          containerHeight: containerRect.height,
+          imageDisplayWidth: imageRect.width,
+          imageDisplayHeight: imageRect.height,
+          widthRatio: imageRect.width / containerRect.width,
+          heightRatio: imageRect.height / containerRect.height,
+          isImageLargerThanContainer: imageRect.width > containerRect.width || imageRect.height > containerRect.height,
+          visiblePercentageHorizontal: Math.min(100, (containerRect.width / imageRect.width) * 100),
+          visiblePercentageVertical: Math.min(100, (containerRect.height / imageRect.height) * 100)
+        });
+      }
+    }
   };
 
   // Handle image error
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    console.warn(`[MediaCarousel] Image loading failed`);
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>, index: number) => {
+    console.warn(`[MediaCarousel] Image ${index} loading failed`);
     e.currentTarget.src = '/placeholder-image.jpg';
     setIsLoading(false);
   };
@@ -148,18 +233,17 @@ export default function MediaCarousel({
           >
             {item.type === MediaType.VIDEO ? (
               // Video Thumbnail with Play Button
-              <div className="relative w-full h-full flex items-center justify-center bg-black">
+              <div className="absolute inset-0 bg-black">
                 {(item.thumbnailUrl || item.url) && (
-                  <div className="w-full h-full overflow-hidden flex items-center justify-center">
-                    <img
-                      src={item.thumbnailUrl || item.url}
-                      alt="Video thumbnail"
-                      className="min-w-full min-h-full object-cover"
-                      onLoad={handleImageLoad}
-                      onError={handleImageError}
-                      loading="eager"
-                    />
-                  </div>
+                  <img
+                    ref={el => imageRefs.current[index] = el}
+                    src={item.thumbnailUrl || item.url}
+                    alt="Video thumbnail"
+                    className="w-full h-full object-cover" 
+                    onLoad={() => handleImageLoad(index)}
+                    onError={(e) => handleImageError(e, index)}
+                    loading="eager"
+                  />
                 )}
                 
                 {showPlayButton && (
@@ -181,18 +265,17 @@ export default function MediaCarousel({
                 )}
               </div>
             ) : (
-              // Image
-              <div className="relative w-full h-full flex items-center justify-center bg-black">
-                <div className="w-full h-full overflow-hidden flex items-center justify-center">
-                  <img
-                    src={item.url}
-                    alt={`Media item ${index + 1}`}
-                    className="min-w-full min-h-full object-cover"
-                    onLoad={handleImageLoad}
-                    onError={handleImageError}
-                    loading="eager"
-                  />
-                </div>
+              // Image - use the same approach as LoopingVideoPlayer
+              <div className="absolute inset-0 bg-black">
+                <img
+                  ref={el => imageRefs.current[index] = el}
+                  src={item.url}
+                  alt={`Media item ${index + 1}`}
+                  className="w-full h-full object-cover"
+                  onLoad={() => handleImageLoad(index)}
+                  onError={(e) => handleImageError(e, index)}
+                  loading="eager"
+                />
               </div>
             )}
           </div>
@@ -220,8 +303,17 @@ export default function MediaCarousel({
         </div>
       )}
       
-      {/* Members Only Badge */}
-      {/* This will be added in the PostCard component */}
+      {/* Debug information - only in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="absolute top-0 left-0 bg-black bg-opacity-70 text-white text-xs p-1 z-30">
+          {imageDimensions[currentPage] && (
+            <div>
+              <div>Img: {imageDimensions[currentPage].width}x{imageDimensions[currentPage].height}</div>
+              <div>Natural: {imageDimensions[currentPage].naturalWidth}x{imageDimensions[currentPage].naturalHeight}</div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 } 
