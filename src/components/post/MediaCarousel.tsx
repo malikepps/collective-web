@@ -139,6 +139,11 @@ export default function MediaCarousel({
     };
   }, []);
 
+  // Create a ref callback function that properly handles the types
+  const setImageRef = (index: number) => (element: HTMLImageElement | null) => {
+    imageRefs.current[index] = element;
+  };
+
   // Handle image load event
   const handleImageLoad = (index: number) => {
     setIsLoading(false);
@@ -236,7 +241,7 @@ export default function MediaCarousel({
               <div className="absolute inset-0 bg-black">
                 {(item.thumbnailUrl || item.url) && (
                   <img
-                    ref={el => imageRefs.current[index] = el}
+                    ref={setImageRef(index)}
                     src={item.thumbnailUrl || item.url}
                     alt="Video thumbnail"
                     className="w-full h-full object-cover" 
@@ -268,7 +273,7 @@ export default function MediaCarousel({
               // Image - use the same approach as LoopingVideoPlayer
               <div className="absolute inset-0 bg-black">
                 <img
-                  ref={el => imageRefs.current[index] = el}
+                  ref={setImageRef(index)}
                   src={item.url}
                   alt={`Media item ${index + 1}`}
                   className="w-full h-full object-cover"
