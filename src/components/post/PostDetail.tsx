@@ -272,12 +272,13 @@ export default function PostDetail({
                 {isLiked ? (
                   <span className="text-xl mr-2">❤️</span>
                 ) : (
-                  <DirectFontAwesome
-                    icon="heart"
-                    size={20}
-                    color="#ffffff"
-                    className="mr-2"
-                  />
+                  <div className="mr-2">
+                    <DirectFontAwesome
+                      icon="heart"
+                      size={20}
+                      color="#ffffff"
+                    />
+                  </div>
                 )}
                 <span className="text-sm">
                   {post.numLikes} {post.numLikes === 1 ? 'like' : 'likes'}
@@ -289,12 +290,13 @@ export default function PostDetail({
                 className="flex items-center justify-center mr-6 text-white"
                 aria-label="Comments"
               >
-                <DirectFontAwesome
-                  icon="comment"
-                  size={20}
-                  color="#ffffff"
-                  className="mr-2"
-                />
+                <div className="mr-2">
+                  <DirectFontAwesome
+                    icon="comment"
+                    size={20}
+                    color="#ffffff"
+                  />
+                </div>
                 <span className="text-sm">
                   {post.numComments} {post.numComments === 1 ? 'comment' : 'comments'}
                 </span>
