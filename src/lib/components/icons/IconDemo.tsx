@@ -14,30 +14,30 @@ const IconDemo: React.FC = () => {
       <div className="mb-8">
         <h3 className="text-white text-xl font-marfa mb-4">Solid Icons</h3>
         <div className="grid grid-cols-6 gap-4">
-          <IconItem icon={Icon.HOME} title="Home" />
-          <IconItem icon={Icon.SEARCH} title="Search" />
-          <IconItem icon={Icon.NOTIFICATIONS} title="Bell" />
-          <IconItem icon={Icon.USER} title="User" />
-          <IconItem icon={Icon.SETTINGS} title="Settings" />
-          <IconItem icon={Icon.CLOSE} title="Close" />
-          <IconItem icon={Icon.LIKE} title="Like" />
-          <IconItem icon={Icon.COMMENT} title="Comment" />
-          <IconItem icon={Icon.SHARE} title="Share" />
-          <IconItem icon={Icon.CALENDAR} title="Calendar" />
-          <IconItem icon={Icon.LOCATION} title="Location" />
-          <IconItem icon={Icon.INFO} title="Info" />
+          <IconItem icon="house" title="Home" />
+          <IconItem icon="magnifying-glass" title="Search" />
+          <IconItem icon="bell" title="Bell" />
+          <IconItem icon="user" title="User" />
+          <IconItem icon="gear" title="Settings" />
+          <IconItem icon="xmark" title="Close" />
+          <IconItem icon="heart" title="Like" />
+          <IconItem icon="comment" title="Comment" />
+          <IconItem icon="share" title="Share" />
+          <IconItem icon="calendar" title="Calendar" />
+          <IconItem icon="location-dot" title="Location" />
+          <IconItem icon="circle-info" title="Info" />
         </div>
       </div>
       
       <div className="mb-8">
         <h3 className="text-white text-xl font-marfa mb-4">Regular Icons</h3>
         <div className="grid grid-cols-6 gap-4">
-          <IconItem icon={Icon.HOME} title="Home" style={IconStyle.REGULAR} />
-          <IconItem icon={Icon.SEARCH} title="Search" style={IconStyle.REGULAR} />
-          <IconItem icon={Icon.NOTIFICATIONS} title="Bell" style={IconStyle.REGULAR} />
-          <IconItem icon={Icon.USER} title="User" style={IconStyle.REGULAR} />
-          <IconItem icon={Icon.SETTINGS} title="Settings" style={IconStyle.REGULAR} />
-          <IconItem icon={Icon.CLOSE} title="Close" style={IconStyle.REGULAR} />
+          <IconItem icon="house" title="Home" style={IconStyle.REGULAR} />
+          <IconItem icon="magnifying-glass" title="Search" style={IconStyle.REGULAR} />
+          <IconItem icon="bell" title="Bell" style={IconStyle.REGULAR} />
+          <IconItem icon="user" title="User" style={IconStyle.REGULAR} />
+          <IconItem icon="gear" title="Settings" style={IconStyle.REGULAR} />
+          <IconItem icon="xmark" title="Close" style={IconStyle.REGULAR} />
         </div>
       </div>
       
@@ -45,42 +45,42 @@ const IconDemo: React.FC = () => {
         <h3 className="text-white text-xl font-marfa mb-4">Duotone Icons</h3>
         <div className="grid grid-cols-6 gap-4">
           <IconItem 
-            icon={Icon.SOLAR_SYSTEM} 
+            icon="solar-system" 
             title="Solar System" 
             style={IconStyle.DUOTONE} 
             primaryColor="7b89a3"
             secondaryColor="95df9e"
           />
           <IconItem 
-            icon={Icon.NOTIFICATIONS} 
+            icon="bell" 
             title="Bell" 
             style={IconStyle.DUOTONE} 
             primaryColor="ff9500"
             secondaryColor="ffe7cc"
           />
           <IconItem 
-            icon={Icon.COMMENTS} 
+            icon="comments" 
             title="Comments" 
             style={IconStyle.DUOTONE} 
             primaryColor="007aff"
             secondaryColor="cce4ff"
           />
           <IconItem 
-            icon={Icon.LIKE} 
+            icon="heart" 
             title="Heart" 
             style={IconStyle.DUOTONE} 
             primaryColor="ff3b30"
             secondaryColor="ffcccc"
           />
           <IconItem 
-            icon={Icon.INFO_CIRCLE} 
+            icon="circle-info" 
             title="Info" 
             style={IconStyle.DUOTONE} 
             primaryColor="5ac8fa"
             secondaryColor="d4f5ff"
           />
           <IconItem 
-            icon={Icon.SUCCESS} 
+            icon="circle-check" 
             title="Success" 
             style={IconStyle.DUOTONE} 
             primaryColor="4cd964"
@@ -93,42 +93,42 @@ const IconDemo: React.FC = () => {
         <h3 className="text-white text-xl font-marfa mb-4">More Duotone Icons</h3>
         <div className="grid grid-cols-6 gap-4">
           <IconItem 
-            icon={Icon.ROCKET} 
+            icon="rocket" 
             title="Rocket" 
             style={IconStyle.DUOTONE} 
             primaryColor="ff9500"
             secondaryColor="ffe7cc"
           />
           <IconItem 
-            icon={Icon.FIRE} 
+            icon="fire" 
             title="Fire" 
             style={IconStyle.DUOTONE} 
             primaryColor="ff3b30"
             secondaryColor="ffcccc"
           />
           <IconItem 
-            icon={Icon.EARTH_AMERICAS} 
+            icon="earth-americas" 
             title="Earth" 
             style={IconStyle.DUOTONE} 
             primaryColor="5ac8fa"
             secondaryColor="d4f5ff"
           />
           <IconItem 
-            icon={Icon.CLOCK} 
+            icon="clock" 
             title="Clock" 
             style={IconStyle.DUOTONE} 
             primaryColor="4cd964"
             secondaryColor="d4f9d9"
           />
           <IconItem 
-            icon={Icon.GIFT} 
+            icon="gift" 
             title="Gift" 
             style={IconStyle.DUOTONE} 
             primaryColor="ff3b30"
             secondaryColor="ffcccc"
           />
           <IconItem 
-            icon={Icon.CIRCLE_DOLLAR} 
+            icon="circle-dollar" 
             title="Pricing" 
             style={IconStyle.DUOTONE} 
             primaryColor="4cd964"
@@ -142,7 +142,7 @@ const IconDemo: React.FC = () => {
 
 // Helper component for individual icon display
 interface IconItemProps {
-  icon: Icon | string;
+  icon: string;
   title: string;
   primaryColor?: string;
   secondaryColor?: string;
