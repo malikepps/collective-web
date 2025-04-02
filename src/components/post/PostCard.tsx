@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Post, MediaType } from '@/lib/models/Post';
 import { Organization } from '@/lib/models/Organization';
 import MediaCarousel from './MediaCarousel';
@@ -38,6 +38,19 @@ export default function PostCard({
   const [mediaReady, setMediaReady] = useState(false);
   const captionRef = useRef<HTMLParagraphElement>(null);
   const { getTheme } = useTheme();
+  
+  // Add haptic feedback function
+  const triggerHapticFeedback = useCallback(() => {
+    if (typeof window !== 'undefined' && 'navigator' in window) {
+      if ('vibrate' in navigator) {
+        // Vibrate for 50ms
+        navigator.vibrate(50);
+        console.log('[PostCard] Triggered haptic feedback');
+      } else {
+        console.log('[PostCard] Haptic feedback not supported');
+      }
+    }
+  }, []);
   
   // Format post date - changed to match the screenshot format
   const formattedDate = format(post.createdDate, 'MMMM d, yyyy');
@@ -193,9 +206,10 @@ export default function PostCard({
           {isUserStaff && (
             <div className="absolute top-2 right-2 z-20">
               <button 
-                className="bg-black bg-opacity-50 text-white p-2 rounded-full" 
+                className="text-white p-2" 
                 onClick={() => setShowMenu(!showMenu)}
                 aria-label="Post options"
+                style={{ textShadow: '0 0 8px rgba(0,0,0,0.8)' }}
               >
                 {/* Using proper FontAwesome icon */}
                 <ProperFontAwesome
@@ -314,9 +328,13 @@ export default function PostCard({
               {/* Like Button */}
               <button 
                 className={`flex items-center justify-center w-8 h-8 mr-3 ${isLiked ? 'text-red-500' : 'text-white'}`}
-                onClick={onToggleLike}
+                onClick={() => {
+                  triggerHapticFeedback();
+                  onToggleLike();
+                }}
                 aria-label={isLiked ? "Unlike post" : "Like post"}
                 data-debug="like-button"
+                style={isLiked ? {} : { opacity: 0.5 }}
               >
                 {isLiked ? (
                   <span className="text-xl">❤️</span>
@@ -324,7 +342,7 @@ export default function PostCard({
                   <ProperFontAwesome
                     icon="heart"
                     size={20}
-                    color="rgba(255, 255, 255, 0.5)"
+                    color="#ffffff"
                     style={ProperIconStyle.REGULAR}
                   />
                 )}
@@ -333,14 +351,18 @@ export default function PostCard({
               {/* Boost Button */}
               <button 
                 className="flex items-center justify-center w-8 h-8"
-                onClick={onToggleBoost}
+                onClick={() => {
+                  triggerHapticFeedback();
+                  onToggleBoost();
+                }}
                 aria-label={isBoosted ? "Remove boost" : "Boost post"}
                 data-debug="boost-button"
+                style={isBoosted ? {} : { opacity: 0.5 }}
               >
                 <ProperFontAwesome
                   icon={isBoosted ? "rocket-launch" : "rocket"}
                   size={20}
-                  color={isBoosted ? "#ff9500" : "rgba(255, 255, 255, 0.5)"}
+                  color={isBoosted ? "#ff9500" : "#ffffff"}
                   style={ProperIconStyle.REGULAR}
                 />
               </button>
