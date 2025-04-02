@@ -17,8 +17,11 @@ import {
   FAIcon
 } from './index';
 
+// Import directly from source files for components that need special handling
+import DirectFontAwesomeComponent from './DirectFontAwesome';
+
 // Re-export with old names for backward compatibility
-export const DirectFontAwesome = DirectFAIcon;
+export { DirectFontAwesomeComponent as DirectFontAwesome };
 export const DirectSVG = DirectSVGIcon;
 export const DebugIcon = DebugFontIcon;
 export const DebugFontAwesome = DebugFontIcon;

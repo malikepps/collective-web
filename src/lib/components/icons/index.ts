@@ -44,5 +44,5 @@ export const DebugFontIcon = FontAwesomeIcon; // For debugging font issues
 // Default export
 export default SVGIcon;
 
-// Re-export compatibility layers to maintain backward compatibility
-export * from './compatibility'; 
+// NOTE: Do not re-export everything from compatibility.ts to avoid circular dependencies
+// Re-export specific compatibility items as needed 

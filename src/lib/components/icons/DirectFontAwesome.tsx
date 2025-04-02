@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { IconStyle } from './FontAwesomeIcon';
-import FontAwesomeIcon from './FontAwesomeIcon';
+import FAIcon from './FontAwesomeIcon';
 
+// Create a props interface that includes color
 interface DirectFontAwesomeProps {
   icon: string;
   size?: number;
@@ -24,9 +25,9 @@ const DirectFontAwesome: React.FC<DirectFontAwesomeProps> = ({
   // Convert color format if needed
   const primaryColor = color.startsWith('#') ? color.substring(1) : color;
   
-  // Use FontAwesomeIcon directly with props converted to the expected format
+  // Use FAIcon directly with props converted to the expected format
   return (
-    <FontAwesomeIcon
+    <FAIcon
       icon={icon}
       size={size}
       style={style}
