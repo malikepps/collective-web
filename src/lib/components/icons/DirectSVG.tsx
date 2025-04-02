@@ -10,6 +10,7 @@ interface DirectSVGProps {
   color?: string; // Added for compatibility with old components
   secondaryColor?: string;
   className?: string;
+  isActive?: boolean; // Add isActive prop to pass through to SVGIcon
 }
 
 // Type for CSS variables in style
@@ -30,6 +31,7 @@ const DirectSVG: React.FC<DirectSVGProps> = ({
   color, // Support color prop for compatibility
   secondaryColor,
   className,
+  isActive = true, // Default to true for backwards compatibility
 }) => {
   // Prioritize color over primaryColor for backward compatibility
   const finalPrimaryColor = color || primaryColor;
@@ -42,6 +44,7 @@ const DirectSVG: React.FC<DirectSVGProps> = ({
       primaryColor={finalPrimaryColor}
       secondaryColor={secondaryColor}
       className={className}
+      isActive={isActive}
     />
   );
 };
