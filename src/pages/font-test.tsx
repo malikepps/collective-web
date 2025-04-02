@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { FAIcon, IconStyle } from '@/lib/components/icons';
-import { Icon } from '@/lib/components/icons/FontAwesome';
 import Head from 'next/head';
 
 interface FontTest {
@@ -147,7 +146,7 @@ const FontTestPage: React.FC = () => {
                 <div className="p-4 border rounded text-center">
                   <div className="mb-2 text-sm font-medium">Solid</div>
                   <div className="flex justify-center mb-2">
-                    <FAIcon icon={Icon.HEART} size={32} style={IconStyle.SOLID} />
+                    <FAIcon icon="heart" size={32} style={IconStyle.SOLID} />
                   </div>
                   <div className="text-xs text-gray-500">heart</div>
                 </div>
@@ -156,7 +155,7 @@ const FontTestPage: React.FC = () => {
                 <div className="p-4 border rounded text-center">
                   <div className="mb-2 text-sm font-medium">Regular</div>
                   <div className="flex justify-center mb-2">
-                    <FAIcon icon={Icon.USER} size={32} style={IconStyle.REGULAR} />
+                    <FAIcon icon="user" size={32} style={IconStyle.REGULAR} />
                   </div>
                   <div className="text-xs text-gray-500">user</div>
                 </div>
@@ -166,7 +165,7 @@ const FontTestPage: React.FC = () => {
                   <div className="mb-2 text-sm font-medium">Duotone</div>
                   <div className="flex justify-center mb-2">
                     <FAIcon 
-                      icon={Icon.STAR} 
+                      icon="star" 
                       size={32} 
                       style={IconStyle.DUOTONE}
                       primaryColor="#ff9500"
