@@ -328,7 +328,7 @@ export default function PostCard({
               <span className="mr-2">
                 <ProperFontAwesome
                   icon="comment"
-                  size={14}
+                  size={20}
                   color="#9ca3af"
                   style={ProperIconStyle.SOLID}
                 />

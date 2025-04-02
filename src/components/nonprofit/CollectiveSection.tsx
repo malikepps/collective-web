@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase/config';
 import { collection, getDocs, query, where, getDoc, doc } from 'firebase/firestore';
 import PersonCircleView, { Member, PersonCircleStyle } from './PersonCircleView';
 import { DirectFontAwesome } from '@/lib/components/icons';
+import FontAwesomeIcon, { IconStyle } from '@/lib/components/icons/FontAwesomeIcon';
 import { useTheme } from '@/lib/context/ThemeContext';
 import { UserNonprofitRelationship, relationshipFromFirestore } from '@/lib/models/UserNonprofitRelationship';
 import { CollectiveUser, userFromFirestore } from '@/lib/models/User';
@@ -193,10 +194,11 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
           >
             {displayFilter === 'all' ? 'Filter' : getFilterLabel()}
           </span>
-          <DirectFontAwesome 
+          <FontAwesomeIcon 
             icon="bars-filter"
             size={16}
-            color={secondaryColor}
+            style={IconStyle.CLASSIC}
+            primaryColor={secondaryColor}
           />
         </button>
       </div>

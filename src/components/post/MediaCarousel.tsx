@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MediaItem } from '@/lib/models/MediaItem';
 import { MediaType } from '@/lib/models/Post';
 import { DirectFontAwesome } from '@/lib/components/icons';
+import FontAwesomeIcon, { IconStyle } from '@/lib/components/icons/FontAwesomeIcon';
 import MediaService from '@/lib/services/MediaService';
 
 interface MediaCarouselProps {
@@ -252,21 +253,15 @@ export default function MediaCarousel({
                 )}
                 
                 {showPlayButton && (
-                  <button 
-                    className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 z-10"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onPlayVideo && onPlayVideo();
-                    }}
-                  >
-                    <div className="bg-white rounded-full p-2 shadow-lg">
-                      <DirectFontAwesome
-                        icon="circle-play"
-                        size={50}
-                        color="#000000"
-                      />
-                    </div>
-                  </button>
+                  <div className="absolute bottom-3 right-3 z-10">
+                    <FontAwesomeIcon
+                      icon="circle-play"
+                      size={50}
+                      style={IconStyle.DUOTONE}
+                      primaryColor="#000000"
+                      secondaryColor="#FFFFFF"
+                    />
+                  </div>
                 )}
               </div>
             ) : (

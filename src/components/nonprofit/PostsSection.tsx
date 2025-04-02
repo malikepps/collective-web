@@ -120,8 +120,8 @@ export default function PostsSection({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-white font-semibold text-2xl">Posts</h2>
           
-          {/* Tab switcher with new squircle design */}
-          <div className="flex items-center space-x-3 bg-white/10 p-1 rounded-full">
+          {/* Tab switcher with updated design */}
+          <div className="flex items-center space-x-1">
             <button 
               className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
                 selectedTab === 'regular' 
@@ -176,8 +176,8 @@ export default function PostsSection({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-white font-semibold text-2xl">Posts</h2>
           
-          {/* Tab switcher with new squircle design */}
-          <div className="flex items-center space-x-3 bg-white/10 p-1 rounded-full">
+          {/* Tab switcher with updated design */}
+          <div className="flex items-center space-x-1">
             <button 
               className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
                 selectedTab === 'regular' 
@@ -216,8 +216,8 @@ export default function PostsSection({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-white font-semibold text-2xl">Posts</h2>
           
-          {/* Tab switcher with new squircle design */}
-          <div className="flex items-center space-x-3 bg-white/10 p-1 rounded-full">
+          {/* Tab switcher with updated design */}
+          <div className="flex items-center space-x-1">
             <button 
               className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
                 selectedTab === 'regular' 
@@ -254,8 +254,8 @@ export default function PostsSection({
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-white font-semibold text-2xl">Posts</h2>
         
-        {/* Tab switcher with new squircle design */}
-        <div className="flex items-center space-x-3 bg-white/10 p-1 rounded-full">
+        {/* Tab switcher with updated design */}
+        <div className="flex items-center space-x-1">
           <button 
             className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
               selectedTab === 'regular' 
