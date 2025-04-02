@@ -101,6 +101,9 @@ export default function App({ Component, pageProps }: AppProps) {
     <AuthProvider>
       <ThemeProvider>
         <Head>
+          <title>Collective</title>
+          <meta name="description" content="A better way to donate" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
           {/* FontAwesome will be loaded dynamically with proper error handling by SVGIconInitializer */}
         </Head>
         <SVGIconInitializer />
