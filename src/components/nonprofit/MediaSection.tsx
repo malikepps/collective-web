@@ -49,7 +49,7 @@ const MediaSection: React.FC<MediaSectionProps> = ({
               className="w-full h-full object-cover"
             />
             {/* Consistent overlay for video */}
-            <div className="absolute inset-0 bg-black/20"></div>
+            <div className="absolute inset-0 bg-black/10"></div>
           </div>
         ) : (
           <div className="relative w-full h-full flex items-center justify-center bg-black">
@@ -63,13 +63,13 @@ const MediaSection: React.FC<MediaSectionProps> = ({
               loading="eager"
             />
             {/* Consistent overlay for image to match video appearance */}
-            <div className="absolute inset-0 bg-black/20"></div>
+            <div className="absolute inset-0 bg-black/10"></div>
           </div>
         )}
       </div>
       
-      {/* Enhanced gradient overlay - more prominent and consistent */}
-      <div className="absolute bottom-0 left-0 right-0 h-36 bg-gradient-to-t from-black/80 via-black/50 to-transparent ios-sheet-top" />
+      {/* Gradient overlay - matches iOS app's fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/70 to-transparent ios-sheet-top" />
       
       {/* Organization info - positioning matches iOS app */}
       <div className="absolute bottom-4 left-6 flex flex-col">
@@ -86,7 +86,7 @@ const MediaSection: React.FC<MediaSectionProps> = ({
         <div className="relative max-w-[85vw]">
           {/* Background blur for text - consistent styling */}
           <div 
-            className="absolute -inset-1 bg-black/40 backdrop-blur-[3px] rounded-lg -z-10"
+            className="absolute -inset-1 bg-black/35 backdrop-blur-[3px] rounded-lg -z-10"
           ></div>
           <h1 
             className="font-marfa font-semibold text-4xl text-white"
