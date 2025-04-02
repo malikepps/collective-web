@@ -7,6 +7,12 @@ export enum IconStyle {
   REGULAR = 'regular'
 }
 
+// Type for CSS variables in style (for TypeScript compatibility)
+interface CustomCSSProperties extends React.CSSProperties {
+  '--fa-primary-color'?: string;
+  '--fa-secondary-color'?: string;
+}
+
 // Map of common icons to their Unicode values - same as Swift implementation
 const ICON_UNICODE_MAP: Record<string, string> = {
   // Navigation
@@ -241,7 +247,7 @@ const FontAwesomeIcon: React.FC<FontAwesomeIconProps> = ({
   };
 
   // Basic styling for the icon
-  const iconStyle: React.CSSProperties = {
+  const iconStyle: CustomCSSProperties = {
     fontFamily: getFontFamily(),
     fontSize: `${size}px`,
     color: primary,

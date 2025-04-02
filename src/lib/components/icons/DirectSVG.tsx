@@ -12,6 +12,12 @@ interface DirectSVGProps {
   className?: string;
 }
 
+// Type for CSS variables in style
+interface CustomCSSProperties extends React.CSSProperties {
+  '--fa-primary-color': string;
+  '--fa-secondary-color'?: string;
+}
+
 /**
  * DirectSVG - A wrapper component for SVGIcon to maintain compatibility
  * with components that use the DirectSVG naming convention

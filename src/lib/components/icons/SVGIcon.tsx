@@ -51,11 +51,17 @@ const SVGIcon: React.FC<SVGIconProps> = ({
   const primary = isActive ? hexToColor(finalPrimaryColor) : '#808080';
   const secondary = isActive && secondaryColor ? hexToColor(secondaryColor) : undefined;
   
-  // Set inline styles for color and size
-  const iconStyle: React.CSSProperties = {
+  // Type for CSS variables in style
+  interface CustomCSSProperties extends React.CSSProperties {
+    '--fa-primary-color': string;
+    '--fa-secondary-color'?: string;
+  }
+  
+  // Set inline styles for color and size with proper typing
+  const iconStyle: CustomCSSProperties = {
     fontSize: `${size}px`,
     '--fa-primary-color': primary,
-  } as React.CSSProperties;
+  };
   
   if (secondary) {
     // Add secondary color for duotone icons
