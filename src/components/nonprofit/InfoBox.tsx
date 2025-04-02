@@ -92,7 +92,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
           onClick={onShowMission}
           className="h-7 flex items-center"
         >
-          <span className="text-gray-400 text-sm font-marfa font-light">mission</span>
+          <span className="text-gray-400 text-sm font-marfa font-light mr-1">mission</span>
           <DirectFontAwesome 
             icon="chevron-right"
             size={12}

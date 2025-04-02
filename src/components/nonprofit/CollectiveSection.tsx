@@ -199,7 +199,7 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
               icon="bars-filter"
               size={16}
               style={SVGIconStyle.SOLID}
-              primaryColor={secondaryColor.replace('#', '')}
+              primaryColor={secondaryColor.replace(/#/g, '')}
               className="align-middle"
             />
           </div>
