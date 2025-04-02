@@ -159,31 +159,6 @@ const InfoBox: React.FC<InfoBoxProps> = ({
             Join community
           </button>
         )}
-        
-        {/* For users who are already in community but not members, show a subtle indicator */}
-        {isUserInCommunity && !isUserMember && (
-          <div 
-            className="w-full h-10 ios-rounded-sm font-marfa font-semibold text-base flex items-center justify-center"
-            style={{ 
-              backgroundColor: 'rgba(255, 255, 255, 0.05)'
-            }}
-          >
-            <div className="mr-2">
-              <DirectFontAwesome
-                icon="check"
-                size={16}
-                color={theme?.secondaryColor ? `#${theme.secondaryColor}` : '#ADD3FF'}
-              />
-            </div>
-            <span 
-              style={{ 
-                color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#ADD3FF' 
-              }}
-            >
-              You're in the community
-            </span>
-          </div>
-        )}
       </div>
     </div>
   );

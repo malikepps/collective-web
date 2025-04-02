@@ -206,7 +206,7 @@ export default function PostCard({
           {isUserStaff && (
             <div className="absolute top-2 right-2 z-20">
               <button 
-                className="text-white p-2" 
+                className="text-white p-1.5" 
                 onClick={() => setShowMenu(!showMenu)}
                 aria-label="Post options"
                 style={{ textShadow: '0 0 8px rgba(0,0,0,0.8)' }}
@@ -255,13 +255,25 @@ export default function PostCard({
           )}
           
           {/* Media */}
-          <div onClick={onShowDetail} className="w-full">
+          <div onClick={onShowDetail} className="w-full relative">
             <MediaCarousel 
               mediaItems={mediaItems}
               onDoubleTap={handleDoubleTap}
               aspectRatio={1.2}
               onPlayVideo={onShowDetail}
             />
+            
+            {/* Video play icon for videos */}
+            {mediaItems.length > 0 && mediaItems[0].type === MediaType.VIDEO && (
+              <div className="absolute bottom-3 right-3 z-10">
+                <ProperFontAwesome
+                  icon="circle-play"
+                  size={40}
+                  color="rgba(0, 0, 0, 0.7)"
+                  style={ProperIconStyle.DUOTONE}
+                />
+              </div>
+            )}
             
             {/* Like Animation */}
             {showLikeAnimation && (

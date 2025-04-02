@@ -120,19 +120,27 @@ export default function PostsSection({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-white font-semibold text-2xl">Posts</h2>
           
-          {/* Tab switcher */}
-          <div className="flex items-center space-x-4">
+          {/* Tab switcher with new squircle design */}
+          <div className="flex items-center space-x-3 bg-white/10 p-1 rounded-full">
             <button 
-              className={`pb-2 ${selectedTab === 'regular' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}
+              className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
+                selectedTab === 'regular' 
+                  ? 'bg-white/20 text-white' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
               onClick={() => setSelectedTab('regular')}
             >
               Feed
             </button>
             <button 
-              className={`pb-2 ${selectedTab === 'membersOnly' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}
+              className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
+                selectedTab === 'membersOnly' 
+                  ? 'bg-white/20 text-white' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
               onClick={() => setSelectedTab('membersOnly')}
             >
-              Members
+              ✨ Members
             </button>
           </div>
         </div>
@@ -168,19 +176,27 @@ export default function PostsSection({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-white font-semibold text-2xl">Posts</h2>
           
-          {/* Tab switcher */}
-          <div className="flex items-center space-x-4">
+          {/* Tab switcher with new squircle design */}
+          <div className="flex items-center space-x-3 bg-white/10 p-1 rounded-full">
             <button 
-              className={`pb-2 ${selectedTab === 'regular' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}
+              className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
+                selectedTab === 'regular' 
+                  ? 'bg-white/20 text-white' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
               onClick={() => setSelectedTab('regular')}
             >
               Feed
             </button>
             <button 
-              className={`pb-2 ${selectedTab === 'membersOnly' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}
+              className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
+                selectedTab === 'membersOnly' 
+                  ? 'bg-white/20 text-white' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
               onClick={() => setSelectedTab('membersOnly')}
             >
-              Members
+              ✨ Members
             </button>
           </div>
         </div>
@@ -200,19 +216,27 @@ export default function PostsSection({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-white font-semibold text-2xl">Posts</h2>
           
-          {/* Tab switcher */}
-          <div className="flex items-center space-x-4">
+          {/* Tab switcher with new squircle design */}
+          <div className="flex items-center space-x-3 bg-white/10 p-1 rounded-full">
             <button 
-              className={`pb-2 ${selectedTab === 'regular' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}
+              className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
+                selectedTab === 'regular' 
+                  ? 'bg-white/20 text-white' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
               onClick={() => setSelectedTab('regular')}
             >
               Feed
             </button>
             <button 
-              className={`pb-2 ${selectedTab === 'membersOnly' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}
+              className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
+                selectedTab === 'membersOnly' 
+                  ? 'bg-white/20 text-white' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
               onClick={() => setSelectedTab('membersOnly')}
             >
-              Members
+              ✨ Members
             </button>
           </div>
         </div>
@@ -230,19 +254,27 @@ export default function PostsSection({
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-white font-semibold text-2xl">Posts</h2>
         
-        {/* Tab switcher */}
-        <div className="flex items-center space-x-4">
+        {/* Tab switcher with new squircle design */}
+        <div className="flex items-center space-x-3 bg-white/10 p-1 rounded-full">
           <button 
-            className={`pb-2 ${selectedTab === 'regular' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}
+            className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
+              selectedTab === 'regular' 
+                ? 'bg-white/20 text-white' 
+                : 'text-gray-400 hover:text-white'
+            }`}
             onClick={() => setSelectedTab('regular')}
           >
             Feed
           </button>
           <button 
-            className={`pb-2 ${selectedTab === 'membersOnly' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}
+            className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
+              selectedTab === 'membersOnly' 
+                ? 'bg-white/20 text-white' 
+                : 'text-gray-400 hover:text-white'
+            }`}
             onClick={() => setSelectedTab('membersOnly')}
           >
-            Members
+            ✨ Members
           </button>
         </div>
       </div>
