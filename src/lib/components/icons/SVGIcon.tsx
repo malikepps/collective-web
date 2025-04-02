@@ -40,6 +40,16 @@ const SVGIcon: React.FC<SVGIconProps> = ({
   style = SVGIconStyle.SOLID,
   className = '',
 }) => {
+  // Add debug logging for the component props
+  console.log(`[SVGIcon-DEBUG] Rendering icon "${icon}" with:`, {
+    style,
+    primaryColor,
+    color,
+    secondaryColor,
+    isActive,
+    className
+  });
+  
   const [scriptStatus, setScriptStatus] = useState<"loading" | "loaded" | "error">("loading");
   const iconRef = useRef<HTMLElement>(null);
   
@@ -193,7 +203,12 @@ const SVGIcon: React.FC<SVGIconProps> = ({
   const primary = isActive ? hexToColor(finalPrimaryColor) : '#808080';
   const secondary = isActive && secondaryColor ? hexToColor(secondaryColor) : undefined;
   
-  console.log(`[SVG-DEBUG] Icon colors: primary=${primary}, secondary=${secondary || 'none'}`);
+  console.log(`[SVGIcon-DEBUG] Processed colors:`, {
+    finalPrimaryColor,
+    primary,
+    secondary,
+    isActive
+  });
   
   // Set inline styles for color and size with proper typing
   const iconStyle: CustomCSSProperties = {

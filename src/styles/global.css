@@ -1,0 +1,37 @@
+/* Add debugging styles for our icons */
+.debug-rocket-icon, .debug-filter-icon {
+  position: relative;
+}
+
+.debug-rocket-icon::after, .debug-filter-icon::after {
+  content: 'Icon';
+  position: absolute;
+  top: -15px;
+  left: 0;
+  font-size: 8px;
+  background: black;
+  color: white;
+  padding: 2px;
+  border-radius: 2px;
+  z-index: 100;
+  opacity: 0.7;
+}
+
+.debug-rocket-icon::after {
+  content: 'Rocket';
+}
+
+.debug-filter-icon::after {
+  content: 'Filter';
+}
+
+/* Style to remove any potential icon color overrides */
+.debug-rocket-icon i, .debug-filter-icon i {
+  color: inherit !important;
+}
+
+/* For duotone icons */
+.debug-rocket-icon i.fa-duotone, .debug-filter-icon i.fa-duotone {
+  --fa-primary-color: inherit !important;
+  --fa-secondary-color: inherit !important;
+} 

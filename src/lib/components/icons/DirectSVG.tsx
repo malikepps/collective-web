@@ -36,6 +36,19 @@ const DirectSVG: React.FC<DirectSVGProps> = ({
   // Prioritize color over primaryColor for backward compatibility
   const finalPrimaryColor = color || primaryColor;
   
+  // Add debug logging
+  console.log(`[DirectSVG-DEBUG] Props for "${icon}":`, {
+    icon,
+    size,
+    style,
+    primaryColor,
+    color,
+    finalPrimaryColor,
+    secondaryColor,
+    className,
+    isActive
+  });
+  
   return (
     <SVGIcon
       icon={icon}

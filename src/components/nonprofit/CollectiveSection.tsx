@@ -194,6 +194,11 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
           >
             {displayFilter === 'all' ? 'Filter' : getFilterLabel()}
           </span>
+          {console.log('[DEBUG] Filter icon color:', {
+            secondaryColor,
+            secondaryColorStripped: secondaryColor.replace(/#/g, ''),
+            colorType: typeof secondaryColor
+          })}
           <div className="flex items-center justify-center">
             <DirectSVG 
               icon="bars-filter"
@@ -201,7 +206,7 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
               style={SVGIconStyle.SOLID}
               color={secondaryColor.replace(/#/g, '')}
               primaryColor={secondaryColor.replace(/#/g, '')}
-              className="align-middle"
+              className="align-middle debug-filter-icon"
               isActive={true}
             />
           </div>
