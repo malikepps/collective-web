@@ -77,9 +77,18 @@ const MediaSection: React.FC<MediaSectionProps> = ({
             loading="eager"
           />
         </div>
-        <h1 className="font-marfa font-semibold text-4xl text-white">
-          {organization.name}
-        </h1>
+        <div className="relative max-w-[85vw]">
+          {/* Background blur for text */}
+          <div 
+            className="absolute -inset-1 bg-black/30 backdrop-blur-[2px] rounded-lg -z-10"
+          ></div>
+          <h1 
+            className="font-marfa font-semibold text-4xl text-white"
+            style={{ textShadow: '0px 1px 3px rgba(0,0,0,0.7)' }}
+          >
+            {organization.name}
+          </h1>
+        </div>
       </div>
     </div>
   );
