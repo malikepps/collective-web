@@ -5,27 +5,24 @@
  * continues to work with the new icon system that uses SVG+JS.
  */
 
-// Import from the new main index
+// Import from the main index file - use only names that actually exist
 import {
-  FontBasedIcon,
-  SVGBasedIcon,
-  DirectFAIcon,
-  DirectSVGIcon,
+  FAIcon,
+  Icon,
+  DebugIcon,
   DebugFontIcon,
   FontAwesomeIconStyle,
-  SVGIconStyle,
-  FAIcon
+  SVGIconStyle
 } from './index';
 
-// Import directly from source files for components that need special handling
-import DirectFontAwesomeComponent from './DirectFontAwesome';
+// No need to directly import DirectFontAwesome since it's now properly
+// exported from the index.ts file directly
+import { default as DirectSVGComponent } from './DirectSVG';
 
 // Re-export with old names for backward compatibility
-export { DirectFontAwesomeComponent as DirectFontAwesome };
-export const DirectSVG = DirectSVGIcon;
-export const DebugIcon = DebugFontIcon;
+export const DirectSVG = DirectSVGComponent;
 export const DebugFontAwesome = DebugFontIcon;
-export const ProperFontAwesome = SVGBasedIcon;
+export const ProperFontAwesome = Icon;
 export const ProperIconStyle = SVGIconStyle;
 export const IconStyle = FontAwesomeIconStyle;
 export const FontIconStyle = FontAwesomeIconStyle;
