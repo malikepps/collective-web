@@ -13,13 +13,17 @@ import {
   DirectSVGIcon,
   DebugFontIcon,
   FontAwesomeIconStyle,
-  SVGIconStyle
+  SVGIconStyle,
+  FAIcon
 } from './index';
 
 // Re-export with old names for backward compatibility
 export const DirectFontAwesome = DirectFAIcon;
 export const DirectSVG = DirectSVGIcon;
 export const DebugIcon = DebugFontIcon;
+export const DebugFontAwesome = DebugFontIcon;
 export const ProperFontAwesome = SVGBasedIcon;
 export const ProperIconStyle = SVGIconStyle;
-export const IconStyle = FontAwesomeIconStyle; 
+export const IconStyle = FontAwesomeIconStyle;
+export const FontIconStyle = FontAwesomeIconStyle;
+export const FontAwesomeIcon = FAIcon; 

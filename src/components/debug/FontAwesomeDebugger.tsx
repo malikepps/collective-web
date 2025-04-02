@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { 
-  DebugFontAwesome, 
+  DebugFontIcon, 
   DirectFontAwesome, 
-  FontAwesomeIcon, 
-  FontIconStyle, 
+  FAIcon, 
+  FontAwesomeIconStyle, 
   loadFontAwesomeCSS, 
   printAvailableFonts 
 } from '@/lib/components/icons';
@@ -64,15 +64,15 @@ const FontAwesomeDebugger: React.FC = () => {
             <h3 className="font-medium mb-2">FontAwesomeIcon (Font)</h3>
             <div className="flex space-x-4">
               <div className="flex flex-col items-center">
-                <FontAwesomeIcon icon="heart" size={30} primaryColor="ff0000" />
+                <FAIcon icon="heart" size={30} primaryColor="ff0000" />
                 <span className="text-sm mt-1">heart</span>
               </div>
               <div className="flex flex-col items-center">
-                <FontAwesomeIcon icon="rocket" size={30} primaryColor="ff9500" />
+                <FAIcon icon="rocket" size={30} primaryColor="ff9500" />
                 <span className="text-sm mt-1">rocket</span>
               </div>
               <div className="flex flex-col items-center">
-                <FontAwesomeIcon icon="comment" size={30} primaryColor="ffffff" />
+                <FAIcon icon="comment" size={30} primaryColor="ffffff" />
                 <span className="text-sm mt-1">comment</span>
               </div>
             </div>
@@ -140,7 +140,7 @@ const FontAwesomeDebugger: React.FC = () => {
       
       <div>
         <h2 className="text-xl font-semibold mb-2">Comprehensive Debug Panel</h2>
-        <DebugFontAwesome />
+        <DebugFontIcon />
       </div>
     </div>
   );
