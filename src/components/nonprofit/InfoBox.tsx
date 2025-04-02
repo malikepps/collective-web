@@ -95,7 +95,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
           <span className="text-gray-400 text-sm font-marfa font-light">mission</span>
           <DirectFontAwesome 
             icon="chevron-right"
-            size={16}
+            size={12}
             color="#9ca3af"
           />
         </button>
