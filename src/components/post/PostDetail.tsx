@@ -170,7 +170,7 @@ export default function PostDetail({
           <DirectSVG
             icon="xmark"
             size={24}
-            color="#ffffff"
+            primaryColor="ffffff"
           />
         </button>
         
@@ -199,7 +199,7 @@ export default function PostDetail({
             <DirectSVG
               icon="trash-can"
               size={20}
-              color="#ef4444"
+              primaryColor="ef4444"
             />
           </button>
         )}
@@ -324,7 +324,8 @@ export default function PostDetail({
                     <DirectSVG
                       icon="heart"
                       size={20}
-                      color="rgba(255, 255, 255, 0.8)"
+                      primaryColor="ffffff"
+                      style={SVGIconStyle.REGULAR}
                     />
                   </div>
                 )}
@@ -342,7 +343,7 @@ export default function PostDetail({
                   <DirectSVG
                     icon="comment"
                     size={20}
-                    color="#ffffff"
+                    primaryColor="ffffff"
                   />
                 </div>
                 <span className="text-sm">
@@ -361,7 +362,7 @@ export default function PostDetail({
                 <DirectSVG
                   icon={isBoosted ? "rocket-launch" : "rocket"}
                   size={20}
-                  color={isBoosted ? "#ff9500" : "rgba(255, 255, 255, 0.8)"}
+                  primaryColor={isBoosted ? "ff9500" : "ffffff"}
                   style={SVGIconStyle.REGULAR}
                 />
               </button>
@@ -375,7 +376,7 @@ export default function PostDetail({
                 <DirectSVG
                   icon="share"
                   size={20}
-                  color="#ffffff"
+                  primaryColor="ffffff"
                 />
               </button>
             </div>

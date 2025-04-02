@@ -1,5 +1,4 @@
 // Export main components
-export { default as FAIcon } from './FAIcon';
 export { default as FontAwesomeIcon } from './FontAwesomeIcon';
 export { default as IconDemo } from './IconDemo';
 export { default as DebugIcon } from './DebugIcon';
