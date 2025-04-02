@@ -363,7 +363,8 @@ export default function PostCard({
                 <DirectSVG
                   icon={isBoosted ? "rocket-launch" : "rocket"}
                   size={20}
-                  style={SVGIconStyle.REGULAR}
+                  style={SVGIconStyle.SOLID}
+                  color={isBoosted ? "ff9500" : "ffffff"}
                   primaryColor={isBoosted ? "ff9500" : "ffffff"}
                   isActive={true}
                 />
