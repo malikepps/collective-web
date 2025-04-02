@@ -140,7 +140,7 @@ const FontAwesomeDebugger: React.FC = () => {
       
       <div>
         <h2 className="text-xl font-semibold mb-2">Comprehensive Debug Panel</h2>
-        <DebugFontIcon />
+        <DebugFontIcon icon="certificate" size={24} primaryColor="ffffff" />
       </div>
     </div>
   );
