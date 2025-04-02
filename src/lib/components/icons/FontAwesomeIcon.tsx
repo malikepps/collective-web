@@ -21,11 +21,15 @@ const ICON_UNICODE_MAP: Record<string, string> = {
   'xmark': '\uf00d',
   'chevron-left': '\uf053',
   'chevron-right': '\uf054',
+  'ellipsis': '\uf141',
+  'ellipsis-vertical': '\uf142',
+  'bars-filter': '\ue0ad',
   
   // Actions
   'plus': '\uf067',
   'pen': '\uf304',
   'trash': '\uf2ed',
+  'trash-can': '\uf2ed',
   'floppy-disk': '\uf0c7',
   'upload': '\uf093',
   'download': '\uf019',
@@ -58,6 +62,7 @@ const ICON_UNICODE_MAP: Record<string, string> = {
   'circle-play': '\uf144',
   'volume-high': '\uf028',
   'volume-xmark': '\uf6a9',
+  'photo-film': '\uf87c',
   
   // Misc
   'star': '\uf005',
@@ -67,6 +72,7 @@ const ICON_UNICODE_MAP: Record<string, string> = {
   'circle-up': '\uf35b',
   'arrow-up-right': '\uf14c',
   'rocket': '\uf135',
+  'rocket-launch': '\ue027',
   'fire': '\uf06d',
   'comment-dots': '\uf4ad',
   'heart-circle': '\uf4c7',
@@ -85,6 +91,8 @@ const ICON_UNICODE_MAP: Record<string, string> = {
   'circle-check': '\uf058',
   'circle-xmark': '\uf057',
   'earth-americas': '\uf57d',
+  'right-from-bracket': '\uf2f5',
+  'id-badge': '\uf2c1',
 };
 
 // For duotone icons - mapping to secondary layer unicode
@@ -96,6 +104,7 @@ const DUOTONE_SECONDARY_CODE_MAP: Record<string, string> = {
   'circle-info': '\u{10f05a}',
   'check-circle': '\u{10f058}',
   'rocket': '\u{10f135}',
+  'rocket-launch': '\u{10e027}',
   'fire': '\u{10f06d}',
   'comment-dots': '\u{10f4ad}',
   'heart-circle': '\u{10f4c7}',
@@ -117,6 +126,11 @@ const DUOTONE_SECONDARY_CODE_MAP: Record<string, string> = {
   'circle-exclamation': '\u{10f06a}',
   'circle-up': '\u{10f35b}',
   'arrow-up-right': '\u{10f14c}',
+  'circle-play': '\u{10f144}',
+  'photo-film': '\u{10f87c}',
+  'ellipsis': '\u{10f141}',
+  'ellipsis-vertical': '\u{10f142}',
+  'bars-filter': '\u{10e0ad}',
 };
 
 interface FontAwesomeIconProps {

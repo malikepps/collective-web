@@ -258,8 +258,9 @@ export default function MediaCarousel({
                       icon="circle-play"
                       size={50}
                       style={IconStyle.DUOTONE}
-                      primaryColor="#000000"
-                      secondaryColor="#FFFFFF"
+                      primaryColor="000000"
+                      secondaryColor="FFFFFF"
+                      isActive={true}
                     />
                   </div>
                 )}

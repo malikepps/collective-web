@@ -198,7 +198,8 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
             icon="bars-filter"
             size={16}
             style={IconStyle.CLASSIC}
-            primaryColor={secondaryColor}
+            primaryColor={secondaryColor.replace('#', '')}
+            isActive={true}
           />
         </button>
       </div>

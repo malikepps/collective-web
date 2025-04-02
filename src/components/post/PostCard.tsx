@@ -3,6 +3,7 @@ import { Post, MediaType } from '@/lib/models/Post';
 import { Organization } from '@/lib/models/Organization';
 import MediaCarousel from './MediaCarousel';
 import { DirectFontAwesome, ProperFontAwesome, ProperIconStyle } from '@/lib/components/icons';
+import FontAwesomeIcon, { IconStyle } from '@/lib/components/icons/FontAwesomeIcon';
 import { format } from 'date-fns';
 import { useTheme } from '@/lib/context/ThemeContext';
 import MediaService from '@/lib/services/MediaService';
@@ -212,11 +213,12 @@ export default function PostCard({
                 style={{ textShadow: '0 0 8px rgba(0,0,0,0.8)' }}
               >
                 {/* Using proper FontAwesome icon */}
-                <ProperFontAwesome
+                <FontAwesomeIcon
                   icon="ellipsis"
                   size={25}
-                  color="#ffffff"
-                  style={ProperIconStyle.SOLID}
+                  style={IconStyle.SOLID}
+                  primaryColor="ffffff"
+                  isActive={true}
                 />
               </button>
               
@@ -231,11 +233,12 @@ export default function PostCard({
                     }}
                   >
                     <div className="mr-2">
-                      <ProperFontAwesome
+                      <FontAwesomeIcon
                         icon="trash-can"
                         size={14}
-                        color="#ef4444"
-                        style={ProperIconStyle.SOLID}
+                        style={IconStyle.SOLID}
+                        primaryColor="ef4444"
+                        isActive={true}
                       />
                     </div>
                     Delete
@@ -266,11 +269,13 @@ export default function PostCard({
             {/* Video play icon for videos */}
             {mediaItems.length > 0 && mediaItems[0].type === MediaType.VIDEO && (
               <div className="absolute bottom-3 right-3 z-10">
-                <ProperFontAwesome
+                <FontAwesomeIcon
                   icon="circle-play"
                   size={40}
-                  color="rgba(0, 0, 0, 0.7)"
-                  style={ProperIconStyle.DUOTONE}
+                  style={IconStyle.DUOTONE}
+                  primaryColor="000000"
+                  secondaryColor="FFFFFF"
+                  isActive={true}
                 />
               </div>
             )}
@@ -326,11 +331,12 @@ export default function PostCard({
           <div className="px-4 py-3 flex items-center justify-between">
             <div className="flex items-center text-gray-300 text-sm">
               <span className="mr-2">
-                <ProperFontAwesome
+                <FontAwesomeIcon
                   icon="comment"
                   size={20}
-                  color="#9ca3af"
-                  style={ProperIconStyle.SOLID}
+                  style={IconStyle.SOLID}
+                  primaryColor="9ca3af"
+                  isActive={true}
                 />
               </span>
               <span className="mr-3">{post.numComments}</span>
@@ -351,11 +357,12 @@ export default function PostCard({
                 {isLiked ? (
                   <span className="text-xl">❤️</span>
                 ) : (
-                  <ProperFontAwesome
+                  <FontAwesomeIcon
                     icon="heart"
                     size={20}
-                    color="#ffffff"
-                    style={ProperIconStyle.REGULAR}
+                    style={IconStyle.REGULAR}
+                    primaryColor="ffffff"
+                    isActive={true}
                   />
                 )}
               </button>
@@ -371,11 +378,12 @@ export default function PostCard({
                 data-debug="boost-button"
                 style={isBoosted ? {} : { opacity: 0.5 }}
               >
-                <ProperFontAwesome
+                <FontAwesomeIcon
                   icon={isBoosted ? "rocket-launch" : "rocket"}
                   size={20}
-                  color={isBoosted ? "#ff9500" : "#ffffff"}
-                  style={ProperIconStyle.REGULAR}
+                  style={IconStyle.REGULAR}
+                  primaryColor={isBoosted ? "ff9500" : "ffffff"}
+                  isActive={true}
                 />
               </button>
             </div>
