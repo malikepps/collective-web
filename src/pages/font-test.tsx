@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FAIcon, Icon, IconStyle } from '@/lib/components/icons';
+import { FAIcon, IconStyle } from '@/lib/components/icons';
+import { Icon } from '@/lib/components/icons/FontAwesome';
 import Head from 'next/head';
 
 interface FontTest {
@@ -155,9 +156,9 @@ const FontTestPage: React.FC = () => {
                 <div className="p-4 border rounded text-center">
                   <div className="mb-2 text-sm font-medium">Regular</div>
                   <div className="flex justify-center mb-2">
-                    <FAIcon icon={Icon.CIRCLE_USER} size={32} style={IconStyle.REGULAR} />
+                    <FAIcon icon={Icon.USER} size={32} style={IconStyle.REGULAR} />
                   </div>
-                  <div className="text-xs text-gray-500">circle-user</div>
+                  <div className="text-xs text-gray-500">user</div>
                 </div>
                 
                 {/* Duotone Icons */}
@@ -179,7 +180,7 @@ const FontTestPage: React.FC = () => {
                 <div className="p-4 border rounded text-center">
                   <div className="mb-2 text-sm font-medium">Brands</div>
                   <div className="flex justify-center mb-2">
-                    <FAIcon icon={Icon.GITHUB} size={32} style={IconStyle.BRANDS} />
+                    <FAIcon icon="github" size={32} style={IconStyle.BRANDS} />
                   </div>
                   <div className="text-xs text-gray-500">github</div>
                 </div>
