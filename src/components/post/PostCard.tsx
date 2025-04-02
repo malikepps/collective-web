@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Post, MediaType } from '@/lib/models/Post';
 import { Organization } from '@/lib/models/Organization';
 import MediaCarousel from './MediaCarousel';
-import { DirectFontAwesome, ProperFontAwesome, ProperIconStyle } from '@/lib/components/icons';
-import FontAwesomeIcon, { IconStyle } from '@/lib/components/icons/FontAwesomeIcon';
+import { DirectSVG } from '@/lib/components/icons';
+import { SVGIconStyle } from '@/lib/components/icons/SVGIcon';
 import { format } from 'date-fns';
 import { useTheme } from '@/lib/context/ThemeContext';
 import MediaService from '@/lib/services/MediaService';
@@ -212,13 +212,12 @@ export default function PostCard({
                 aria-label="Post options"
                 style={{ textShadow: '0 0 8px rgba(0,0,0,0.8)' }}
               >
-                {/* Using proper FontAwesome icon */}
-                <FontAwesomeIcon
+                {/* Using SVG icon for better alignment */}
+                <DirectSVG
                   icon="ellipsis"
                   size={25}
-                  style={IconStyle.CLASSIC}
+                  style={SVGIconStyle.SOLID}
                   primaryColor="ffffff"
-                  isActive={true}
                 />
               </button>
               
@@ -233,12 +232,11 @@ export default function PostCard({
                     }}
                   >
                     <div className="mr-2">
-                      <FontAwesomeIcon
+                      <DirectSVG
                         icon="trash-can"
                         size={14}
-                        style={IconStyle.CLASSIC}
+                        style={SVGIconStyle.SOLID}
                         primaryColor="ef4444"
-                        isActive={true}
                       />
                     </div>
                     Delete
@@ -317,19 +315,18 @@ export default function PostCard({
           <div className="px-4 py-3 flex items-center justify-between">
             <div className="flex items-center text-gray-300 text-sm">
               <span className="flex items-center justify-center h-8 mr-2">
-                <FontAwesomeIcon
+                <DirectSVG
                   icon="comment"
                   size={20}
-                  style={IconStyle.CLASSIC}
+                  style={SVGIconStyle.SOLID}
                   primaryColor="9ca3af"
-                  isActive={true}
                 />
               </span>
               <span className="mr-3">{post.numComments}</span>
             </div>
             
             <div className="flex items-center">
-              {/* Like Button */}
+              {/* Like Button - now using SVG for better alignment */}
               <button 
                 className={`flex items-center justify-center w-8 h-8 mr-3 ${isLiked ? 'text-red-500' : 'text-white'}`}
                 onClick={() => {
@@ -343,17 +340,16 @@ export default function PostCard({
                 {isLiked ? (
                   <span className="text-xl">❤️</span>
                 ) : (
-                  <FontAwesomeIcon
+                  <DirectSVG
                     icon="heart"
                     size={20}
-                    style={IconStyle.REGULAR}
+                    style={SVGIconStyle.REGULAR}
                     primaryColor="ffffff"
-                    isActive={true}
                   />
                 )}
               </button>
               
-              {/* Boost Button */}
+              {/* Boost Button - now using SVG for better alignment */}
               <button 
                 className="flex items-center justify-center w-8 h-8"
                 onClick={() => {
@@ -364,12 +360,11 @@ export default function PostCard({
                 data-debug="boost-button"
                 style={isBoosted ? {} : { opacity: 0.5 }}
               >
-                <FontAwesomeIcon
+                <DirectSVG
                   icon={isBoosted ? "rocket-launch" : "rocket"}
                   size={20}
-                  style={IconStyle.REGULAR}
+                  style={SVGIconStyle.REGULAR}
                   primaryColor={isBoosted ? "ff9500" : "ffffff"}
-                  isActive={true}
                 />
               </button>
             </div>

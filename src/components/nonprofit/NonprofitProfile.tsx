@@ -9,7 +9,8 @@ import MembershipOptionsView from './MembershipOptionsView';
 import CollectiveSection from './CollectiveSection';
 import FilterBottomSheet from './FilterBottomSheet';
 import PostsSection from './PostsSection';
-import { FAIcon, Icon, IconStyle, DebugIcon, DirectFontAwesome } from '@/lib/components/icons';
+import { DirectSVG } from '@/lib/components/icons';
+import { SVGIconStyle } from '@/lib/components/icons/SVGIcon';
 import { useTheme } from '@/lib/context/ThemeContext';
 import Head from 'next/head';
 import { useUserOrganizationRelationship } from '@/lib/hooks/useUserOrganizationRelationship';
@@ -208,11 +209,11 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
             onClick={() => router.back()}
             className="flex items-center justify-center overflow-hidden icon-shadow"
           >
-            <DirectFontAwesome 
+            <DirectSVG 
               icon="bars"
               size={25}
-              color="#ffffff"
-              style={IconStyle.CLASSIC}
+              style={SVGIconStyle.SOLID}
+              primaryColor="ffffff"
             />
           </button>
           
@@ -232,11 +233,11 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
             onClick={() => setShowLeaveConfirmation(true)}
             className="flex items-center justify-center overflow-hidden icon-shadow"
           >
-            <DirectFontAwesome
+            <DirectSVG
               icon="ellipsis"
-              size={50}
-              color="#ffffff"
-              style={IconStyle.CLASSIC}
+              size={25}
+              style={SVGIconStyle.SOLID}
+              primaryColor="ffffff"
             />
           </button>
         </div>
@@ -323,10 +324,11 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
                     className="w-full py-3 px-4 text-red-500 font-medium text-left flex items-center"
                   >
                     <div className="mr-3">
-                      <DirectFontAwesome
+                      <DirectSVG
                         icon="right-from-bracket"
                         size={16}
-                        color="#ef4444"
+                        style={SVGIconStyle.SOLID}
+                        primaryColor="ef4444"
                       />
                     </div>
                     Leave community
@@ -342,10 +344,11 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
                     className="w-full py-3 px-4 text-white font-medium text-left flex items-center"
                   >
                     <div className="mr-3">
-                      <DirectFontAwesome
+                      <DirectSVG
                         icon="id-badge"
                         size={16}
-                        color="#ffffff"
+                        style={SVGIconStyle.SOLID}
+                        primaryColor="ffffff"
                       />
                     </div>
                     Your membership

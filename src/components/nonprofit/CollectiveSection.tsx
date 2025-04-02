@@ -3,8 +3,8 @@ import { Organization } from '@/lib/models/Organization';
 import { db } from '@/lib/firebase/config';
 import { collection, getDocs, query, where, getDoc, doc } from 'firebase/firestore';
 import PersonCircleView, { Member, PersonCircleStyle } from './PersonCircleView';
-import { DirectFontAwesome } from '@/lib/components/icons';
-import FontAwesomeIcon, { IconStyle } from '@/lib/components/icons/FontAwesomeIcon';
+import { DirectSVG } from '@/lib/components/icons';
+import { SVGIconStyle } from '@/lib/components/icons/SVGIcon';
 import { useTheme } from '@/lib/context/ThemeContext';
 import { UserNonprofitRelationship, relationshipFromFirestore } from '@/lib/models/UserNonprofitRelationship';
 import { CollectiveUser, userFromFirestore } from '@/lib/models/User';
@@ -195,12 +195,12 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
             {displayFilter === 'all' ? 'Filter' : getFilterLabel()}
           </span>
           <div className="flex items-center justify-center">
-            <FontAwesomeIcon 
+            <DirectSVG 
               icon="bars-filter"
               size={16}
-              style={IconStyle.CLASSIC}
+              style={SVGIconStyle.SOLID}
               primaryColor={secondaryColor.replace('#', '')}
-              isActive={true}
+              className="align-middle"
             />
           </div>
         </button>

@@ -21,4 +21,26 @@ export {
 } from './FontAwesome';
 
 // Export types
-export type { DuotoneColors } from './FontAwesome'; 
+export type { DuotoneColors } from './FontAwesome';
+
+// Export FontAwesome icon components
+import FontAwesomeIcon, { IconStyle } from './FontAwesomeIcon';
+import SVGIcon, { SVGIconStyle } from './SVGIcon';
+
+// Create aliases for different icon implementations
+export const FAIcon = FontAwesomeIcon; // The original font-based implementation
+export const Icon = SVGIcon; // The new SVG-based implementation
+export { IconStyle, SVGIconStyle };
+
+// Direct export of component
+export const DirectFontAwesome = FontAwesomeIcon;
+export const DirectSVG = SVGIcon;
+
+// Define proper icon implementation - use SVG by default
+export const ProperFontAwesome = SVGIcon;
+export const ProperIconStyle = SVGIconStyle;
+
+// For debugging font issues
+export const DebugIcon = FontAwesomeIcon;
+
+export default SVGIcon; 

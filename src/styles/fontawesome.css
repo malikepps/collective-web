@@ -1,0 +1,47 @@
+/* FontAwesome SVG Icon styles for perfect alignment */
+
+/* Base styles for all FontAwesome SVG icons */
+.fa-solid, 
+.fa-regular, 
+.fa-duotone, 
+.fa-brands {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  line-height: 1;
+  position: relative;
+}
+
+/* Fix for icons in buttons and other clickable elements */
+button .fa-solid,
+button .fa-regular,
+button .fa-duotone,
+button .fa-brands,
+a .fa-solid,
+a .fa-regular,
+a .fa-duotone,
+a .fa-brands {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Fix for specific problematic icons */
+.fa-bars-filter,
+.fa-ellipsis,
+.fa-heart,
+.fa-rocket,
+.fa-rocket-launch {
+  transform: translateY(-1px); /* Slight adjustment for these specific icons */
+}
+
+/* Proper sizing for icons */
+i[class*="fa-"] {
+  text-align: center;
+}
+
+/* Fix for duotone secondary layer */
+.fa-duotone {
+  position: relative;
+} 

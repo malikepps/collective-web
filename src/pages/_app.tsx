@@ -1,9 +1,11 @@
 import '@/styles/globals.css';
 import '@/styles/fonts.css';
+import '@/styles/fontawesome.css';
 import type { AppProps } from 'next/app';
 import { AuthProvider } from '@/lib/context/AuthContext';
 import { ThemeProvider } from '@/lib/context/ThemeContext';
 import { useEffect } from 'react';
+import Head from 'next/head';
 import loadFontAwesomeFonts from '@/lib/utils/fontLoader';
 import { printAvailableFonts } from '@/lib/components/icons';
 import preloadFontAwesomeFonts from '@/lib/utils/fontAwesomeFontLoader';
@@ -83,6 +85,14 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <AuthProvider>
       <ThemeProvider>
+        <Head>
+          {/* Load FontAwesome SVG+JS scripts */}
+          <script defer src="/fonts/js/fontawesome.js"></script>
+          <script defer src="/fonts/js/solid.js"></script>
+          <script defer src="/fonts/js/regular.js"></script>
+          <script defer src="/fonts/js/duotone.js"></script>
+          <script defer src="/fonts/js/brands.js"></script>
+        </Head>
         <Component {...pageProps} />
       </ThemeProvider>
     </AuthProvider>
