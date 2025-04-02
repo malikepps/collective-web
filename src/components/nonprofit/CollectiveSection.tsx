@@ -201,6 +201,7 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
               style={SVGIconStyle.SOLID}
               primaryColor={secondaryColor.replace(/#/g, '')}
               className="align-middle"
+              isActive={true}
             />
           </div>
         </button>

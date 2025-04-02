@@ -365,6 +365,7 @@ export default function PostCard({
                   size={20}
                   style={SVGIconStyle.REGULAR}
                   primaryColor={isBoosted ? "ff9500" : "ffffff"}
+                  isActive={true}
                 />
               </button>
             </div>
