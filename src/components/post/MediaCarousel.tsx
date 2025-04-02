@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MediaItem } from '@/lib/models/MediaItem';
 import { MediaType } from '@/lib/models/Post';
-import { DirectFontAwesome } from '@/lib/components/icons';
-import FontAwesomeIcon, { IconStyle } from '@/lib/components/icons/FontAwesomeIcon';
+import { DirectSVG } from '@/lib/components/icons';
+import { SVGIconStyle } from '@/lib/components/icons/SVGIcon';
 import MediaService from '@/lib/services/MediaService';
 
 interface MediaCarouselProps {
@@ -252,56 +252,97 @@ export default function MediaCarousel({
                   />
                 )}
                 
+                {/* Conditionally render the play button */}
                 {showPlayButton && (
                   <div className="absolute bottom-4 right-4 z-10 flex items-center justify-center">
-                    <FontAwesomeIcon
+                    <DirectSVG
                       icon="circle-play"
                       size={50}
-                      style={IconStyle.DUOTONE}
-                      primaryColor="000000"
-                      secondaryColor="FFFFFF"
-                      isActive={true}
+                      style={SVGIconStyle.SOLID}
+                      primaryColor="ffffff"
                     />
                   </div>
                 )}
+                
+                {/* Video indicator */}
+                <div className="absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-1 flex items-center justify-center z-5">
+                  <DirectSVG
+                    icon="circle-play"
+                    size={12}
+                    style={SVGIconStyle.SOLID}
+                    primaryColor="ffffff"
+                  />
+                </div>
               </div>
             ) : (
-              // Image - use the same approach as LoopingVideoPlayer
-              <div className="absolute inset-0 bg-black">
-                <img
-                  ref={setImageRef(index)}
-                  src={item.url}
-                  alt={`Media item ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  onLoad={() => handleImageLoad(index)}
-                  onError={(e) => handleImageError(e, index)}
-                  loading="eager"
-                />
-              </div>
+              // Image
+              <img
+                ref={setImageRef(index)}
+                src={item.url}
+                alt="Post media"
+                className="w-full h-full object-contain bg-black" 
+                onLoad={() => handleImageLoad(index)}
+                onError={(e) => handleImageError(e, index)}
+                loading="eager"
+              />
             )}
           </div>
         ))}
       </div>
       
-      {/* Pagination Dots */}
+      {/* Pagination indicator - invisible if only one image */}
       {sortedMediaItems.length > 1 && (
-        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-20">
+        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
           {sortedMediaItems.map((_, index) => (
-            <button
-              key={index}
-              className={`w-1.5 h-1.5 rounded-full ${
-                index === currentPage 
-                  ? 'bg-white' 
-                  : 'bg-white bg-opacity-50'
-              }`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setCurrentPage(index);
-              }}
-              aria-label={`Go to slide ${index + 1}`}
+            <div 
+              key={`dot-${index}`} 
+              className={`h-1.5 rounded-full ${index === currentPage ? 'bg-white w-4' : 'bg-white/50 w-1.5'}`}
             />
           ))}
         </div>
+      )}
+      
+      {/* Navigation arrows - only visible on hover and if multiple items */}
+      {sortedMediaItems.length > 1 && (
+        <>
+          {/* Previous arrow */}
+          {currentPage > 0 && (
+            <button 
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/30 rounded-full p-1.5 group opacity-0 hover:opacity-100 focus:opacity-100 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentPage(prev => Math.max(0, prev - 1));
+              }}
+              aria-label="Previous image"
+            >
+              <DirectSVG
+                icon="chevron-left"
+                size={20}
+                style={SVGIconStyle.SOLID}
+                primaryColor="ffffff"
+              />
+            </button>
+          )}
+          
+          {/* Next arrow */}
+          {currentPage < sortedMediaItems.length - 1 && (
+            <button 
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/30 rounded-full p-1.5 group opacity-0 hover:opacity-100 focus:opacity-100 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentPage(prev => Math.min(sortedMediaItems.length - 1, prev + 1));
+              }}
+              aria-label="Next image"
+            >
+              <DirectSVG
+                icon="chevron-right"
+                size={20}
+                style={SVGIconStyle.SOLID}
+                primaryColor="ffffff"
+              />
+            </button>
+          )}
+        </>
       )}
       
       {/* Debug information - only in development */}

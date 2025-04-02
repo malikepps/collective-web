@@ -10,7 +10,6 @@ export { default as ProperFontAwesome } from './ProperFontAwesome';
 // Export types and utilities
 export { IconStyle as FontIconStyle } from './FontAwesomeIcon';
 export { IconStyle as ProperIconStyle } from './ProperFontAwesome';
-export { IconStyle } from './FontAwesomeIcon';
 export { 
   Icon, 
   colorFromHex, 
@@ -30,7 +29,8 @@ import SVGIcon, { SVGIconStyle } from './SVGIcon';
 // Create aliases for different icon implementations
 export const FAIcon = FontAwesomeIcon; // The original font-based implementation
 export const Icon = SVGIcon; // The new SVG-based implementation
-export { IconStyle, SVGIconStyle };
+export { SVGIconStyle };
+export { IconStyle as FontAwesomeIconStyle };
 
 // Direct export of component
 export const DirectFontAwesome = FontAwesomeIcon;

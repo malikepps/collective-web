@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Post, MediaType } from '@/lib/models/Post';
 import { Organization } from '@/lib/models/Organization';
-import { DirectFontAwesome, IconStyle } from '@/lib/components/icons';
+import { DirectSVG } from '@/lib/components/icons';
+import { SVGIconStyle } from '@/lib/components/icons/SVGIcon';
 import { format } from 'date-fns';
 import ReactPlayer from 'react-player/lazy';
 
@@ -166,7 +167,7 @@ export default function PostDetail({
           onClick={onClose}
           aria-label="Close"
         >
-          <DirectFontAwesome
+          <DirectSVG
             icon="xmark"
             size={24}
             color="#ffffff"
@@ -195,7 +196,7 @@ export default function PostDetail({
             onClick={() => setShowConfirmDelete(true)}
             aria-label="Delete post"
           >
-            <DirectFontAwesome
+            <DirectSVG
               icon="trash-can"
               size={20}
               color="#ef4444"
@@ -320,7 +321,7 @@ export default function PostDetail({
                   <span className="text-xl mr-2">❤️</span>
                 ) : (
                   <div className="mr-2">
-                    <DirectFontAwesome
+                    <DirectSVG
                       icon="heart"
                       size={20}
                       color="rgba(255, 255, 255, 0.8)"
@@ -338,7 +339,7 @@ export default function PostDetail({
                 aria-label="Comments"
               >
                 <div className="mr-2">
-                  <DirectFontAwesome
+                  <DirectSVG
                     icon="comment"
                     size={20}
                     color="#ffffff"
@@ -357,11 +358,11 @@ export default function PostDetail({
                 onClick={onToggleBoost}
                 aria-label={isBoosted ? "Remove boost" : "Boost post"}
               >
-                <DirectFontAwesome
+                <DirectSVG
                   icon={isBoosted ? "rocket-launch" : "rocket"}
                   size={20}
                   color={isBoosted ? "#ff9500" : "rgba(255, 255, 255, 0.8)"}
-                  style={IconStyle.REGULAR}
+                  style={SVGIconStyle.REGULAR}
                 />
               </button>
               
@@ -371,7 +372,7 @@ export default function PostDetail({
                 onClick={handleShare}
                 aria-label="Share post"
               >
-                <DirectFontAwesome
+                <DirectSVG
                   icon="share"
                   size={20}
                   color="#ffffff"
