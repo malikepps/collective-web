@@ -10,7 +10,7 @@ export { default as ProperFontAwesome } from './ProperFontAwesome';
 export { IconStyle as FontIconStyle } from './FontAwesomeIcon';
 export { IconStyle as ProperIconStyle } from './ProperFontAwesome';
 export { 
-  Icon, 
+  Icon as FontIcon,
   colorFromHex, 
   DuotoneColorPresets,
   printAvailableFonts,
@@ -27,7 +27,7 @@ import SVGIcon, { SVGIconStyle } from './SVGIcon';
 
 // Create aliases for different icon implementations
 export const FAIcon = FontAwesomeIcon; // The original font-based implementation
-export const Icon = SVGIcon; // The new SVG-based implementation
+export const Icon = SVGIcon; // Renamed this to keep code compatibility
 export { SVGIconStyle };
 export { IconStyle as FontAwesomeIconStyle };
 
