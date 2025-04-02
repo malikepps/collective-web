@@ -189,18 +189,20 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
           className="bg-white/20 ios-rounded-sm px-3 h-8 flex items-center"
         >
           <span 
-            className="text-sm font-marfa mr-1"
+            className="text-sm font-marfa mr-1 flex items-center"
             style={{ color: secondaryColor }}
           >
             {displayFilter === 'all' ? 'Filter' : getFilterLabel()}
           </span>
-          <FontAwesomeIcon 
-            icon="bars-filter"
-            size={16}
-            style={IconStyle.CLASSIC}
-            primaryColor={secondaryColor.replace('#', '')}
-            isActive={true}
-          />
+          <div className="flex items-center justify-center">
+            <FontAwesomeIcon 
+              icon="bars-filter"
+              size={16}
+              style={IconStyle.CLASSIC}
+              primaryColor={secondaryColor.replace('#', '')}
+              isActive={true}
+            />
+          </div>
         </button>
       </div>
       

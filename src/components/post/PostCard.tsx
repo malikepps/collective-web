@@ -207,7 +207,7 @@ export default function PostCard({
           {isUserStaff && (
             <div className="absolute top-2 right-2 z-20">
               <button 
-                className="text-white p-1.5" 
+                className="text-white p-1.5 flex items-center justify-center" 
                 onClick={() => setShowMenu(!showMenu)}
                 aria-label="Post options"
                 style={{ textShadow: '0 0 8px rgba(0,0,0,0.8)' }}
@@ -266,20 +266,6 @@ export default function PostCard({
               onPlayVideo={onShowDetail}
             />
             
-            {/* Video play icon for videos */}
-            {mediaItems.length > 0 && mediaItems[0].type === MediaType.VIDEO && (
-              <div className="absolute bottom-3 right-3 z-10">
-                <FontAwesomeIcon
-                  icon="circle-play"
-                  size={40}
-                  style={IconStyle.DUOTONE}
-                  primaryColor="000000"
-                  secondaryColor="FFFFFF"
-                  isActive={true}
-                />
-              </div>
-            )}
-            
             {/* Like Animation */}
             {showLikeAnimation && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -330,7 +316,7 @@ export default function PostCard({
           {/* Actions - removed border-t */}
           <div className="px-4 py-3 flex items-center justify-between">
             <div className="flex items-center text-gray-300 text-sm">
-              <span className="mr-2">
+              <span className="flex items-center justify-center h-8 mr-2">
                 <FontAwesomeIcon
                   icon="comment"
                   size={20}

@@ -253,7 +253,7 @@ export default function MediaCarousel({
                 )}
                 
                 {showPlayButton && (
-                  <div className="absolute bottom-3 right-3 z-10">
+                  <div className="absolute bottom-4 right-4 z-10 flex items-center justify-center">
                     <FontAwesomeIcon
                       icon="circle-play"
                       size={50}
