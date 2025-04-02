@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { FAIcon, IconStyle } from '@/lib/components/icons';
+import { FAIcon } from '@/lib/components/icons';
 import Head from 'next/head';
+
+// Define the icon styles directly to avoid import issues
+const IconStyles = {
+  SOLID: 'classic', // Note: In our codebase, "classic" is solid
+  REGULAR: 'regular',
+  DUOTONE: 'duotone',
+  BRANDS: 'brands'
+};
 
 interface FontTest {
   family: string;
@@ -146,7 +154,7 @@ const FontTestPage: React.FC = () => {
                 <div className="p-4 border rounded text-center">
                   <div className="mb-2 text-sm font-medium">Solid</div>
                   <div className="flex justify-center mb-2">
-                    <FAIcon icon="heart" size={32} style={IconStyle.SOLID} />
+                    <FAIcon icon="heart" size={32} style={IconStyles.SOLID} />
                   </div>
                   <div className="text-xs text-gray-500">heart</div>
                 </div>
@@ -155,7 +163,7 @@ const FontTestPage: React.FC = () => {
                 <div className="p-4 border rounded text-center">
                   <div className="mb-2 text-sm font-medium">Regular</div>
                   <div className="flex justify-center mb-2">
-                    <FAIcon icon="user" size={32} style={IconStyle.REGULAR} />
+                    <FAIcon icon="user" size={32} style={IconStyles.REGULAR} />
                   </div>
                   <div className="text-xs text-gray-500">user</div>
                 </div>
@@ -167,7 +175,7 @@ const FontTestPage: React.FC = () => {
                     <FAIcon 
                       icon="star" 
                       size={32} 
-                      style={IconStyle.DUOTONE}
+                      style={IconStyles.DUOTONE}
                       primaryColor="#ff9500"
                       secondaryColor="#ffcc00"
                     />
@@ -179,7 +187,7 @@ const FontTestPage: React.FC = () => {
                 <div className="p-4 border rounded text-center">
                   <div className="mb-2 text-sm font-medium">Brands</div>
                   <div className="flex justify-center mb-2">
-                    <FAIcon icon="github" size={32} style={IconStyle.BRANDS} />
+                    <FAIcon icon="github" size={32} style="brands" />
                   </div>
                   <div className="text-xs text-gray-500">github</div>
                 </div>
