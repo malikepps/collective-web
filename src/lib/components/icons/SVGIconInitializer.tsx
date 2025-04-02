@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
  */
 const SVGIconInitializer: React.FC = () => {
   const [initialized, setInitialized] = useState(false);
+  const [scriptsLoadAttempted, setScriptsLoadAttempted] = useState(false);
   
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -15,7 +16,10 @@ const SVGIconInitializer: React.FC = () => {
       const fa = (window as any).FontAwesome;
       if (!fa) {
         console.error('[SVG-INIT] FontAwesome not available');
-        loadFontAwesomeScripts();
+        if (!scriptsLoadAttempted) {
+          loadFontAwesomeScripts();
+          setScriptsLoadAttempted(true);
+        }
         return false;
       }
       
@@ -34,8 +38,19 @@ const SVGIconInitializer: React.FC = () => {
       return false;
     };
     
+    // Function to check if a script exists (to avoid 404 errors)
+    const checkScriptExists = async (src: string): Promise<boolean> => {
+      try {
+        const response = await fetch(src, { method: 'HEAD' });
+        return response.ok;
+      } catch (error) {
+        console.error(`[SVG-INIT] Error checking script existence: ${src}`, error);
+        return false;
+      }
+    };
+    
     // Function to load FontAwesome scripts
-    const loadFontAwesomeScripts = () => {
+    const loadFontAwesomeScripts = async () => {
       console.log('[SVG-INIT] Loading FontAwesome scripts dynamically');
       
       const scriptSrcs = [
@@ -45,6 +60,25 @@ const SVGIconInitializer: React.FC = () => {
         '/fonts/js/duotone.js',
         '/fonts/js/brands.js'
       ];
+      
+      // First check which scripts actually exist on the server
+      const existenceChecks = await Promise.all(
+        scriptSrcs.map(async (src) => {
+          const exists = await checkScriptExists(src);
+          return { src, exists };
+        })
+      );
+      
+      const availableScripts = existenceChecks
+        .filter(({ exists }) => exists)
+        .map(({ src }) => src);
+      
+      if (availableScripts.length === 0) {
+        console.error('[SVG-INIT] No FontAwesome scripts found on server. Using CDN fallback.');
+        
+        // If no scripts are available on server, use CDN fallback
+        return loadFontAwesomeCDN();
+      }
       
       const loadScript = (src: string): Promise<void> => {
         return new Promise((resolve, reject) => {
@@ -76,18 +110,74 @@ const SVGIconInitializer: React.FC = () => {
       };
       
       // Load main fontawesome.js first, then others
-      return loadScript(scriptSrcs[0])
-        .then(() => Promise.all(scriptSrcs.slice(1).map(loadScript)))
-        .then(() => {
+      try {
+        if (availableScripts.includes('/fonts/js/fontawesome.js')) {
+          await loadScript('/fonts/js/fontawesome.js');
+          
+          // Then load the rest in parallel
+          const otherScripts = availableScripts.filter(src => src !== '/fonts/js/fontawesome.js');
+          await Promise.all(otherScripts.map(loadScript));
+          
           console.log('[SVG-INIT] All FontAwesome scripts loaded');
+          
           // After loading all scripts, try to initialize
           setTimeout(() => {
             const success = initFontAwesome();
             setInitialized(success);
           }, 100);
+          
+          return true;
+        } else {
+          console.error('[SVG-INIT] Main FontAwesome script not available. Using CDN fallback.');
+          return loadFontAwesomeCDN();
+        }
+      } catch (err) {
+        console.error('[SVG-INIT] Failed to load FontAwesome scripts:', err);
+        return loadFontAwesomeCDN();
+      }
+    };
+    
+    // Fallback to loading FontAwesome from CDN if local files don't exist
+    const loadFontAwesomeCDN = (): Promise<boolean> => {
+      console.log('[SVG-INIT] Loading FontAwesome from CDN');
+      
+      const loadScript = (src: string): Promise<void> => {
+        return new Promise((resolve, reject) => {
+          const existingScript = Array.from(document.querySelectorAll('script')).find(
+            s => s.src === src
+          );
+          
+          if (existingScript) {
+            resolve();
+            return;
+          }
+          
+          const script = document.createElement('script');
+          script.src = src;
+          script.async = false;
+          script.crossOrigin = 'anonymous';
+          script.onload = () => resolve();
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      };
+      
+      // Use FontAwesome Free CDN since we can't load Pro without authentication
+      return loadScript('https://kit.fontawesome.com/1ed0045dbe.js')
+        .then(() => {
+          console.log('[SVG-INIT] FontAwesome loaded from CDN');
+          
+          // After loading script, try to initialize
+          setTimeout(() => {
+            const success = initFontAwesome();
+            setInitialized(success);
+          }, 100);
+          
+          return true;
         })
         .catch(err => {
-          console.error('[SVG-INIT] Failed to load FontAwesome scripts:', err);
+          console.error('[SVG-INIT] Failed to load FontAwesome from CDN:', err);
+          return false;
         });
     };
     
@@ -102,9 +192,10 @@ const SVGIconInitializer: React.FC = () => {
         const retrySuccess = initFontAwesome();
         setInitialized(retrySuccess);
         
-        if (!retrySuccess) {
+        if (!retrySuccess && !scriptsLoadAttempted) {
           console.log('[SVG-INIT] FontAwesome still not available, loading scripts');
           loadFontAwesomeScripts();
+          setScriptsLoadAttempted(true);
         }
       };
       
@@ -158,7 +249,7 @@ const SVGIconInitializer: React.FC = () => {
     return () => {
       observer.disconnect();
     };
-  }, []);
+  }, [scriptsLoadAttempted]);
   
   return null; // This component doesn't render anything
 };

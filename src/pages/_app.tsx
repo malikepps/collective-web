@@ -70,81 +70,30 @@ export default function App({ Component, pageProps }: AppProps) {
       ];
       
       fontFiles.forEach(fontUrl => {
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.href = fontUrl;
-        link.as = 'font';
-        link.type = 'font/woff2';
-        link.crossOrigin = 'anonymous';
-        document.head.appendChild(link);
-        
-        console.log(`[App] Preloaded font file: ${fontUrl}`);
-      });
-      
-      // Check if FontAwesome JS is loaded and load it if not
-      if (!(window as any).FontAwesome) {
-        console.log('[App] FontAwesome JS not detected, attempting to load it manually');
-        
-        // Dynamically add script tags to ensure FontAwesome loads
-        const scriptSrcs = [
-          '/fonts/js/fontawesome.js',
-          '/fonts/js/solid.js',
-          '/fonts/js/regular.js',
-          '/fonts/js/duotone.js',
-          '/fonts/js/brands.js'
-        ];
-        
-        const loadScript = (src: string): Promise<void> => {
-          return new Promise((resolve, reject) => {
-            // Check if script is already loaded
-            const existingScript = Array.from(document.querySelectorAll('script')).find(
-              s => s.src.includes(src)
-            );
-            
-            if (existingScript) {
-              console.log(`[App] Script already exists: ${src}`);
-              resolve();
-              return;
-            }
-            
-            const script = document.createElement('script');
-            script.src = src;
-            // Important: do not use async for FontAwesome scripts, they need to load in order
-            script.async = false;
-            script.defer = true;
-            script.onload = () => {
-              console.log(`[App] Script loaded: ${src}`);
-              resolve();
-            };
-            script.onerror = (err) => {
-              console.error(`[App] Error loading script ${src}:`, err);
-              reject(err);
-            };
-            document.head.appendChild(script);
-          });
-        };
-        
-        // Load scripts in sequence to ensure proper initialization
-        loadScript(scriptSrcs[0])
-          .then(() => {
-            // Wait a moment for fontawesome.js to initialize
-            return new Promise(resolve => setTimeout(resolve, 100));
-          })
-          .then(() => Promise.all(scriptSrcs.slice(1).map(loadScript)))
-          .then(() => {
-            console.log('[App] All FontAwesome scripts loaded');
-            
-            // Verify FontAwesome is available
-            const fa = (window as any).FontAwesome;
-            if (fa && typeof fa.dom.i2svg === 'function') {
-              console.log('[App] Initializing FontAwesome SVG processing');
-              fa.dom.i2svg();
+        // Check if file exists before preloading
+        fetch(fontUrl, { method: 'HEAD' })
+          .then(response => {
+            if (response.ok) {
+              const link = document.createElement('link');
+              link.rel = 'preload';
+              link.href = fontUrl;
+              link.as = 'font';
+              link.type = 'font/woff2';
+              link.crossOrigin = 'anonymous';
+              document.head.appendChild(link);
+              
+              console.log(`[App] Preloaded font file: ${fontUrl}`);
+            } else {
+              console.warn(`[App] Font file not found: ${fontUrl}`);
             }
           })
           .catch(err => {
-            console.error('[App] Failed to load FontAwesome scripts:', err);
+            console.error(`[App] Error checking font file: ${fontUrl}`, err);
           });
-      }
+      });
+      
+      // We'll let SVGIconInitializer handle loading the FontAwesome JS files
+      // because it has better error handling and fallbacks
     }
   }, []);
   
@@ -152,12 +101,7 @@ export default function App({ Component, pageProps }: AppProps) {
     <AuthProvider>
       <ThemeProvider>
         <Head>
-          {/* Load FontAwesome SVG+JS scripts */}
-          <script defer src="/fonts/js/fontawesome.js"></script>
-          <script defer src="/fonts/js/solid.js"></script>
-          <script defer src="/fonts/js/regular.js"></script>
-          <script defer src="/fonts/js/duotone.js"></script>
-          <script defer src="/fonts/js/brands.js"></script>
+          {/* FontAwesome will be loaded dynamically with proper error handling by SVGIconInitializer */}
         </Head>
         <SVGIconInitializer />
         <Component {...pageProps} />

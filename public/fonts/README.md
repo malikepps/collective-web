@@ -1,22 +1,44 @@
 # FontAwesome Setup for Collective Web
 
-This directory should contain the FontAwesome Pro font files. Since we're using FontAwesome Pro, these files are not included in the repository and must be downloaded separately with your Pro license.
+This directory should contain the FontAwesome Pro font files and JS files. Since we're using FontAwesome Pro, these files are not included in the repository and must be downloaded separately with your Pro license.
 
 ## Required Font Files
 
 Place the following font files in this directory:
 
-1. `fa-solid-900.ttf` (and/or .woff2)
-2. `fa-regular-400.ttf` (and/or .woff2)
-3. `fa-brands-400.ttf` (and/or .woff2)
-4. `fa-duotone-900.ttf` (and/or .woff2)
+1. `fa-solid-900.woff2` 
+2. `fa-regular-400.woff2`
+3. `fa-brands-400.woff2`
+4. `fa-duotone-900.woff2`
+5. `fa-duotone-regular-400.woff2` (if using duotone regular icons)
+
+## Required JS Files
+
+Place the following JS files in the `js` subdirectory:
+
+1. `fontawesome.js` (core library)
+2. `solid.js` (solid icons)
+3. `regular.js` (regular icons)
+4. `duotone.js` (duotone icons) 
+5. `brands.js` (brand icons)
+
+## Deployment Checklist
+
+When deploying to Vercel or other platforms, make sure to:
+
+1. Include all font files in the deployment (they should be in `/public/fonts/`)
+2. Include all JS files in the deployment (they should be in `/public/fonts/js/`)
+3. Verify the files are properly accessible by checking the `/api/font-check` endpoint
+
+If any of these files are missing in production, the app will attempt to use a fallback method of loading icons which may not support all icon styles.
 
 ## How to Get the Font Files
 
 1. Log in to your FontAwesome Pro account at [fontawesome.com](https://fontawesome.com)
-2. Download the "Web" package
-3. Extract the package and copy the font files from the `/webfonts` directory
-4. Place them in this `/public/fonts` directory
+2. Download the "Web" package 
+3. Extract the package and:
+   - Copy the font files from the `/webfonts` directory to this `/public/fonts` directory
+   - Copy the JS files from the `/js` directory to the `/public/fonts/js` directory
 
 ## Alternative Setup with npm
 
