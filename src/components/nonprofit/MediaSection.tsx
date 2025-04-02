@@ -42,13 +42,17 @@ const MediaSection: React.FC<MediaSectionProps> = ({
         )}
         
         {organization.hero_video_url ? (
-          <LoopingVideoPlayer
-            videoURL={organization.hero_video_url}
-            isMuted={true}
-            className="w-full h-full object-cover"
-          />
+          <div className="relative w-full h-full">
+            <LoopingVideoPlayer
+              videoURL={organization.hero_video_url}
+              isMuted={true}
+              className="w-full h-full object-cover"
+            />
+            {/* Consistent overlay for video */}
+            <div className="absolute inset-0 bg-black/20"></div>
+          </div>
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-black">
+          <div className="relative w-full h-full flex items-center justify-center bg-black">
             <img
               src={organization.photoURL || '/placeholder-image.jpg'}
               alt={organization.name}
@@ -58,12 +62,14 @@ const MediaSection: React.FC<MediaSectionProps> = ({
               onError={handleImageError}
               loading="eager"
             />
+            {/* Consistent overlay for image to match video appearance */}
+            <div className="absolute inset-0 bg-black/20"></div>
           </div>
         )}
       </div>
       
-      {/* Gradient overlay - matches iOS app's fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/70 to-transparent ios-sheet-top" />
+      {/* Enhanced gradient overlay - more prominent and consistent */}
+      <div className="absolute bottom-0 left-0 right-0 h-36 bg-gradient-to-t from-black/80 via-black/50 to-transparent ios-sheet-top" />
       
       {/* Organization info - positioning matches iOS app */}
       <div className="absolute bottom-4 left-6 flex flex-col">
@@ -78,9 +84,9 @@ const MediaSection: React.FC<MediaSectionProps> = ({
           />
         </div>
         <div className="relative max-w-[85vw]">
-          {/* Background blur for text */}
+          {/* Background blur for text - consistent styling */}
           <div 
-            className="absolute -inset-1 bg-black/30 backdrop-blur-[2px] rounded-lg -z-10"
+            className="absolute -inset-1 bg-black/40 backdrop-blur-[3px] rounded-lg -z-10"
           ></div>
           <h1 
             className="font-marfa font-semibold text-4xl text-white"
