@@ -1,6 +1,8 @@
-// Import components
-import FontAwesomeIcon, { IconStyle as FontAwesomeIconStyle } from './FontAwesomeIcon';
+// Import base components
+import FontAwesomeIcon, { IconStyle } from './FontAwesomeIcon';
 import SVGIcon, { SVGIconStyle } from './SVGIcon';
+import DirectFontAwesomeComponent from './DirectFontAwesome'; 
+import DirectSVGComponent from './DirectSVG';
 import { 
   Icon as OriginalIcon, 
   colorFromHex, 
@@ -11,7 +13,17 @@ import {
 } from './FontAwesome';
 import type { DuotoneColors } from './FontAwesome';
 
-// Re-export utility functions and types
+// Direct exports of core components - these are what components actually import
+export { default as FontAwesomeIcon } from './FontAwesomeIcon';
+export { default as SVGIcon } from './SVGIcon';
+export { default as DirectFontAwesome } from './DirectFontAwesome';
+export { default as DirectSVG } from './DirectSVG';
+
+// Export types and enums
+export { IconStyle, SVGIconStyle };
+export type { DuotoneColors };
+
+// Export utility functions
 export { 
   colorFromHex, 
   DuotoneColorPresets,
@@ -20,29 +32,16 @@ export {
   FontFamilies 
 };
 
-export type { DuotoneColors };
-
-// Re-export styles and enums with unique names
-export { FontAwesomeIconStyle, SVGIconStyle };
-
-// Define clear component exports with unique names
-export const FontIcon = OriginalIcon; // Original icon from FontAwesome.tsx
-export const Icon = SVGIcon; // Primary icon implementation (SVG-based)
-export const FAIcon = FontAwesomeIcon; // Font Awesome font-based icon
-
-// Direct component references with unique names
-export const FontBasedIcon = FontAwesomeIcon; // Font-based implementation 
-export const SVGBasedIcon = SVGIcon; // SVG-based implementation
-
-// Alias exports with clear naming
-export const DirectFAIcon = FontAwesomeIcon; // Used in components expecting the old font implementation
-export const DirectSVGIcon = SVGIcon; // Used in components expecting the SVG implementation
-
-// Debug helpers
-export const DebugFontIcon = FontAwesomeIcon; // For debugging font issues
+// Aliases for components
+export const FAIcon = FontAwesomeIcon;
+export const Icon = SVGIcon;
+export const DebugIcon = FontAwesomeIcon;
+export const DebugFontIcon = FontAwesomeIcon;
+export const DebugFontAwesome = FontAwesomeIcon;
+export const FontIcon = OriginalIcon;
+export const ProperIconStyle = SVGIconStyle;
+export const FontIconStyle = IconStyle;
+export const FontAwesomeIconStyle = IconStyle;
 
 // Default export
-export default SVGIcon;
-
-// NOTE: Do not re-export everything from compatibility.ts to avoid circular dependencies
-// Re-export specific compatibility items as needed 
+export default SVGIcon; 
