@@ -13,6 +13,7 @@ interface SVGIconProps {
   size?: number;
   isActive?: boolean;
   primaryColor?: string;
+  color?: string; // Added for compatibility with DirectFontAwesome
   secondaryColor?: string;
   style?: SVGIconStyle;
   className?: string;
@@ -27,7 +28,8 @@ const SVGIcon: React.FC<SVGIconProps> = ({
   icon,
   size = 24,
   isActive = true,
-  primaryColor = '7b89a3',
+  primaryColor,
+  color, // Support color prop for compatibility
   secondaryColor,
   style = SVGIconStyle.SOLID,
   className = '',
@@ -43,8 +45,10 @@ const SVGIcon: React.FC<SVGIconProps> = ({
     [SVGIconStyle.BRANDS]: 'fa-brands',
   }[style] || 'fa-solid';
   
-  // Format colors
-  const primary = isActive ? hexToColor(primaryColor) : '#808080';
+  // Format colors - support both primaryColor and color props
+  // If color is provided, use it over primaryColor (for backward compatibility)
+  const finalPrimaryColor = color || primaryColor || '7b89a3';
+  const primary = isActive ? hexToColor(finalPrimaryColor) : '#808080';
   const secondary = isActive && secondaryColor ? hexToColor(secondaryColor) : undefined;
   
   // Set inline styles for color and size

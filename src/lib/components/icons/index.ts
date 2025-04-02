@@ -1,45 +1,48 @@
-// Export main components
-export { default as FontAwesomeIcon } from './FontAwesomeIcon';
-export { default as IconDemo } from './IconDemo';
-export { default as DebugIcon } from './DebugIcon';
-export { default as DirectFontAwesome } from './DirectFontAwesome';
-export { default as DebugFontAwesome } from './DebugFontAwesome';
-export { default as ProperFontAwesome } from './ProperFontAwesome';
-
-// Export types and utilities
-export { IconStyle as FontIconStyle } from './FontAwesomeIcon';
-export { IconStyle as ProperIconStyle } from './ProperFontAwesome';
-export { 
-  Icon as FontIcon,
+// Import components
+import FontAwesomeIcon, { IconStyle as FontAwesomeIconStyle } from './FontAwesomeIcon';
+import SVGIcon, { SVGIconStyle } from './SVGIcon';
+import { 
+  Icon as OriginalIcon, 
   colorFromHex, 
   DuotoneColorPresets,
   printAvailableFonts,
   loadFontAwesomeCSS,
-  FontFamilies
+  FontFamilies 
 } from './FontAwesome';
+import type { DuotoneColors } from './FontAwesome';
 
-// Export types
-export type { DuotoneColors } from './FontAwesome';
+// Re-export utility functions and types
+export { 
+  colorFromHex, 
+  DuotoneColorPresets,
+  printAvailableFonts,
+  loadFontAwesomeCSS,
+  FontFamilies 
+};
 
-// Export FontAwesome icon components
-import FontAwesomeIcon, { IconStyle } from './FontAwesomeIcon';
-import SVGIcon, { SVGIconStyle } from './SVGIcon';
+export type { DuotoneColors };
 
-// Create aliases for different icon implementations
-export const FAIcon = FontAwesomeIcon; // The original font-based implementation
-export const Icon = SVGIcon; // Renamed this to keep code compatibility
-export { SVGIconStyle };
-export { IconStyle as FontAwesomeIconStyle };
+// Re-export styles and enums with unique names
+export { FontAwesomeIconStyle, SVGIconStyle };
 
-// Direct export of component
-export const DirectFontAwesome = FontAwesomeIcon;
-export const DirectSVG = SVGIcon;
+// Define clear component exports with unique names
+export const FontIcon = OriginalIcon; // Original icon from FontAwesome.tsx
+export const Icon = SVGIcon; // Primary icon implementation (SVG-based)
+export const FAIcon = FontAwesomeIcon; // Font Awesome font-based icon
 
-// Define proper icon implementation - use SVG by default
-export const ProperFontAwesome = SVGIcon;
-export const ProperIconStyle = SVGIconStyle;
+// Direct component references with unique names
+export const FontBasedIcon = FontAwesomeIcon; // Font-based implementation 
+export const SVGBasedIcon = SVGIcon; // SVG-based implementation
 
-// For debugging font issues
-export const DebugIcon = FontAwesomeIcon;
+// Alias exports with clear naming
+export const DirectFAIcon = FontAwesomeIcon; // Used in components expecting the old font implementation
+export const DirectSVGIcon = SVGIcon; // Used in components expecting the SVG implementation
 
-export default SVGIcon; 
+// Debug helpers
+export const DebugFontIcon = FontAwesomeIcon; // For debugging font issues
+
+// Default export
+export default SVGIcon;
+
+// Re-export compatibility layers to maintain backward compatibility
+export * from './compatibility'; 
