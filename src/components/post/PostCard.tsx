@@ -216,7 +216,7 @@ export default function PostCard({
                 <FontAwesomeIcon
                   icon="ellipsis"
                   size={25}
-                  style={IconStyle.SOLID}
+                  style={IconStyle.CLASSIC}
                   primaryColor="ffffff"
                   isActive={true}
                 />
@@ -236,7 +236,7 @@ export default function PostCard({
                       <FontAwesomeIcon
                         icon="trash-can"
                         size={14}
-                        style={IconStyle.SOLID}
+                        style={IconStyle.CLASSIC}
                         primaryColor="ef4444"
                         isActive={true}
                       />
@@ -334,7 +334,7 @@ export default function PostCard({
                 <FontAwesomeIcon
                   icon="comment"
                   size={20}
-                  style={IconStyle.SOLID}
+                  style={IconStyle.CLASSIC}
                   primaryColor="9ca3af"
                   isActive={true}
                 />
