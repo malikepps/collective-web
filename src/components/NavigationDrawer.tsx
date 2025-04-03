@@ -77,6 +77,11 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
   // If drawer is not open, don't render
   if (!isOpen) return null;
   
+  // Filter out organizations with null IDs
+  const validOrganizations = organizations.filter(
+    item => typeof item.organization.id === 'string' && item.organization.id !== null
+  );
+  
   return (
     <div className="fixed inset-0 z-50 flex">
       {/* Backdrop - semi-transparent overlay */}
@@ -231,32 +236,30 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
             <div className="px-6 py-4 flex justify-center">
               <div className="w-6 h-6 border-2 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
-          ) : organizations.length > 0 ? (
+          ) : validOrganizations.length > 0 ? (
             <ul>
-              {organizations.map(({ organization, relationship }) => (
-                organization.id && (
-                  <li key={organization.id}>
-                    <button 
-                      onClick={() => navigateToOrg(organization.id)}
-                      className="w-full flex items-center py-3 px-6 text-white"
-                    >
-                      <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-700 mr-4 flex-shrink-0">
-                        {organization.imageUrl ? (
-                          <img 
-                            src={organization.imageUrl} 
-                            alt={organization.name} 
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-white">
-                            {organization.name.charAt(0)}
-                          </div>
-                        )}
-                      </div>
-                      <span className="text-lg font-marfa truncate">{organization.name}</span>
-                    </button>
-                  </li>
-                )
+              {validOrganizations.map(({ organization, relationship }) => (
+                <li key={organization.id}>
+                  <button 
+                    onClick={() => navigateToOrg(organization.id as string)}
+                    className="w-full flex items-center py-3 px-6 text-white"
+                  >
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-700 mr-4 flex-shrink-0">
+                      {organization.imageUrl ? (
+                        <img 
+                          src={organization.imageUrl} 
+                          alt={organization.name} 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-white">
+                          {organization.name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-lg font-marfa truncate">{organization.name}</span>
+                  </button>
+                </li>
               ))}
             </ul>
           ) : (
