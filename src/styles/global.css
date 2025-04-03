@@ -34,4 +34,23 @@
 .debug-rocket-icon i.fa-duotone, .debug-filter-icon i.fa-duotone {
   --fa-primary-color: inherit !important;
   --fa-secondary-color: inherit !important;
+}
+
+/* Force the rocket-launch icon to be orange (important) */
+.debug-rocket-icon {
+  color: #ff9500 !important;
+}
+
+.debug-rocket-icon i {
+  color: #ff9500 !important;
+}
+
+/* Ensure FontAwesome regular styles don't override our color */
+.fa-regular.fa-rocket-launch {
+  color: #ff9500 !important;
+}
+
+/* For specific icon targeting */
+i[data-icon="rocket-launch"] {
+  color: #ff9500 !important;
 } 

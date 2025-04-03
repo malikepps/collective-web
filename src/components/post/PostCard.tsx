@@ -360,15 +360,27 @@ export default function PostCard({
                 data-debug="boost-button"
                 style={isBoosted ? {} : { opacity: 0.5 }}
               >
-                <DirectSVG
-                  icon={isBoosted ? "rocket-launch" : "rocket"}
-                  size={20}
-                  style={SVGIconStyle.SOLID}
-                  color={isBoosted ? "rgba(255,149,0,1)" : "ffffff"}
-                  primaryColor={isBoosted ? "rgba(255,149,0,1)" : "ffffff"}
-                  isActive={true}
-                  className="debug-rocket-icon"
-                />
+                {isBoosted ? (
+                  <span style={{color: '#ff9500'}}>
+                    <DirectSVG
+                      icon="rocket-launch"
+                      size={20}
+                      style={SVGIconStyle.REGULAR}
+                      color="ff9500"
+                      primaryColor="ff9500"
+                      isActive={true}
+                      className="debug-rocket-icon"
+                    />
+                  </span>
+                ) : (
+                  <DirectSVG
+                    icon="rocket"
+                    size={20}
+                    style={SVGIconStyle.REGULAR}
+                    primaryColor="ffffff"
+                    isActive={true}
+                  />
+                )}
               </button>
             </div>
           </div>
