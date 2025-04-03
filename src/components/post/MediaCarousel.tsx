@@ -263,16 +263,6 @@ export default function MediaCarousel({
                     />
                   </div>
                 )}
-                
-                {/* Video indicator */}
-                <div className="absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-1 flex items-center justify-center z-5">
-                  <DirectSVG
-                    icon="circle-play"
-                    size={12}
-                    style={SVGIconStyle.SOLID}
-                    primaryColor="ffffff"
-                  />
-                </div>
               </div>
             ) : (
               // Image

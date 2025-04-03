@@ -363,9 +363,9 @@ export default function PostCard({
                 <DirectSVG
                   icon={isBoosted ? "rocket-launch" : "rocket"}
                   size={20}
-                  style={SVGIconStyle.REGULAR}
-                  color={isBoosted ? "ff9500" : "ffffff"}
-                  primaryColor={isBoosted ? "ff9500" : "ffffff"}
+                  style={SVGIconStyle.SOLID}
+                  color={isBoosted ? "rgba(255,149,0,1)" : "ffffff"}
+                  primaryColor={isBoosted ? "rgba(255,149,0,1)" : "ffffff"}
                   isActive={true}
                   className="debug-rocket-icon"
                 />
