@@ -27,6 +27,11 @@ interface CustomCSSProperties extends React.CSSProperties {
 
 // Helper function to convert hex string to CSS color
 const hexToColor = (hex: string): string => {
+  // If it's already in rgb format, return as is
+  if (hex.startsWith('rgb')) {
+    return hex;
+  }
+  // Otherwise, ensure it has a # prefix if it's a hex color
   return hex.startsWith('#') ? hex : `#${hex}`;
 };
 
@@ -200,20 +205,34 @@ const SVGIcon: React.FC<SVGIconProps> = ({
   // Format colors - support both primaryColor and color props
   // If color is provided, use it over primaryColor (for backward compatibility)
   const finalPrimaryColor = color || primaryColor || '7b89a3';
-  const primary = isActive ? hexToColor(finalPrimaryColor) : '#808080';
+  
+  // Special case for rocket-launch to force orange
+  let primary = isActive ? hexToColor(finalPrimaryColor) : '#808080';
+  if (iconName === 'rocket-launch' && finalPrimaryColor.includes('ff9500')) {
+    console.log('[SVGIcon-FIX] Forcing orange color for rocket-launch');
+    primary = '#ff9500'; // Force hex orange
+  }
+  
+  // Special case for bars-filter (used in CollectiveSection)
+  if (iconName === 'bars-filter') {
+    console.log('[SVGIcon-FIX] Processing filter icon with color:', finalPrimaryColor);
+  }
+  
   const secondary = isActive && secondaryColor ? hexToColor(secondaryColor) : undefined;
   
   console.log(`[SVGIcon-DEBUG] Processed colors:`, {
     finalPrimaryColor,
     primary,
     secondary,
-    isActive
+    isActive,
+    iconName
   });
   
   // Set inline styles for color and size with proper typing
   const iconStyle: CustomCSSProperties = {
     fontSize: `${size}px`,
     '--fa-primary-color': primary,
+    color: primary, // Add direct color property too
   };
   
   if (secondary) {

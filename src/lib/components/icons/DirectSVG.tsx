@@ -36,6 +36,21 @@ const DirectSVG: React.FC<DirectSVGProps> = ({
   // Prioritize color over primaryColor for backward compatibility
   const finalPrimaryColor = color || primaryColor;
   
+  // Force specific colors for problematic icons
+  let forcedColor = finalPrimaryColor;
+  
+  // Force orange for rocket-launch
+  if (icon === 'rocket-launch' && forcedColor === 'ff9500') {
+    console.log('[DirectSVG-FIX] Applying special orange color for rocket-launch icon');
+    // Use RGB format instead of hex
+    forcedColor = 'rgb(255, 149, 0)';
+  }
+  
+  // Force specific color for bars-filter
+  if (icon === 'bars-filter') {
+    console.log('[DirectSVG-FIX] Applying special color for bars-filter icon:', forcedColor);
+  }
+  
   // Add debug logging
   console.log(`[DirectSVG-DEBUG] Props for "${icon}":`, {
     icon,
@@ -44,6 +59,7 @@ const DirectSVG: React.FC<DirectSVGProps> = ({
     primaryColor,
     color,
     finalPrimaryColor,
+    forcedColor,
     secondaryColor,
     className,
     isActive
@@ -54,9 +70,9 @@ const DirectSVG: React.FC<DirectSVGProps> = ({
       icon={icon}
       size={size}
       style={style}
-      primaryColor={finalPrimaryColor}
+      primaryColor={forcedColor}
       secondaryColor={secondaryColor}
-      className={className}
+      className={className ? `${className} icon-${icon}` : `icon-${icon}`}
       isActive={isActive}
     />
   );

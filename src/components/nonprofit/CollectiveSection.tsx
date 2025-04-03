@@ -31,6 +31,15 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
   const { getTheme } = useTheme();
   const theme = getTheme(organization.themeId);
   
+  // Add useEffect for debugging
+  useEffect(() => {
+    console.log('[DEBUG] Filter icon color:', {
+      secondaryColor,
+      secondaryColorStripped: secondaryColor.replace(/#/g, ''),
+      colorType: typeof secondaryColor
+    });
+  }, [secondaryColor]);
+  
   useEffect(() => {
     const fetchMembers = async () => {
       if (!organization.id) return;
@@ -194,11 +203,6 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
           >
             {displayFilter === 'all' ? 'Filter' : getFilterLabel()}
           </span>
-          {console.log('[DEBUG] Filter icon color:', {
-            secondaryColor,
-            secondaryColorStripped: secondaryColor.replace(/#/g, ''),
-            colorType: typeof secondaryColor
-          })}
           <div className="flex items-center justify-center">
             <DirectSVG 
               icon="bars-filter"
