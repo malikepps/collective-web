@@ -234,27 +234,29 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
           ) : organizations.length > 0 ? (
             <ul>
               {organizations.map(({ organization, relationship }) => (
-                <li key={organization.id}>
-                  <button 
-                    onClick={() => navigateToOrg(organization.id)}
-                    className="w-full flex items-center py-3 px-6 text-white"
-                  >
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-700 mr-4 flex-shrink-0">
-                      {organization.imageUrl ? (
-                        <img 
-                          src={organization.imageUrl} 
-                          alt={organization.name} 
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white">
-                          {organization.name.charAt(0)}
-                        </div>
-                      )}
-                    </div>
-                    <span className="text-lg font-marfa truncate">{organization.name}</span>
-                  </button>
-                </li>
+                organization.id && (
+                  <li key={organization.id}>
+                    <button 
+                      onClick={() => navigateToOrg(organization.id)}
+                      className="w-full flex items-center py-3 px-6 text-white"
+                    >
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-700 mr-4 flex-shrink-0">
+                        {organization.imageUrl ? (
+                          <img 
+                            src={organization.imageUrl} 
+                            alt={organization.name} 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-white">
+                            {organization.name.charAt(0)}
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-lg font-marfa truncate">{organization.name}</span>
+                    </button>
+                  </li>
+                )
               ))}
             </ul>
           ) : (
