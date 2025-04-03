@@ -221,6 +221,19 @@ const SVGIcon: React.FC<SVGIconProps> = ({
     iconStyle['--fa-secondary-color'] = secondary;
   }
   
+  // Add special handling for debug classes
+  const isDebugIcon = className.includes('debug');
+  if (isDebugIcon) {
+    console.log(`[SVGIcon-DEBUG] This is a debug icon! Setting important styles.`);
+    
+    // Force the color via direct style
+    if (className.includes('debug-rocket-icon') && icon === 'rocket-launch') {
+      // Force orange for rocket-launch
+      iconStyle['--fa-primary-color'] = '#ff9500 !important';
+      iconStyle['color'] = '#ff9500 !important';
+    }
+  }
+  
   // Add additional debug styles to visualize the icon container
   const debugStyles: React.CSSProperties = {
     border: scriptStatus === "error" ? '1px dashed red' : undefined,
