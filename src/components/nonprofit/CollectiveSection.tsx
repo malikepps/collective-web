@@ -31,6 +31,9 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
   const { getTheme } = useTheme();
   const theme = getTheme(organization.themeId);
   
+  // Get secondary color from theme
+  const secondaryColor = theme?.secondaryColor ? `#${theme.secondaryColor}` : '#ADD3FF';
+  
   // Add useEffect for debugging
   useEffect(() => {
     console.log('[DEBUG] Filter icon color:', {
@@ -131,9 +134,6 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
     }
     return PersonCircleStyle.COMMUNITY;
   };
-  
-  // Get secondary color from theme
-  const secondaryColor = theme?.secondaryColor ? `#${theme.secondaryColor}` : '#ADD3FF';
   
   // Determine if we should show two rows (when more than 5 members)
   const showTwoRows = filteredMembers().length > 5;
