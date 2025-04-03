@@ -61,13 +61,13 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
   };
   
   // Navigate to a specific organization profile using username instead of ID
-  const navigateToOrg = (org: { id: string, username?: string | null, name: string }) => {
+  const navigateToOrg = (org: { id: string | null, username?: string | null, name: string }) => {
     onClose();
     
     // Use username if available, otherwise fallback to ID
     if (org.username) {
       router.push(`/nonprofit/${org.username}`);
-    } else {
+    } else if (org.id) {
       router.push(`/nonprofit/${org.id}`);
     }
   };
