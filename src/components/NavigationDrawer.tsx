@@ -60,10 +60,16 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
     router.push(path);
   };
   
-  // Navigate to a specific organization profile
-  const navigateToOrg = (orgId: string) => {
+  // Navigate to a specific organization profile using username instead of ID
+  const navigateToOrg = (org: { id: string, username?: string | null, name: string }) => {
     onClose();
-    router.push(`/nonprofit/${orgId}`);
+    
+    // Use username if available, otherwise fallback to ID
+    if (org.username) {
+      router.push(`/nonprofit/${org.username}`);
+    } else {
+      router.push(`/nonprofit/${org.id}`);
+    }
   };
   
   // If user is not authenticated, redirect to sign in
@@ -91,7 +97,7 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
       />
       
       {/* Drawer panel */}
-      <div className="relative h-full w-4/5 max-w-sm bg-[#1D1D1D] overflow-y-auto">
+      <div className="relative h-full w-4/5 max-w-sm bg-[#1D1D1D] overflow-y-auto pb-16">
         {/* Close button */}
         <div className="absolute top-4 right-4 z-10">
           <button 
@@ -108,49 +114,24 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
           </button>
         </div>
         
-        {/* User profile */}
-        {user && (
-          <div className="py-8 px-4 border-b border-gray-800">
-            <div className="flex items-center">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-700 mr-4">
-                {user.photoURL ? (
-                  <img 
-                    src={user.photoURL} 
-                    alt={user.displayName || 'User profile'} 
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white text-xl font-marfa">
-                    {user.displayName?.charAt(0) || 'U'}
-                  </div>
-                )}
-              </div>
-              <div>
-                <h2 className="text-white text-lg font-marfa">{user.displayName || 'User'}</h2>
-                <p className="text-gray-400 text-sm">Member</p>
-              </div>
-            </div>
-          </div>
-        )}
-        
         {/* Main navigation */}
-        <nav className="py-4">
+        <nav className="py-4 mt-4">
           <ul>
             {/* Home */}
             <li>
               <button 
                 onClick={() => navigateTo('/home')}
-                className="w-full flex items-center py-4 px-6 text-white"
+                className="w-full flex items-center py-3 px-6 text-white"
               >
-                <span className="mr-6">
+                <span className="mr-5">
                   <DirectSVG 
                     icon="house-blank"
-                    size={24}
+                    size={20}
                     style={SVGIconStyle.SOLID}
                     primaryColor="ffffff"
                   />
                 </span>
-                <span className="text-xl font-marfa">Home</span>
+                <span className="text-base font-marfa">Home</span>
               </button>
             </li>
             
@@ -158,17 +139,17 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
             <li>
               <button 
                 onClick={() => navigateTo('/explore', 'Explore')}
-                className="w-full flex items-center py-4 px-6 text-white"
+                className="w-full flex items-center py-3 px-6 text-white"
               >
-                <span className="mr-6">
+                <span className="mr-5">
                   <DirectSVG 
                     icon="magnifying-glass"
-                    size={24}
+                    size={20}
                     style={SVGIconStyle.SOLID}
                     primaryColor="ffffff"
                   />
                 </span>
-                <span className="text-xl font-marfa">Explore</span>
+                <span className="text-base font-marfa">Explore</span>
               </button>
             </li>
             
@@ -176,17 +157,17 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
             <li>
               <button 
                 onClick={() => navigateTo('/community', 'Community')}
-                className="w-full flex items-center py-4 px-6 text-white"
+                className="w-full flex items-center py-3 px-6 text-white"
               >
-                <span className="mr-6">
+                <span className="mr-5">
                   <DirectSVG 
                     icon="comments"
-                    size={24}
+                    size={20}
                     style={SVGIconStyle.SOLID}
                     primaryColor="ffffff"
                   />
                 </span>
-                <span className="text-xl font-marfa">Community</span>
+                <span className="text-base font-marfa">Community</span>
               </button>
             </li>
             
@@ -194,17 +175,17 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
             <li>
               <button 
                 onClick={() => navigateTo('/notifications', 'Notifications')}
-                className="w-full flex items-center py-4 px-6 text-white"
+                className="w-full flex items-center py-3 px-6 text-white"
               >
-                <span className="mr-6">
+                <span className="mr-5">
                   <DirectSVG 
                     icon="bells"
-                    size={24}
+                    size={20}
                     style={SVGIconStyle.SOLID}
                     primaryColor="ffffff"
                   />
                 </span>
-                <span className="text-xl font-marfa">Notifications</span>
+                <span className="text-base font-marfa">Notifications</span>
               </button>
             </li>
             
@@ -212,25 +193,25 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
             <li>
               <button 
                 onClick={() => navigateTo('/settings', 'Settings')}
-                className="w-full flex items-center py-4 px-6 text-white"
+                className="w-full flex items-center py-3 px-6 text-white"
               >
-                <span className="mr-6">
+                <span className="mr-5">
                   <DirectSVG 
                     icon="gear"
-                    size={24}
+                    size={20}
                     style={SVGIconStyle.SOLID}
                     primaryColor="ffffff"
                   />
                 </span>
-                <span className="text-xl font-marfa">Settings</span>
+                <span className="text-base font-marfa">Settings</span>
               </button>
             </li>
           </ul>
         </nav>
         
         {/* Organizations Section */}
-        <div className="pt-4 pb-20 border-t border-gray-800">
-          <h3 className="px-6 mb-4 text-gray-400 text-lg font-marfa">Your organizations</h3>
+        <div className="pt-4 pb-20">
+          <h3 className="px-6 mb-3 text-gray-400 text-sm font-marfa">Your organizations</h3>
           
           {orgsLoading ? (
             <div className="px-6 py-4 flex justify-center">
@@ -241,10 +222,10 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
               {validOrganizations.map(({ organization, relationship }) => (
                 <li key={organization.id}>
                   <button 
-                    onClick={() => navigateToOrg(organization.id as string)}
-                    className="w-full flex items-center py-3 px-6 text-white"
+                    onClick={() => navigateToOrg(organization)}
+                    className="w-full flex items-center py-2 px-6 text-white"
                   >
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-700 mr-4 flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-700 mr-3 flex-shrink-0">
                       {organization.photoURL ? (
                         <img 
                           src={organization.photoURL} 
@@ -252,29 +233,29 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white">
+                        <div className="w-full h-full flex items-center justify-center text-white text-sm">
                           {organization.name.charAt(0)}
                         </div>
                       )}
                     </div>
-                    <span className="text-lg font-marfa truncate">{organization.name}</span>
+                    <span className="text-sm font-marfa truncate">{organization.name}</span>
                   </button>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="px-6 text-gray-500">You don't have any organizations yet.</p>
+            <p className="px-6 text-gray-500 text-sm">You don't have any organizations yet.</p>
           )}
         </div>
         
         {/* User profile link (sticky at bottom) */}
         {user && (
-          <div className="absolute bottom-0 left-0 right-0 border-t border-gray-800 bg-[#1D1D1D]">
+          <div className="fixed bottom-0 left-0 right-0 bg-[#1D1D1D] z-10 w-4/5 max-w-sm">
             <button 
               onClick={() => navigateTo('/profile', 'Profile')}
-              className="w-full flex items-center py-4 px-6 text-white"
+              className="w-full flex items-center py-3 px-6 text-white"
             >
-              <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-700 mr-4">
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-700 mr-3">
                 {user.photoURL ? (
                   <img 
                     src={user.photoURL} 
@@ -282,12 +263,12 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white">
+                  <div className="w-full h-full flex items-center justify-center text-white text-sm">
                     {user.displayName?.charAt(0) || 'U'}
                   </div>
                 )}
               </div>
-              <span className="text-lg font-marfa">{user.displayName || 'Profile'}</span>
+              <span className="text-sm font-marfa">{user.displayName || 'Profile'}</span>
             </button>
           </div>
         )}
