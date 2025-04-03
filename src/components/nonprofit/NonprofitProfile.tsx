@@ -9,6 +9,7 @@ import MembershipOptionsView from './MembershipOptionsView';
 import CollectiveSection from './CollectiveSection';
 import FilterBottomSheet from './FilterBottomSheet';
 import PostsSection from './PostsSection';
+import NavigationDrawer from '../NavigationDrawer';
 import { DirectSVG } from '@/lib/components/icons';
 import { SVGIconStyle } from '@/lib/components/icons/SVGIcon';
 import { useTheme } from '@/lib/context/ThemeContext';
@@ -35,6 +36,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   const [displayFilter, setDisplayFilter] = useState('all');
   const [showLeaveConfirmation, setShowLeaveConfirmation] = useState(false);
   const [isNavbarFixed, setIsNavbarFixed] = useState(false);
+  const [showNavigationDrawer, setShowNavigationDrawer] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const navbarRef = useRef<HTMLDivElement>(null);
   const navbarHeight = 40; // Height of the navbar in pixels
@@ -84,7 +86,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   // Apply overflow hidden to body when modals are open
   useEffect(() => {
     const isAnyModalOpen = showLinksSheet || showMissionSheet || showMembershipOptions || 
-                          showFilterSheet || showLeaveConfirmation;
+                          showFilterSheet || showLeaveConfirmation || showNavigationDrawer;
     
     // Get the html and body elements
     const htmlElement = document.documentElement;
@@ -111,7 +113,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
       htmlElement.style.scrollbarWidth = '';
       bodyElement.style.scrollbarWidth = '';
     };
-  }, [showLinksSheet, showMissionSheet, showMembershipOptions, showFilterSheet, showLeaveConfirmation]);
+  }, [showLinksSheet, showMissionSheet, showMembershipOptions, showFilterSheet, showLeaveConfirmation, showNavigationDrawer]);
   
   // Modal handlers
   const handleShowLinks = () => {
@@ -138,6 +140,14 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
     console.log("[DEBUG] Leaving community for org:", organization.id);
     await toggleCommunity();
     setShowLeaveConfirmation(false);
+  };
+
+  const handleOpenNavigationDrawer = () => {
+    setShowNavigationDrawer(true);
+  };
+  
+  const handleCloseNavigationDrawer = () => {
+    setShowNavigationDrawer(false);
   };
   
   // Calculate navbar background opacity based on scroll
@@ -204,9 +214,9 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
           className="flex items-center justify-between px-4"
           style={navbarStyles}
         >
-          {/* Back button */}
+          {/* Menu button */}
           <button 
-            onClick={() => router.back()}
+            onClick={handleOpenNavigationDrawer}
             className="flex items-center justify-center overflow-hidden icon-shadow"
           >
             <DirectSVG 
@@ -307,6 +317,12 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
           isOpen={showFilterSheet}
           onClose={() => setShowFilterSheet(false)}
           theme={theme}
+        />
+        
+        {/* Navigation drawer */}
+        <NavigationDrawer 
+          isOpen={showNavigationDrawer}
+          onClose={handleCloseNavigationDrawer}
         />
         
         {/* Leave confirmation dialog */}
