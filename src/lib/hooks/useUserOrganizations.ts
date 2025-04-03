@@ -71,7 +71,8 @@ export function useUserOrganizations() {
               communityRef: '',
               communityDisplayName: null,
               userID: null,
-              igAccessToken: ''
+              igAccessToken: '',
+              welcomeMessage: orgData.welcome_message || null
             };
             
             return {
