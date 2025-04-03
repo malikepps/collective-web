@@ -51,11 +51,27 @@ export function useUserOrganizations() {
             const organization: Organization = {
               id: relationship.nonprofitId,
               name: orgData.name || 'Unknown Organization',
-              username: orgData.username,
-              imageUrl: orgData.image_url || null,
+              username: orgData.username || null,
+              photoURL: orgData.photo_url || '',
               description: orgData.description || '',
               themeId: orgData.theme_id || null,
-              // Add other organization fields as needed
+              location: '',
+              zipCode: '',
+              city: '',
+              state: '',
+              latitude: null,
+              longitude: null,
+              staff: null,
+              members: null,
+              pitch: '',
+              linkInBio: '',
+              videoURL: '',
+              hero_video_url: null,
+              membershipFee: null,
+              communityRef: '',
+              communityDisplayName: null,
+              userID: null,
+              igAccessToken: ''
             };
             
             return {

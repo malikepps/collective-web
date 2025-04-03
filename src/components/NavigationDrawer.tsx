@@ -245,9 +245,9 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
                     className="w-full flex items-center py-3 px-6 text-white"
                   >
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-700 mr-4 flex-shrink-0">
-                      {organization.imageUrl ? (
+                      {organization.photoURL ? (
                         <img 
-                          src={organization.imageUrl} 
+                          src={organization.photoURL} 
                           alt={organization.name} 
                           className="w-full h-full object-cover"
                         />
