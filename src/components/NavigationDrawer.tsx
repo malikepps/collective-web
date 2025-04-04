@@ -68,6 +68,12 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
   
   // Navigation functions
   const navigateTo = (path: string) => {
+    // Check if user is authenticated before navigating
+    if (!user) {
+      onClose();
+      router.push('/onboarding');
+      return;
+    }
     // Close the drawer first
     onClose();
     
@@ -77,6 +83,13 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
   
   // Navigate to a specific organization profile using username instead of ID
   const navigateToOrg = (org: { id: string | null, username?: string | null, name: string }) => {
+    // Check if user is authenticated before navigating
+    if (!user) {
+      onClose();
+      router.push('/onboarding');
+      return;
+    }
+    
     onClose();
     
     // Use username if available, otherwise fallback to ID
@@ -86,14 +99,6 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
       router.push(`/${org.id}`);
     }
   };
-  
-  // If user is not authenticated, redirect to sign in
-  useEffect(() => {
-    if (!authLoading && !user && isOpen) {
-      onClose();
-      router.push('/onboarding');
-    }
-  }, [authLoading, user, isOpen, onClose, router]);
   
   // If drawer is not open, don't render
   if (!isOpen) return null;
@@ -279,7 +284,15 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
         {(user || storedUserData) && (
           <div className="fixed bottom-0 left-0 right-0 bg-[#1D1D1D] z-10 w-4/5 max-w-sm">
             <button 
-              onClick={() => navigateTo('/profile')}
+              onClick={() => {
+                // Check authentication before navigating to profile
+                if (!user) {
+                  onClose();
+                  router.push('/onboarding');
+                } else {
+                  navigateTo('/profile');
+                }
+              }}
               className="w-full flex items-center py-3 px-6 text-white"
             >
               <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-700 mr-3">

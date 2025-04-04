@@ -88,8 +88,29 @@ export function useUserOrganizations() {
         const results = await Promise.all(orgPromises);
         const validResults = results.filter((result): result is OrganizationWithRelationship => result !== null);
         
+        // Deduplicate organizations, prioritizing manager/member roles
+        const uniqueOrgs = new Map<string, OrganizationWithRelationship>();
+        validResults.forEach(item => {
+          const existing = uniqueOrgs.get(item.organization.id);
+          if (!existing) {
+            uniqueOrgs.set(item.organization.id, item);
+          } else {
+            // Prioritize manager role
+            if (item.relationship.isManager && !existing.relationship.isManager) {
+              uniqueOrgs.set(item.organization.id, item);
+            } 
+            // Prioritize member role if current isn't manager and existing isn't manager/member
+            else if (item.relationship.isMember && !existing.relationship.isManager && !existing.relationship.isMember) {
+              uniqueOrgs.set(item.organization.id, item);
+            }
+            // Otherwise, keep the existing one (which might already be manager/member or the first one encountered)
+          }
+        });
+        
+        const deduplicatedResults = Array.from(uniqueOrgs.values());
+
         // Sort: staff/manager first, then members, then community
-        validResults.sort((a, b) => {
+        deduplicatedResults.sort((a, b) => {
           // First sort by manager/staff status
           if (a.relationship.isManager && !b.relationship.isManager) return -1;
           if (!a.relationship.isManager && b.relationship.isManager) return 1;
@@ -102,7 +123,7 @@ export function useUserOrganizations() {
           return a.organization.name.localeCompare(b.organization.name);
         });
         
-        setOrganizations(validResults);
+        setOrganizations(deduplicatedResults);
         setError(null);
       } catch (err) {
         console.error('[DEBUG] Error in useUserOrganizations:', err);
