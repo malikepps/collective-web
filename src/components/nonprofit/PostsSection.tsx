@@ -125,7 +125,7 @@ export default function PostsSection({
             <button 
               className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
                 selectedTab === 'regular' 
-                  ? 'bg-white/20 text-white' 
+                  ? 'bg-white/20 text-white'
                   : 'text-gray-400 hover:text-white'
               }`}
               onClick={() => setSelectedTab('regular')}
@@ -135,7 +135,7 @@ export default function PostsSection({
             <button 
               className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
                 selectedTab === 'membersOnly' 
-                  ? 'bg-white/20 text-white' 
+                  ? 'bg-white/20 text-white'
                   : 'text-gray-400 hover:text-white'
               }`}
               onClick={() => setSelectedTab('membersOnly')}
@@ -181,7 +181,7 @@ export default function PostsSection({
             <button 
               className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
                 selectedTab === 'regular' 
-                  ? 'bg-white/20 text-white' 
+                  ? 'bg-white/20 text-white'
                   : 'text-gray-400 hover:text-white'
               }`}
               onClick={() => setSelectedTab('regular')}
@@ -191,7 +191,7 @@ export default function PostsSection({
             <button 
               className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
                 selectedTab === 'membersOnly' 
-                  ? 'bg-white/20 text-white' 
+                  ? 'bg-white/20 text-white'
                   : 'text-gray-400 hover:text-white'
               }`}
               onClick={() => setSelectedTab('membersOnly')}
@@ -221,7 +221,7 @@ export default function PostsSection({
             <button 
               className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
                 selectedTab === 'regular' 
-                  ? 'bg-white/20 text-white' 
+                  ? 'bg-white/20 text-white'
                   : 'text-gray-400 hover:text-white'
               }`}
               onClick={() => setSelectedTab('regular')}
@@ -231,7 +231,7 @@ export default function PostsSection({
             <button 
               className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
                 selectedTab === 'membersOnly' 
-                  ? 'bg-white/20 text-white' 
+                  ? 'bg-white/20 text-white'
                   : 'text-gray-400 hover:text-white'
               }`}
               onClick={() => setSelectedTab('membersOnly')}
@@ -259,7 +259,7 @@ export default function PostsSection({
           <button 
             className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
               selectedTab === 'regular' 
-                ? 'bg-white/20 text-white' 
+                ? 'bg-white/20 text-white'
                 : 'text-gray-400 hover:text-white'
             }`}
             onClick={() => setSelectedTab('regular')}
@@ -269,7 +269,7 @@ export default function PostsSection({
           <button 
             className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
               selectedTab === 'membersOnly' 
-                ? 'bg-white/20 text-white' 
+                ? 'bg-white/20 text-white'
                 : 'text-gray-400 hover:text-white'
             }`}
             onClick={() => setSelectedTab('membersOnly')}

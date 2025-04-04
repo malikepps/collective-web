@@ -205,7 +205,7 @@ export default function PostCard({
         <div className="relative overflow-hidden w-full" style={{ borderTopLeftRadius: '0.75rem', borderTopRightRadius: '0.75rem' }}>
           {/* Staff Menu Button - now positioned on top of media */}
           {isUserStaff && (
-            <div className="absolute top-2 right-2 z-20">
+            <div className="absolute top-1 right-1 z-20">
               <button 
                 className="text-white p-1.5 flex items-center justify-center" 
                 onClick={() => setShowMenu(!showMenu)}
@@ -256,10 +256,11 @@ export default function PostCard({
           )}
           
           {/* Media */}
-          <div onClick={onShowDetail} className="w-full relative h-[400px]">
+          <div onClick={onShowDetail} className="w-full relative">
             <MediaCarousel 
               mediaItems={mediaItems}
               onDoubleTap={handleDoubleTap}
+              aspectRatio={1.2}
               onPlayVideo={onShowDetail}
             />
             
@@ -278,7 +279,7 @@ export default function PostCard({
       {shouldRenderContent && (
         <>
           {/* Date moved above caption */}
-          <div className="px-4 pt-3 text-gray-300 text-sm">
+          <div className="px-4 pt-2 text-gray-300 text-sm">
             {formattedDate}
           </div>
           

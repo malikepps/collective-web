@@ -1,0 +1,18 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+# Your rule content
+
+- Always push all changes to github using terminal commands. The correct repo is called "collective-web"
+
+## Vercel Build Monitoring
+
+- After pushing changes to GitHub (`git push`), always monitor the resulting Vercel build.
+- Use the Vercel CLI for quick checks:
+  - `vercel logs` - To view the logs of the latest deployment attempt.
+  - `vercel list` - To see the status of recent deployments.
+- Alternatively, check the build status directly on the Vercel dashboard or via GitHub commit checks.
+

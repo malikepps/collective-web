@@ -169,7 +169,7 @@ const MembershipTierCard: React.FC<MembershipTierCardProps> = ({
             <DirectFontAwesome
               icon={expanded ? 'chevron-up' : 'chevron-down'}
               size={12}
-              color={secondaryColor}
+              color={secondaryColor.replace('#', '')}
             />
           </button>
         )}
