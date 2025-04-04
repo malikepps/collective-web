@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/lib/context/AuthContext';
 import { useUserOrganizations } from '@/lib/hooks/useUserOrganizations';
@@ -10,10 +10,34 @@ interface NavigationDrawerProps {
   onClose: () => void;
 }
 
+interface StoredUserData {
+  uid?: string;
+  displayName?: string;
+  photoURL?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+}
+
 const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) => {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { organizations, loading: orgsLoading } = useUserOrganizations();
+  const [storedUserData, setStoredUserData] = useState<StoredUserData | null>(null);
+  
+  // Get localStorage user data
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const storedData = localStorage.getItem('auth_user');
+        if (storedData) {
+          setStoredUserData(JSON.parse(storedData));
+        }
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+      }
+    }
+  }, []);
   
   // Close drawer on Escape key
   useEffect(() => {
@@ -74,19 +98,22 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
   // If drawer is not open, don't render
   if (!isOpen) return null;
   
-  // Filter and deduplicate organizations
-  const validOrganizations = organizations
-    .filter(item => typeof item.organization.id === 'string' && item.organization.id !== null)
-    // Create a Map with organization ID as key to remove duplicates
-    .reduce((acc, current) => {
-      const orgId = current.organization.id as string;
-      // If we already have this org and it's a manager/staff relationship, keep that one
-      if (!acc.has(orgId) || current.relationship.isManager) {
-        acc.set(orgId, current);
-      }
-      return acc;
-    }, new Map())
-    .values();
+  // Filter out organizations with null IDs and deduplicate by ID
+  const validOrganizations = organizations.filter(
+    item => typeof item.organization.id === 'string' && item.organization.id !== null
+  );
+  
+  // Get user display info from either auth user or localStorage
+  const userName = user?.displayName || storedUserData?.displayName || 
+                  (storedUserData?.firstName && `${storedUserData.firstName} ${storedUserData.lastName || ''}`) || 
+                  user?.email || 'Profile';
+  
+  const userPhotoURL = user?.photoURL || storedUserData?.photoURL;
+  const userInitial = (userName !== 'Profile' ? userName.charAt(0) : 'U');
+  
+  // For debugging
+  console.log('User info:', { userName, userPhotoURL, user, storedUserData });
+  console.log('Orgs count:', validOrganizations.length);
   
   return (
     <div className="fixed inset-0 z-50 flex">
@@ -217,10 +244,10 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
             <div className="px-6 py-4 flex justify-center">
               <div className="w-6 h-6 border-2 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
-          ) : Array.from(validOrganizations).length > 0 ? (
+          ) : validOrganizations.length > 0 ? (
             <ul>
-              {Array.from(validOrganizations).map(({ organization, relationship }) => (
-                <li key={organization.id}>
+              {validOrganizations.map(({ organization, relationship }) => (
+                <li key={`${organization.id}-${relationship.id}`}>
                   <button 
                     onClick={() => navigateToOrg(organization)}
                     className="w-full flex items-center py-2 px-6 text-white"
@@ -249,26 +276,26 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
         </div>
         
         {/* User profile link (sticky at bottom) */}
-        {user && (
+        {(user || storedUserData) && (
           <div className="fixed bottom-0 left-0 right-0 bg-[#1D1D1D] z-10 w-4/5 max-w-sm">
             <button 
               onClick={() => navigateTo('/profile')}
               className="w-full flex items-center py-3 px-6 text-white"
             >
               <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-700 mr-3">
-                {user.photoURL ? (
+                {userPhotoURL ? (
                   <img 
-                    src={user.photoURL} 
-                    alt={user.displayName || 'User profile'} 
+                    src={userPhotoURL} 
+                    alt={userName} 
                     className="w-full h-full object-cover"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-white text-sm">
-                    {(user.displayName || user.email || 'U').charAt(0)}
+                    {userInitial}
                   </div>
                 )}
               </div>
-              <span className="text-sm font-marfa">{user.displayName || user.email || 'Profile'}</span>
+              <span className="text-sm font-marfa">{userName}</span>
             </button>
           </div>
         )}
