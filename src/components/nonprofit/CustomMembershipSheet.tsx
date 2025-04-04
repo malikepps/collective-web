@@ -46,6 +46,8 @@ const CustomMembershipSheet: React.FC<CustomMembershipSheetProps> = ({
           <span className="text-white font-marfa font-semibold text-6xl mr-1">$</span>
           <input
             type="text"
+            inputMode="numeric"
+            autoFocus
             className="bg-transparent text-white font-marfa font-semibold text-6xl w-32 text-center focus:outline-none"
             placeholder="25"
             value={amount}
