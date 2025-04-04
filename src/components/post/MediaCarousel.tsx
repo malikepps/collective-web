@@ -270,7 +270,7 @@ export default function MediaCarousel({
                 ref={setImageRef(index)}
                 src={item.url}
                 alt="Post media"
-                className="w-full h-auto bg-black" 
+                className="w-full h-full object-cover bg-black" 
                 onLoad={() => handleImageLoad(index)}
                 onError={(e) => handleImageError(e, index)}
                 loading="eager"
