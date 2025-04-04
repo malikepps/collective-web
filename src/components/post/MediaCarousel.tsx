@@ -235,17 +235,25 @@ export default function MediaCarousel({
         {sortedMediaItems.map((item, index) => (
           <div 
             key={item.id || `item-${index}`} 
-            className="min-w-full h-full flex-shrink-0 relative bg-black"
+            className="min-w-full h-full flex-shrink-0 relative"
           >
             {item.type === MediaType.VIDEO ? (
-              // Video Thumbnail remains object-cover
+              // Video Thumbnail with Play Button
               <div className="absolute inset-0 bg-black">
                 {(item.thumbnailUrl || item.url) && (
                   <img
                     ref={setImageRef(index)}
                     src={item.thumbnailUrl || item.url}
                     alt="Video thumbnail"
-                    className="w-full h-full object-cover" 
+                    className="w-full h-full object-cover"
+                    style={{
+                      position: 'absolute', 
+                      top: '0', 
+                      left: '0', 
+                      width: '100%', 
+                      height: '100%', 
+                      objectFit: 'cover' 
+                    }}
                     onLoad={() => handleImageLoad(index)}
                     onError={(e) => handleImageError(e, index)}
                     loading="eager"
@@ -265,27 +273,24 @@ export default function MediaCarousel({
                 )}
               </div>
             ) : (
-              // Image - Use object-contain with blurred background
-              <>
-                {/* Background Blurred Image */}
-                <img
-                  src={item.url}
-                  alt=""
-                  className="absolute inset-0 w-full h-full object-cover filter blur-lg scale-110 opacity-75 z-0" 
-                  aria-hidden="true"
-                  loading="lazy" // Background can lazy load
-                />
-                {/* Foreground Image */}
-                <img
-                  ref={setImageRef(index)}
-                  src={item.url}
-                  alt="Post media"
-                  className="relative w-full h-full object-contain z-10" // Note: removed bg-black here
-                  onLoad={() => handleImageLoad(index)}
-                  onError={(e) => handleImageError(e, index)}
-                  loading="eager"
-                />
-              </>
+              // Image
+              <img
+                ref={setImageRef(index)}
+                src={item.url}
+                alt="Post media"
+                className="w-full h-full object-cover bg-black"
+                style={{
+                  position: 'absolute', 
+                  top: '0', 
+                  left: '0', 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'cover' 
+                }}
+                onLoad={() => handleImageLoad(index)}
+                onError={(e) => handleImageError(e, index)}
+                loading="eager"
+              />
             )}
           </div>
         ))}
