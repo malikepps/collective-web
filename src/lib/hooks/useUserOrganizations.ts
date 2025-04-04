@@ -50,7 +50,7 @@ export function useUserOrganizations() {
             const orgData = orgSnapshot.docs[0].data();
             const organization: Organization = {
               id: relationship.nonprofitId,
-              name: orgData.name || 'Unknown Organization',
+              name: orgData.display_name || 'Unknown Organization',
               username: orgData.username || null,
               photoURL: orgData.photo_url || '',
               description: orgData.description || '',
@@ -91,19 +91,24 @@ export function useUserOrganizations() {
         // Deduplicate organizations, prioritizing manager/member roles
         const uniqueOrgs = new Map<string, OrganizationWithRelationship>();
         validResults.forEach(item => {
-          const existing = uniqueOrgs.get(item.organization.id);
-          if (!existing) {
-            uniqueOrgs.set(item.organization.id, item);
-          } else {
-            // Prioritize manager role
-            if (item.relationship.isManager && !existing.relationship.isManager) {
+          // Only process items with a valid string ID
+          if (typeof item.organization.id === 'string') { 
+            const existing = uniqueOrgs.get(item.organization.id);
+            if (!existing) {
               uniqueOrgs.set(item.organization.id, item);
-            } 
-            // Prioritize member role if current isn't manager and existing isn't manager/member
-            else if (item.relationship.isMember && !existing.relationship.isManager && !existing.relationship.isMember) {
-              uniqueOrgs.set(item.organization.id, item);
+            } else {
+              // Prioritize manager role
+              if (item.relationship.isManager && !existing.relationship.isManager) {
+                uniqueOrgs.set(item.organization.id, item);
+              } 
+              // Prioritize member role if current isn't manager and existing isn't manager/member
+              else if (item.relationship.isMember && !existing.relationship.isManager && !existing.relationship.isMember) {
+                uniqueOrgs.set(item.organization.id, item);
+              }
+              // Otherwise, keep the existing one (which might already be manager/member or the first one encountered)
             }
-            // Otherwise, keep the existing one (which might already be manager/member or the first one encountered)
+          } else {
+             console.warn('[DEBUG] Skipping organization with null ID during deduplication:', item);
           }
         });
         
