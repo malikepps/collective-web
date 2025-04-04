@@ -1,12 +1,12 @@
 import React from 'react';
 import UserProfilePage from '@/components/profile/UserProfilePage';
-import AppLayout from '@/components/layout/AppLayout'; // Assuming you have a main layout
+import Layout from '@/components/layout/Layout'; // Use the correct Layout component
 
 const Profile: React.FC = () => {
   return (
-    <AppLayout>
+    <Layout>
       <UserProfilePage />
-    </AppLayout>
+    </Layout>
   );
 };
 
