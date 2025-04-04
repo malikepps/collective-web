@@ -89,7 +89,7 @@ const MembershipOptionsView: React.FC<MembershipOptionsViewProps> = ({
           {/* Custom payment option button - changed to just "Custom" */}
           <button
             onClick={() => setShowCustomSheet(true)}
-            className="w-full py-3 mb-6 bg-[#2A2A2A] rounded-lg font-marfa font-medium text-base text-white border border-dashed border-white/50"
+            className="w-full py-3 mb-6 bg-[#2A2A2A] rounded-lg font-marfa font-medium text-base text-white border-2 border-dashed border-white/50"
           >
             Custom
           </button>

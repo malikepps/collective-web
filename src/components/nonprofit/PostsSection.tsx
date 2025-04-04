@@ -7,6 +7,7 @@ import { Post } from '@/lib/models/Post';
 import PostCard from '../post/PostCard';
 import PostDetail from '../post/PostDetail';
 import { DirectFontAwesome } from '@/lib/components/icons';
+import { useTheme } from '@/lib/context/ThemeContext';
 
 interface PostsSectionProps {
   organization: Organization;
@@ -25,6 +26,12 @@ export default function PostsSection({
 }: PostsSectionProps) {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [selectedTab, setSelectedTab] = useState<'regular' | 'membersOnly'>('regular');
+  const { getTheme } = useTheme();
+  const theme = organization.themeId ? getTheme(organization.themeId) : undefined;
+  
+  const secondaryColor = theme?.secondaryColor ? 
+    (theme.secondaryColor.startsWith('#') ? theme.secondaryColor : `#${theme.secondaryColor}`) : 
+    '#ADD3FF';
   
   // Get posts with the current filter
   const { posts: regularPosts, loading: regularLoading, error: regularError, deletePost } = usePosts(organization.id, {
@@ -123,21 +130,23 @@ export default function PostsSection({
           {/* Tab switcher with updated design */}
           <div className="flex items-center space-x-1">
             <button 
-              className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
+              className={`py-1.5 px-4 ios-rounded-sm transition-all duration-200 ${
                 selectedTab === 'regular' 
                   ? 'bg-white/20 text-white'
-                  : 'text-gray-400 hover:text-white'
+                  : 'hover:bg-white/10'
               }`}
+              style={selectedTab !== 'regular' ? { color: secondaryColor } : {}}
               onClick={() => setSelectedTab('regular')}
             >
               Feed
             </button>
             <button 
-              className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
+              className={`py-1.5 px-4 ios-rounded-sm transition-all duration-200 ${
                 selectedTab === 'membersOnly' 
                   ? 'bg-white/20 text-white'
-                  : 'text-gray-400 hover:text-white'
+                  : 'hover:bg-white/10'
               }`}
+              style={selectedTab !== 'membersOnly' ? { color: secondaryColor } : {}}
               onClick={() => setSelectedTab('membersOnly')}
             >
               ✨ Members
@@ -179,21 +188,23 @@ export default function PostsSection({
           {/* Tab switcher with updated design */}
           <div className="flex items-center space-x-1">
             <button 
-              className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
+              className={`py-1.5 px-4 ios-rounded-sm transition-all duration-200 ${
                 selectedTab === 'regular' 
                   ? 'bg-white/20 text-white'
-                  : 'text-gray-400 hover:text-white'
+                  : 'hover:bg-white/10'
               }`}
+              style={selectedTab !== 'regular' ? { color: secondaryColor } : {}}
               onClick={() => setSelectedTab('regular')}
             >
               Feed
             </button>
             <button 
-              className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
+              className={`py-1.5 px-4 ios-rounded-sm transition-all duration-200 ${
                 selectedTab === 'membersOnly' 
                   ? 'bg-white/20 text-white'
-                  : 'text-gray-400 hover:text-white'
+                  : 'hover:bg-white/10'
               }`}
+              style={selectedTab !== 'membersOnly' ? { color: secondaryColor } : {}}
               onClick={() => setSelectedTab('membersOnly')}
             >
               ✨ Members
@@ -219,21 +230,23 @@ export default function PostsSection({
           {/* Tab switcher with updated design */}
           <div className="flex items-center space-x-1">
             <button 
-              className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
+              className={`py-1.5 px-4 ios-rounded-sm transition-all duration-200 ${
                 selectedTab === 'regular' 
                   ? 'bg-white/20 text-white'
-                  : 'text-gray-400 hover:text-white'
+                  : 'hover:bg-white/10'
               }`}
+              style={selectedTab !== 'regular' ? { color: secondaryColor } : {}}
               onClick={() => setSelectedTab('regular')}
             >
               Feed
             </button>
             <button 
-              className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
+              className={`py-1.5 px-4 ios-rounded-sm transition-all duration-200 ${
                 selectedTab === 'membersOnly' 
                   ? 'bg-white/20 text-white'
-                  : 'text-gray-400 hover:text-white'
+                  : 'hover:bg-white/10'
               }`}
+              style={selectedTab !== 'membersOnly' ? { color: secondaryColor } : {}}
               onClick={() => setSelectedTab('membersOnly')}
             >
               ✨ Members
@@ -257,21 +270,23 @@ export default function PostsSection({
         {/* Tab switcher with updated design */}
         <div className="flex items-center space-x-1">
           <button 
-            className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
+            className={`py-1.5 px-4 ios-rounded-sm transition-all duration-200 ${
               selectedTab === 'regular' 
                 ? 'bg-white/20 text-white'
-                : 'text-gray-400 hover:text-white'
+                : 'hover:bg-white/10'
             }`}
+            style={selectedTab !== 'regular' ? { color: secondaryColor } : {}}
             onClick={() => setSelectedTab('regular')}
           >
             Feed
           </button>
           <button 
-            className={`py-1.5 px-4 rounded-full transition-all duration-200 ${
+            className={`py-1.5 px-4 ios-rounded-sm transition-all duration-200 ${
               selectedTab === 'membersOnly' 
                 ? 'bg-white/20 text-white'
-                : 'text-gray-400 hover:text-white'
+                : 'hover:bg-white/10'
             }`}
+            style={selectedTab !== 'membersOnly' ? { color: secondaryColor } : {}}
             onClick={() => setSelectedTab('membersOnly')}
           >
             ✨ Members

@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MembershipTier } from '@/lib/models/MembershipTier';
 import { isColorLight } from '@/lib/models/Theme';
 import { Theme } from '@/lib/models/Theme';
-import { DirectFontAwesome } from '@/lib/components/icons';
+import { DirectSVG } from '@/lib/components/icons';
+import { SVGIconStyle } from '@/lib/components/icons/SVGIcon';
 
 interface MembershipTierCardProps {
   tier: MembershipTier;
@@ -99,7 +100,7 @@ const MembershipTierCard: React.FC<MembershipTierCardProps> = ({
           style={{ backgroundColor: primaryColor }}
         >
           <div className="mr-2">
-            <DirectFontAwesome
+            <DirectSVG
               icon="star"
               size={12}
               color={textColor}
@@ -166,10 +167,11 @@ const MembershipTierCard: React.FC<MembershipTierCardProps> = ({
             >
               {expanded ? 'Show less' : 'Show more'}
             </span>
-            <DirectFontAwesome
+            <DirectSVG
               icon={expanded ? 'chevron-up' : 'chevron-down'}
               size={12}
-              color={secondaryColor.replace('#', '')}
+              style={SVGIconStyle.SOLID}
+              primaryColor={secondaryColor.replace('#', '')}
             />
           </button>
         )}
