@@ -4,7 +4,7 @@ import { useUserOrganizations } from '@/lib/hooks/useUserOrganizations';
 import { usePostBoosts } from '@/lib/hooks/usePostBoosts';
 // import useUserProfileData from '@/lib/hooks/useUserProfileData'; // TODO: Create this hook
 import ProfileHeader from './ProfileHeader'; // TODO: Create this component
-// import ProfileBio from './ProfileBio'; // TODO: Create this component
+import ProfileBio from './ProfileBio'; // TODO: Create this component
 // import OrganizationsSection from './OrganizationsSection'; // TODO: Create this component
 // import BoostedPostsSection from './BoostedPostsSection'; // TODO: Create this component
 import { useRouter } from 'next/router';
@@ -65,6 +65,14 @@ const UserProfilePage: React.FC = () => {
   
   const [scrollOffset, setScrollOffset] = useState(0);
   
+  // State and handler for Edit Bio Sheet (placeholder)
+  const [showEditBioSheet, setShowEditBioSheet] = useState(false);
+  const handleEditBio = () => {
+    console.log('Opening Edit Bio Sheet...');
+    setShowEditBioSheet(true);
+    // Later, this will actually open the modal/sheet
+  };
+
   // --- Scroll Handling for Nav Bar Opacity ---
   useEffect(() => {
     const handleScroll = () => {
@@ -156,11 +164,8 @@ const UserProfilePage: React.FC = () => {
           {/* Profile Header Component */}
           <ProfileHeader userData={userData} />
 
-          {/* TODO: Profile Bio Component */}
-          {/* <ProfileBio bio={userData.bio} onEdit={() => { /* Open Edit Bio Sheet */ }} /> */}
-          <div className="p-4 bg-gray-700 mx-4 rounded-lg shadow">
-             Bio Placeholder: {userData.bio || 'No bio yet.'}
-          </div>
+          {/* Profile Bio Component */}
+          <ProfileBio bio={userData.bio} onEdit={handleEditBio} />
 
           {/* TODO: Organizations Section Component */}
           {/* <OrganizationsSection 
