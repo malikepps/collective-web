@@ -43,20 +43,11 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
   }, [isOpen]);
   
   // Navigation functions
-  const navigateTo = (path: string, title?: string) => {
+  const navigateTo = (path: string) => {
     // Close the drawer first
     onClose();
     
-    // For placeholder pages, use the coming-soon page with a title
-    if (title) {
-      router.push({
-        pathname: '/coming-soon',
-        query: { title }
-      });
-      return;
-    }
-    
-    // For implemented pages, navigate directly
+    // Navigate directly to the page
     router.push(path);
   };
   
@@ -66,9 +57,9 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
     
     // Use username if available, otherwise fallback to ID
     if (org.username) {
-      router.push(`/nonprofit/${org.username}`);
+      router.push(`/${org.username}`);
     } else if (org.id) {
-      router.push(`/nonprofit/${org.id}`);
+      router.push(`/${org.id}`);
     }
   };
   
@@ -83,10 +74,19 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
   // If drawer is not open, don't render
   if (!isOpen) return null;
   
-  // Filter out organizations with null IDs
-  const validOrganizations = organizations.filter(
-    item => typeof item.organization.id === 'string' && item.organization.id !== null
-  );
+  // Filter and deduplicate organizations
+  const validOrganizations = organizations
+    .filter(item => typeof item.organization.id === 'string' && item.organization.id !== null)
+    // Create a Map with organization ID as key to remove duplicates
+    .reduce((acc, current) => {
+      const orgId = current.organization.id as string;
+      // If we already have this org and it's a manager/staff relationship, keep that one
+      if (!acc.has(orgId) || current.relationship.isManager) {
+        acc.set(orgId, current);
+      }
+      return acc;
+    }, new Map())
+    .values();
   
   return (
     <div className="fixed inset-0 z-50 flex">
@@ -138,7 +138,7 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
             {/* Explore */}
             <li>
               <button 
-                onClick={() => navigateTo('/explore', 'Explore')}
+                onClick={() => navigateTo('/explore')}
                 className="w-full flex items-center py-3 px-6 text-white"
               >
                 <span className="mr-5">
@@ -156,7 +156,7 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
             {/* Community */}
             <li>
               <button 
-                onClick={() => navigateTo('/community', 'Community')}
+                onClick={() => navigateTo('/community')}
                 className="w-full flex items-center py-3 px-6 text-white"
               >
                 <span className="mr-5">
@@ -174,7 +174,7 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
             {/* Notifications */}
             <li>
               <button 
-                onClick={() => navigateTo('/notifications', 'Notifications')}
+                onClick={() => navigateTo('/notifications')}
                 className="w-full flex items-center py-3 px-6 text-white"
               >
                 <span className="mr-5">
@@ -192,7 +192,7 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
             {/* Settings */}
             <li>
               <button 
-                onClick={() => navigateTo('/settings', 'Settings')}
+                onClick={() => navigateTo('/settings')}
                 className="w-full flex items-center py-3 px-6 text-white"
               >
                 <span className="mr-5">
@@ -217,9 +217,9 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
             <div className="px-6 py-4 flex justify-center">
               <div className="w-6 h-6 border-2 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
-          ) : validOrganizations.length > 0 ? (
+          ) : Array.from(validOrganizations).length > 0 ? (
             <ul>
-              {validOrganizations.map(({ organization, relationship }) => (
+              {Array.from(validOrganizations).map(({ organization, relationship }) => (
                 <li key={organization.id}>
                   <button 
                     onClick={() => navigateToOrg(organization)}
@@ -229,16 +229,16 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
                       {organization.photoURL ? (
                         <img 
                           src={organization.photoURL} 
-                          alt={organization.name} 
+                          alt={organization.name || 'Organization'} 
                           className="w-full h-full object-cover"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-white text-sm">
-                          {organization.name.charAt(0)}
+                          {(organization.name || 'U').charAt(0)}
                         </div>
                       )}
                     </div>
-                    <span className="text-sm font-marfa truncate">{organization.name}</span>
+                    <span className="text-sm font-marfa truncate">{organization.name || 'Unknown Organization'}</span>
                   </button>
                 </li>
               ))}
@@ -252,7 +252,7 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
         {user && (
           <div className="fixed bottom-0 left-0 right-0 bg-[#1D1D1D] z-10 w-4/5 max-w-sm">
             <button 
-              onClick={() => navigateTo('/profile', 'Profile')}
+              onClick={() => navigateTo('/profile')}
               className="w-full flex items-center py-3 px-6 text-white"
             >
               <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-700 mr-3">
@@ -264,11 +264,11 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-white text-sm">
-                    {user.displayName?.charAt(0) || 'U'}
+                    {(user.displayName || user.email || 'U').charAt(0)}
                   </div>
                 )}
               </div>
-              <span className="text-sm font-marfa">{user.displayName || 'Profile'}</span>
+              <span className="text-sm font-marfa">{user.displayName || user.email || 'Profile'}</span>
             </button>
           </div>
         )}
