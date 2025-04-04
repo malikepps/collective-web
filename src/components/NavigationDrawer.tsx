@@ -257,7 +257,7 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
                     onClick={() => navigateToOrg(organization)}
                     className="w-full flex items-center py-2 px-6 text-white"
                   >
-                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-700 mr-3 flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-700 mr-3 flex-shrink-0">
                       {organization.photoURL ? (
                         <img 
                           src={organization.photoURL} 
@@ -270,7 +270,7 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
                         </div>
                       )}
                     </div>
-                    <span className="text-sm font-marfa truncate">{organization.name || 'Unknown Organization'}</span>
+                    <span className="text-base font-marfa truncate text-gray-300">{organization.name || 'Unknown Organization'}</span>
                   </button>
                 </li>
               ))}
@@ -282,35 +282,38 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
         
         {/* User profile link (sticky at bottom) */}
         {(user || storedUserData) && (
-          <div className="fixed bottom-0 left-0 right-0 bg-[#1D1D1D] z-10 w-4/5 max-w-sm">
-            <button 
-              onClick={() => {
-                // Check authentication before navigating to profile
-                if (!user) {
-                  onClose();
-                  router.push('/onboarding');
-                } else {
-                  navigateTo('/profile');
-                }
-              }}
-              className="w-full flex items-center py-3 px-6 text-white"
-            >
-              <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-700 mr-3">
-                {userPhotoURL ? (
-                  <img 
-                    src={userPhotoURL} 
-                    alt={userName} 
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white text-sm">
-                    {userInitial}
-                  </div>
-                )}
-              </div>
-              <span className="text-sm font-marfa">{userName}</span>
-            </button>
-          </div>
+          <>
+            <div className="border-t border-gray-700 fixed bottom-[calc(3.5rem)] left-0 w-4/5 max-w-sm z-10"></div>
+            <div className="fixed bottom-0 left-0 bg-[#1D1D1D] z-10 w-4/5 max-w-sm h-16">
+              <button 
+                onClick={() => {
+                  // Check authentication before navigating to profile
+                  if (!user) {
+                    onClose();
+                    router.push('/onboarding');
+                  } else {
+                    navigateTo('/profile');
+                  }
+                }}
+                className="w-full h-full flex items-center py-4 px-6 text-white"
+              >
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-700 mr-3">
+                  {userPhotoURL ? (
+                    <img 
+                      src={userPhotoURL} 
+                      alt={userName} 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-white text-sm">
+                      {userInitial}
+                    </div>
+                  )}
+                </div>
+                <span className="text-base font-marfa">{userName}</span>
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>
