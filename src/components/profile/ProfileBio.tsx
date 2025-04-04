@@ -8,7 +8,7 @@ interface ProfileBioProps {
 const ProfileBio: React.FC<ProfileBioProps> = ({ bio, onEdit }) => {
   return (
     <div className="px-5 pb-4"> {/* Match horizontal padding if needed, add bottom padding */}
-      {bio && !bio.trim().isEmpty() ? (
+      {bio && bio.trim().length > 0 ? (
         <p className="text-white text-sm font-marfa font-light text-center leading-relaxed"> {/* Use font-light and adjust leading if needed */}
           {bio}
         </p>
