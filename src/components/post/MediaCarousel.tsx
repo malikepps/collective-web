@@ -207,11 +207,7 @@ export default function MediaCarousel({
 
   return (
     <div 
-      className="relative overflow-hidden bg-gray-900"
-      style={{ 
-        width: '100%',
-        paddingBottom: `${(1 / aspectRatio) * 100}%` // Create a fixed aspect ratio container using padding
-      }}
+      className="relative overflow-hidden bg-gray-900 w-full h-full"
       ref={carouselRef}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}

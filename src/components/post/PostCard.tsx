@@ -256,11 +256,10 @@ export default function PostCard({
           )}
           
           {/* Media */}
-          <div onClick={onShowDetail} className="w-full relative">
+          <div onClick={onShowDetail} className="w-full relative h-[400px]">
             <MediaCarousel 
               mediaItems={mediaItems}
               onDoubleTap={handleDoubleTap}
-              aspectRatio={1.2}
               onPlayVideo={onShowDetail}
             />
             
