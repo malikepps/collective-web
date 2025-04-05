@@ -11,6 +11,8 @@ import { useRouter } from 'next/router';
 import { DirectSVG } from '@/lib/components/icons'; // Assuming DirectSVG is available
 import { SVGIconStyle } from '@/lib/components/icons/SVGIcon'; // Assuming SVGIconStyle is available
 import { CollectiveUser, UserType } from '@/lib/models/User'; // Import UserType from User.ts
+import NavigationDrawer from '../NavigationDrawer'; // Add NavigationDrawer import
+import OrganizationsListScreen from './OrganizationsListScreen';
 
 // TODO: Replace with actual hook/service later
 const useUserProfileData = (uid: string | undefined): { userData: CollectiveUser | null, loading: boolean, error: Error | null } => {
@@ -41,7 +43,8 @@ const useUserProfileData = (uid: string | undefined): { userData: CollectiveUser
         firstName: 'Malik',
         lastName: 'Epps',
         username: 'malikepps',
-        photoURL: 'https://avatar.iran.liara.run/public/boy?username=malikepps', // Placeholder image
+        // Use a placeholder format similar to configured domains, though this specific URL might not exist
+        photoURL: 'https://firebasestorage.googleapis.com/v0/b/collective-rp8rwq.appspot.com/o/users%2Fplaceholder.jpg?alt=media', 
         bio: 'This is a sample bio. It can be multiple lines long and supports basic text formatting.',
         city: 'Durham',
         state: 'NC',
@@ -84,6 +87,21 @@ const UserProfilePage: React.FC = () => {
   const [showOrganizationsCover, setShowOrganizationsCover] = useState(false);
   const handleViewAllOrgs = () => {
     console.log('Opening Organizations Full Screen Cover...');
+    setShowOrganizationsCover(true);
+    // Later, this will actually open the cover
+  };
+  const handleCloseOrganizationsCover = () => {
+    console.log('Opening Organizations Full Screen Cover...');
+    setShowOrganizationsCover(true);
+    // Later, this will actually open the cover
+  };
+
+  // State and handlers for Navigation Drawer
+  const [showNavigationDrawer, setShowNavigationDrawer] = useState(false);
+  const handleOpenNavigationDrawer = () => {
+    setShowNavigationDrawer(true);
+  };
+  const handleCloseNavigationDrawer = () => {
     setShowOrganizationsCover(true);
     // Later, this will actually open the cover
   };
@@ -145,10 +163,10 @@ const UserProfilePage: React.FC = () => {
         className="fixed top-0 left-0 right-0 z-40 h-16 flex items-center justify-between px-4 transition-colors duration-200"
         style={{ backgroundColor: `rgba(0, 0, 0, ${navBarOpacity})` }}
       >
-        {/* Back Button */}
-        <button onClick={handleBack} className="p-2">
+        {/* Back Button -> Menu Button */}
+        <button onClick={handleOpenNavigationDrawer} className="p-2">
           <DirectSVG 
-            icon="chevron-left" 
+            icon="bars" 
             size={24} 
             style={SVGIconStyle.SOLID} 
             primaryColor="ffffff" 
@@ -200,6 +218,19 @@ const UserProfilePage: React.FC = () => {
 
       {/* TODO: Add FullScreenCover for Organizations */}
       {/* TODO: Add Sheet/Modal for Edit Bio */}
+      
+      {/* Navigation drawer */}
+      <NavigationDrawer 
+        isOpen={showNavigationDrawer}
+        onClose={handleCloseNavigationDrawer}
+      />
+
+      {/* Organizations Full Screen Cover */}
+      <OrganizationsListScreen 
+        isOpen={showOrganizationsCover}
+        onClose={handleCloseOrganizationsCover}
+        // Pass organizations data here when list is implemented
+      />
     </div>
   );
 };

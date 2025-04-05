@@ -52,7 +52,7 @@ const OrganizationsSection: React.FC<OrganizationsSectionProps> = ({ organizatio
   );
 
   return (
-    <div className="bg-card-secondary rounded-xl overflow-hidden mx-4"> {/* Added mx-4 to match placeholders */}
+    <div className="bg-card-secondary rounded-xl overflow-hidden"> {/* Removed mx-4 */}
       {/* Header */}
       <button 
         onClick={onViewAll}
@@ -70,35 +70,22 @@ const OrganizationsSection: React.FC<OrganizationsSectionProps> = ({ organizatio
       </button>
 
       {/* Organizations Grid/Row */}
-      <div className="overflow-x-auto pb-4"> {/* Add horizontal scroll and bottom padding */}
+      <div className="overflow-x-auto pb-4 scrollbar-hide"> {/* Hide scrollbar */}
         {sortedOrgs.length === 0 ? (
           <EmptyPlaceholder />
         ) : useTwoRows ? (
-          // Two-row grid
-          <div className={`grid grid-flow-col auto-cols-max ${rowSpacing} px-4`}>
-            {/* Create two rows manually for horizontal scroll */}
-            <div className={`flex ${itemSpacing}`}>
-              {sortedOrgs.filter((_, i) => i % 2 === 0).map(({ organization, relationship }) => (
+          // Two-row grid - Use flex-wrap approach
+          <div className={`flex flex-wrap ${rowSpacing} px-4`} style={{ height: `${itemSize * 2 + 14}px` }}> {/* Set fixed height for two rows + gap */}
+            {sortedOrgs.map(({ organization, relationship }) => (
+              <div key={organization.id} className="flex-shrink-0 mr-3.5 mb-3.5"> {/* Add spacing for wrapped items */}
                 <OrganizationLogo 
-                  key={organization.id}
                   organization={organization}
                   relationship={relationship}
                   size={itemSize}
                   onTap={() => handleOrgTap(organization, relationship)}
                 />
-              ))}
-            </div>
-            <div className={`flex ${itemSpacing}`}>
-               {sortedOrgs.filter((_, i) => i % 2 !== 0).map(({ organization, relationship }) => (
-                <OrganizationLogo 
-                  key={organization.id}
-                  organization={organization}
-                  relationship={relationship}
-                  size={itemSize}
-                  onTap={() => handleOrgTap(organization, relationship)}
-                />
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         ) : (
           // Single row
