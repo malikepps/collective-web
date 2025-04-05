@@ -134,8 +134,6 @@ const InfoBox: React.FC<InfoBoxProps> = ({
                 color: buttonTextColor()
               }}
             >
-              {/* Add subtle glow animation similar to iOS app */}
-              <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity duration-700"></div>
               <div className="relative z-10 flex items-center">
                 <DirectSVG
                   icon="square-plus"
@@ -225,9 +223,9 @@ const InfoBox: React.FC<InfoBoxProps> = ({
                   color: buttonTextColor()
                 }}
               >
-                {/* Add subtle glow animation similar to iOS app */}
-                <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity duration-700"></div>
-                <span className="relative z-10">See membership options</span>
+                {/* Re-adding subtle glow animation */}
+                <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity duration-700"></div> 
+                <div className="relative z-10">See membership options</div>
               </button>
             )}
             
