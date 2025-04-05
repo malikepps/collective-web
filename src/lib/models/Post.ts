@@ -32,7 +32,7 @@ export interface Post {
   // New fields for multiple media
   mediaType?: MediaType;
   mediaItems?: MediaItem[];
-  backgroundColorHex?: string;
+  backgroundColorHex: string | null;
 }
 
 // Helper function to parse document references or paths
@@ -160,45 +160,44 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
       ) as MediaType;
       console.log(`[DEBUG] Using specified media_type: ${mediaTypeString} -> ${mediaType}`);
     } else {
-      mediaType = mediaArray.length > 1 ? MediaType.CAROUSEL_ALBUM : MediaType.IMAGE;
-      console.log(`[DEBUG] Inferring media_type from count: ${mediaType}`);
+      // Infer type based on content or count
+      const hasVideo = mediaArray.some(item => item.media_type?.toLowerCase() === 'video');
+      if (mediaArray.length > 1) {
+          mediaType = MediaType.CAROUSEL_ALBUM;
+      } else if (hasVideo) {
+          mediaType = MediaType.VIDEO;
+      } else {
+          mediaType = MediaType.IMAGE;
+      }
+      console.log(`[DEBUG] Inferring media_type: ${mediaType}`);
     }
     
     // Parse media items
-    mediaItems = mediaArray.map((itemData, index) => {
-      // Determine the type of media
+    mediaItems = mediaArray.map((itemData, index): MediaItem => {
       let type: MediaType = MediaType.IMAGE;
-      if (itemData.media_type === 'video') {
+      if (itemData.media_type?.toLowerCase() === 'video') {
         type = MediaType.VIDEO;
-      } else if (itemData.media_type === 'VIDEO') {
-        type = MediaType.VIDEO;
-      } else if (itemData.media_type) {
-        // Try to match from enum
-        const foundType = Object.values(MediaType).find(
-          t => t.toLowerCase() === itemData.media_type.toLowerCase()
-        );
-        if (foundType) type = foundType;
       }
       
       let url = '';
       let thumbnailUrl: string | null = null;
       
-      // Extract URL based on media type
       if (type === MediaType.VIDEO) {
         url = itemData.video_url || itemData.url || '';
+        // Use image_url as thumbnail if available, otherwise thumbnail_url
         thumbnailUrl = itemData.image_url || itemData.thumbnail_url || null;
       } else {
         url = itemData.image_url || itemData.url || '';
-        thumbnailUrl = null;
+        thumbnailUrl = null; // Images don't have separate thumbnails in this model
       }
       
       return {
-        id: itemData.id || String(index),
+        id: itemData.id || String(index), // Ensure ID exists
         url,
         type,
-        order: itemData.order || index,
+        order: typeof itemData.order === 'number' ? itemData.order : index, // Ensure order is a number, default to index
         thumbnailUrl,
-        thumbnailColor: itemData.thumbnail_color || null
+        thumbnailColor: itemData.thumbnail_color as string || null // Ensure null if undefined
       };
     });
   } else {
@@ -208,23 +207,21 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
       mediaType = MediaType.VIDEO;
       console.log(`[DEBUG] Post ${doc.id} is a legacy video post`);
       
-      // Create a single media item for the video
       mediaItems = [{
         id: '0',
         url: data.video_url || '',
         type: MediaType.VIDEO,
         order: 0,
-        thumbnailUrl: data.image_url || null,
-        thumbnailColor: null
+        thumbnailUrl: data.image_url || null, // Legacy video thumbnail is postImage
+        thumbnailColor: null // Legacy format doesn't have color
       }];
-    } else if (data.image_url) {
+    } else if (data.postImage || data.image_url) {
       mediaType = MediaType.IMAGE;
       console.log(`[DEBUG] Post ${doc.id} is a legacy image post`);
       
-      // Create a single media item for the image
       mediaItems = [{
         id: '0',
-        url: data.image_url || '',
+        url: data.postImage || data.image_url || '',
         type: MediaType.IMAGE,
         order: 0,
         thumbnailUrl: null,
@@ -243,14 +240,14 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
     userId,
     username: data.username || null,
     community,
-    postImage: data.image_url || null,
+    postImage: data.image_url || data.postImage || null,
     videoUrl: data.video_url || null,
-    video: !!data.video,
+    video: !!(data.video || data.video_url),
     mediaType,
     mediaItems,
-    backgroundColorHex: data.background_color_hex || null,
-    isForMembersOnly: data.is_for_members_only || false,
-    isForBroaderEcosystem: data.is_for_broader_ecosystem || false
+    backgroundColorHex: data.background_color_hex as string || null,
+    isForMembersOnly: data.is_for_members_only === true,
+    isForBroaderEcosystem: data.is_for_broader_ecosystem === true
   };
   
   console.log(`[DEBUG] Successfully created post object: ${doc.id}, nonprofitId: ${nonprofitId}`);
