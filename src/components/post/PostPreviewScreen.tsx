@@ -9,19 +9,8 @@ import { useAuth } from '@/lib/context/AuthContext'; // Import useAuth
 import { v4 as uuidv4 } from 'uuid'; // For unique IDs
 import { MediaItem } from '@/lib/models/MediaItem';
 import { MediaType } from '@/lib/models/Post';
+import { useRouter } from 'next/router'; // Import useRouter
 // We might need a carousel library later, for now basic implementation
-
-// Helper function to create direct GCS URL (similar to Swift logic)
-const getDirectGcsUrl = (fullPath: string): string => {
-  const bucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET; // Ensure this env var is set
-  if (!bucket) {
-    console.warn('NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET env var not set. Cannot create direct GCS URL.');
-    return '';
-  }
-  // Remove leading slash if present
-  const cleanPath = fullPath.startsWith('/') ? fullPath.substring(1) : fullPath;
-  return `https://storage.googleapis.com/${bucket}/${cleanPath}`;
-};
 
 const PostPreviewScreen: React.FC = () => {
   const { 
@@ -43,6 +32,7 @@ const PostPreviewScreen: React.FC = () => {
     organizationId // Get organizationId from context
   } = usePostCreation();
   const { user } = useAuth(); // Change currentUser to user
+  const router = useRouter(); // Initialize router
 
   const [previews, setPreviews] = useState<string[]>([]);
   const [mediaTypes, setMediaTypes] = useState<('image' | 'video')[]>([]);
@@ -102,34 +92,13 @@ const PostPreviewScreen: React.FC = () => {
         },
         async () => {
           try {
-             // Try to get metadata to verify upload
-            await getMetadata(storageRef);
-            console.log(`DEBUG: Upload successful and verified for ${path}`);
-
-            // Attempt to get direct GCS URL
-            const directUrl = getDirectGcsUrl(path);
-            if (directUrl) {
-                // Basic verification (HEAD request might be better but adds complexity)
-                console.log(`DEBUG: Using direct GCS URL: ${directUrl}`);
-                 resolve({ url: directUrl, fullPath: path, type: mediaType });
-                 return;
-            }
-
-            // Fallback to standard download URL
+            // Get the standard Firebase download URL which includes the token
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
             console.log(`DEBUG: Using standard Firebase download URL: ${downloadURL}`);
             resolve({ url: downloadURL, fullPath: path, type: mediaType });
           } catch (error) {
-            console.error(`Error verifying or getting URL for ${path}:`, error);
-            // Fallback attempt if direct URL fails or verification has issues
-             try {
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                console.log(`DEBUG: Using standard Firebase download URL (fallback): ${downloadURL}`);
-                resolve({ url: downloadURL, fullPath: path, type: mediaType });
-             } catch (finalError) {
-                 console.error(`Final error getting download URL for ${path}:`, finalError);
-                 reject(finalError);
-             }
+            console.error(`Error getting download URL for ${path}:`, error);
+            reject(error);
           }
         }
       );
@@ -230,6 +199,7 @@ const PostPreviewScreen: React.FC = () => {
       console.log("Post created successfully!");
       resetState(); // Reset context state
       closePreviewScreen(); // Close the preview screen
+      router.replace(router.asPath); // Refresh page data using replace
 
     } catch (error: any) {
       console.error("Error publishing post:", error);
