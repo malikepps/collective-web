@@ -13,6 +13,7 @@ interface CollectiveSectionProps {
   organization: Organization;
   onShowFilterSheet: () => void;
   displayFilter?: string;
+  isUserStaff?: boolean;
 }
 
 // Extend Member interface to include relationship and firstName
@@ -24,7 +25,8 @@ interface MemberWithRelationship extends Member {
 const CollectiveSection: React.FC<CollectiveSectionProps> = ({
   organization,
   onShowFilterSheet,
-  displayFilter = 'all'
+  displayFilter = 'all',
+  isUserStaff = false
 }) => {
   const [members, setMembers] = useState<MemberWithRelationship[]>([]);
   const [loading, setLoading] = useState(true);
@@ -190,31 +192,51 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
   return (
     <div className="bg-card p-4 text-white continuous-corner">
       {/* Header with filter button */}
-      <div className="flex items-center gap-4 mb-4">
+      <div className="flex items-center justify-between gap-4 mb-4">
         <h2 className="text-white font-marfa font-semibold text-2xl">Collective</h2>
         
-        <button 
-          onClick={onShowFilterSheet}
-          className="bg-white/20 ios-rounded-sm px-3 h-8 flex items-center"
-        >
-          <span 
-            className="text-sm font-marfa mr-1 flex items-center"
-            style={{ color: secondaryColor }}
+        {/* Container for buttons on the right */}
+        <div className="flex items-center space-x-2">
+          {/* Add Staff Button Placeholder - Conditional */} 
+          {isUserStaff && organization.staff && organization.staff.length < 3 && (
+            <button
+              onClick={() => console.log('TODO: Implement Add Staff Sheet')}
+              className="flex items-center px-3 py-1.5 bg-blue-600 rounded-lg text-white font-marfa text-xs hover:bg-blue-700 transition-colors duration-150"
+            >
+              <DirectSVG
+                icon="user-plus"
+                size={14}
+                style={SVGIconStyle.SOLID}
+                primaryColor="ffffff"
+              />
+              <span className="ml-1.5">Add staff</span>
+            </button>
+          )}
+
+          {/* Existing Filter Button */}
+          <button 
+            onClick={onShowFilterSheet}
+            className="bg-white/20 ios-rounded-sm px-3 h-8 flex items-center"
           >
-            {displayFilter === 'all' ? 'Filter' : getFilterLabel()}
-          </span>
-          <div className="flex items-center justify-center">
-            <DirectSVG 
-              icon="bars-filter"
-              size={16}
-              style={SVGIconStyle.SOLID}
-              color={secondaryColor.replace(/#/g, '')}
-              primaryColor={secondaryColor.replace(/#/g, '')}
-              className="align-middle debug-filter-icon"
-              isActive={true}
-            />
-          </div>
-        </button>
+            <span 
+              className="text-sm font-marfa mr-1 flex items-center"
+              style={{ color: secondaryColor }}
+            >
+              {displayFilter === 'all' ? 'Filter' : getFilterLabel()}
+            </span>
+            <div className="flex items-center justify-center">
+              <DirectSVG 
+                icon="bars-filter"
+                size={16}
+                style={SVGIconStyle.SOLID}
+                color={secondaryColor.replace(/#/g, '')}
+                primaryColor={secondaryColor.replace(/#/g, '')}
+                className="align-middle debug-filter-icon"
+                isActive={true}
+              />
+            </div>
+          </button>
+        </div>
       </div>
       
       {/* Members grid */}

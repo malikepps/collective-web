@@ -20,6 +20,26 @@ interface NonprofitProfileProps {
   organization: Organization;
 }
 
+// Helper function for dynamic text color (add this within the component or move to utils)
+const isLight = (hexColor: string): boolean => {
+  if (!hexColor) return false; // Handle undefined case
+  // Basic brightness check (can be refined)
+  // Remove potential '#' prefix
+  const hex = hexColor.startsWith('#') ? hexColor.slice(1) : hexColor;
+  // Ensure hex is valid length
+  if (hex.length !== 6) return false; 
+  try {
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness > 150; // Threshold might need adjustment
+  } catch (e) {
+    console.error("Error parsing hex color for brightness:", hexColor, e);
+    return false; // Default to dark background assumption on error
+  }
+};
+
 const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   organization
 }) => {
@@ -238,18 +258,55 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
             @{organization.username || organization.name.toLowerCase().replace(/\s/g, '')}
           </p>
           
-          {/* Ellipsis menu button */}
-          <button
-            onClick={() => setShowLeaveConfirmation(true)}
-            className="flex items-center justify-center overflow-hidden icon-shadow"
-          >
-            <DirectSVG
-              icon="ellipsis"
-              size={25}
-              style={SVGIconStyle.SOLID}
-              primaryColor="ffffff"
-            />
-          </button>
+          {/* Right side buttons */}
+          <div className="flex items-center space-x-3"> {/* Container for right-side items */}
+            {/* Staff-only buttons */}
+            {isUserStaff && (
+              <>
+                {/* Money Button Placeholder */}
+                <button
+                  onClick={() => console.log('TODO: Implement Money/Membership View')}
+                  className="flex items-center justify-center w-9 h-9 rounded-full bg-black bg-opacity-50 icon-shadow"
+                  aria-label="Manage Membership"
+                >
+                  <DirectSVG
+                    icon="dollar-sign"
+                    size={18}
+                    style={SVGIconStyle.SOLID}
+                    primaryColor="22c55e" // Green
+                  />
+                </button>
+
+                {/* Manage Media Button Placeholder */}
+                <button
+                  onClick={() => console.log('TODO: Implement Manage Media Sheet')}
+                  className="flex items-center justify-center w-9 h-9 rounded-full bg-black bg-opacity-50 icon-shadow"
+                  aria-label="Manage Media"
+                >
+                  <DirectSVG
+                    icon="photo-film"
+                    size={16}
+                    style={SVGIconStyle.SOLID}
+                    primaryColor={theme?.secondaryColor || '8BBEF9'} // Use secondary theme color
+                  />
+                </button>
+              </>
+            )}
+
+            {/* Existing Ellipsis menu button (Consider making this staff-only too or adjusting options inside) */}
+            <button
+              onClick={() => setShowLeaveConfirmation(true)}
+              className="flex items-center justify-center overflow-hidden icon-shadow"
+              aria-label="More options"
+            >
+              <DirectSVG
+                icon="ellipsis"
+                size={25}
+                style={SVGIconStyle.SOLID}
+                primaryColor="ffffff"
+              />
+            </button>
+          </div>
         </div>
         
         {/* Media Section - separate from navbar */}
@@ -271,12 +328,87 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
             hasRelationship={relationship !== null}
           />
           
+          {/* Management Buttons Section - Only for Staff */}
+          {isUserStaff && (
+            <div className="px-4 mt-4 mb-2"> {/* Add padding and margin like iOS */}
+              <div className="flex flex-col space-y-2"> {/* VStack equivalent with spacing */}
+
+                {/* Create Post Button Placeholder */}
+                <button
+                  onClick={() => console.log('TODO: Implement Create Post')}
+                  style={{
+                    backgroundColor: theme?.primaryColor ? `#${theme.primaryColor}` : '#ADD3FF',
+                    color: isLight(theme?.primaryColor || 'ADD3FF') ? '#000000' : '#FFFFFF', // Dynamic text color
+                  }}
+                  className="flex items-center justify-center w-full h-10 rounded-lg font-marfa font-medium text-sm" // Adjusted height/font
+                >
+                  <DirectSVG
+                    icon="square-plus" // Same icon
+                    size={18} // Adjusted size
+                    style={SVGIconStyle.SOLID}
+                    // Color will be inherited from button text color
+                    primaryColor={isLight(theme?.primaryColor || 'ADD3FF') ? '000000' : 'FFFFFF'} // Match text color
+                  />
+                  <span className="ml-2">Create a post</span>
+                </button>
+
+                {/* Row for Edit, Share, Theme */}
+                <div className="flex space-x-2"> {/* HStack equivalent */}
+                  {/* Edit Details Button Placeholder */}
+                  <button
+                    onClick={() => console.log('TODO: Implement Edit Details')}
+                    style={{ color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#8BBEF9' }}
+                    className="flex items-center justify-center flex-grow h-10 bg-gray-800 rounded-lg font-marfa text-sm" // bg-gray-800 approximates Color(white: 0.2)
+                  >
+                    <DirectSVG
+                      icon="pencil" // Same icon
+                      size={15} // Adjusted size
+                      style={SVGIconStyle.SOLID}
+                      primaryColor={theme?.secondaryColor || '8BBEF9'} // Match text color
+                    />
+                    <span className="ml-2">Edit Details</span>
+                  </button>
+
+                  {/* Share Profile Button Placeholder */}
+                  <button
+                    onClick={() => console.log('TODO: Implement Share Profile')}
+                    style={{ color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#8BBEF9' }}
+                    className="flex items-center justify-center flex-grow h-10 bg-gray-800 rounded-lg font-marfa text-sm"
+                  >
+                    <DirectSVG
+                      icon="share" // Same icon
+                      size={15}
+                      style={SVGIconStyle.SOLID}
+                      primaryColor={theme?.secondaryColor || '8BBEF9'} // Match text color
+                    />
+                    <span className="ml-2">Share profile</span>
+                  </button>
+
+                  {/* Theme Picker Button Placeholder */}
+                  <button
+                    onClick={() => console.log('TODO: Implement Theme Picker')}
+                    style={{ color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#8BBEF9' }}
+                    className="flex items-center justify-center h-10 px-3 bg-gray-800 rounded-lg" // Fixed padding instead of flex-grow
+                  >
+                    <DirectSVG
+                      icon="palette" // Same icon
+                      size={15}
+                      style={SVGIconStyle.SOLID}
+                      primaryColor={theme?.secondaryColor || '8BBEF9'} // Match text color
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Collective Section */}
           <div className="mt-1">
             <CollectiveSection
               organization={organization}
               onShowFilterSheet={handleShowFilterSheet}
               displayFilter={displayFilter}
+              isUserStaff={isUserStaff} // <-- Pass isUserStaff prop
             />
           </div>
           
@@ -334,7 +466,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
               </h3>
               
               <div className="space-y-4">
-                {isUserInCommunity && (
+                {isUserInCommunity && !isUserStaff && (
                   <button
                     onClick={handleLeaveCommunity}
                     className="w-full py-3 px-4 text-red-500 font-medium text-left flex items-center"
@@ -371,9 +503,14 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
                   </button>
                 )}
                 
-                {!isUserInCommunity && !isUserMember && (
+                {/* Simplified "No options" message - adjust logic as needed */}
+                {!isUserInCommunity && !isUserMember && !isUserStaff && (
                   <p className="text-gray-400 text-center py-2">No options available</p>
                 )}
+                 {/* Add staff-specific options here if needed */}
+                 {isUserStaff && (
+                   <p className="text-gray-400 text-center py-2">Staff options placeholder</p>
+                 )}
               </div>
               
               <button
