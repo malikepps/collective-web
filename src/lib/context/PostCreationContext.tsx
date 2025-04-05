@@ -1,8 +1,10 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 import { MediaItem } from '../models/MediaItem'; // Assuming MediaItem is defined
+import { Organization } from '../models/Organization'; // Import Organization type
 
 // Define the shape of the context state
 interface PostCreationState {
+  organizationId: string | null; // Add organization ID
   isOptionsModalOpen: boolean;
   isPreviewScreenOpen: boolean;
   isCaptionSheetOpen: boolean;
@@ -18,7 +20,7 @@ interface PostCreationState {
 
 // Define the actions available on the context
 interface PostCreationActions {
-  openOptionsModal: () => void;
+  openOptionsModal: (orgId: string) => void; // Accept organization ID
   closeOptionsModal: () => void;
   openPreviewScreen: (files: File[]) => void;
   closePreviewScreen: () => void;
@@ -43,6 +45,7 @@ const PostCreationContext = createContext<PostCreationContextType | undefined>(u
 
 // Define the initial state
 const initialState: PostCreationState = {
+  organizationId: null, // Initialize organization ID
   isOptionsModalOpen: false,
   isPreviewScreenOpen: false,
   isCaptionSheetOpen: false,
@@ -65,13 +68,14 @@ export const PostCreationProvider: React.FC<PostCreationProviderProps> = ({ chil
   const [state, setState] = useState<PostCreationState>(initialState);
 
   const actions: PostCreationActions = {
-    openOptionsModal: () => setState(s => ({ ...s, isOptionsModalOpen: true })),
+    openOptionsModal: (orgId) => setState(s => ({ ...s, isOptionsModalOpen: true, organizationId: orgId })), // Store the orgId
     closeOptionsModal: () => setState(s => ({ ...s, isOptionsModalOpen: false })),
     openPreviewScreen: (files) => setState(s => ({ 
       ...s, 
       isPreviewScreenOpen: true, 
       selectedFiles: files, 
-      isOptionsModalOpen: false // Close options modal when preview opens
+      isOptionsModalOpen: false, // Close options modal when preview opens
+      organizationId: null // Reset organizationId as well
     })),
     closePreviewScreen: () => setState(s => ({ ...s, isPreviewScreenOpen: false, selectedFiles: [] })), // Clear files on close
     openCaptionSheet: () => setState(s => ({ ...s, isCaptionSheetOpen: true })),
@@ -84,7 +88,7 @@ export const PostCreationProvider: React.FC<PostCreationProviderProps> = ({ chil
     setUploadProgress: (progress) => setState(s => ({ ...s, uploadProgress: progress })),
     setMediaItems: (items) => setState(s => ({ ...s, mediaItems: items })),
     setError: (error) => setState(s => ({ ...s, error, isProcessing: false })),
-    resetState: () => setState(initialState),
+    resetState: () => setState({ ...initialState }), 
   };
 
   return (

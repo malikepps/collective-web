@@ -1,7 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { usePostCreation } from '@/lib/context/PostCreationContext';
 import { DirectSVG, SVGIconStyle } from '@/lib/components/icons';
+// Firebase Imports
+import { db, storage, auth } from '@/lib/firebase';
+import { collection, addDoc, Timestamp, doc } from 'firebase/firestore';
+import { ref, uploadBytesResumable, getDownloadURL, getMetadata } from 'firebase/storage';
+import { useAuth } from '@/lib/context/AuthContext'; // Import useAuth
+import { v4 as uuidv4 } from 'uuid'; // For unique IDs
+import { MediaItem } from '@/lib/models/MediaItem';
+import { MediaType } from '@/lib/models/Post';
 // We might need a carousel library later, for now basic implementation
+
+// Helper function to create direct GCS URL (similar to Swift logic)
+const getDirectGcsUrl = (fullPath: string): string => {
+  const bucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET; // Ensure this env var is set
+  if (!bucket) {
+    console.warn('NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET env var not set. Cannot create direct GCS URL.');
+    return '';
+  }
+  // Remove leading slash if present
+  const cleanPath = fullPath.startsWith('/') ? fullPath.substring(1) : fullPath;
+  return `https://storage.googleapis.com/${bucket}/${cleanPath}`;
+};
 
 const PostPreviewScreen: React.FC = () => {
   const { 
@@ -9,15 +29,20 @@ const PostPreviewScreen: React.FC = () => {
     closePreviewScreen, 
     selectedFiles, 
     caption,
-    setCaption,
     isForMembersOnly,
     toggleMembersOnly,
     isForBroaderEcosystem,
     toggleBroaderEcosystem,
-    startProcessing, // We'll call this later on publish
-    isProcessing,    // To disable publish button during processing
-    openCaptionSheet // To open the caption editor
+    startProcessing, 
+    stopProcessing, // Added stopProcessing
+    setUploadProgress, // Added setUploadProgress
+    setError, // Added setError
+    resetState, // Added resetState
+    isProcessing,    
+    openCaptionSheet, 
+    organizationId // Get organizationId from context
   } = usePostCreation();
+  const { currentUser } = useAuth(); // Get current user
 
   const [previews, setPreviews] = useState<string[]>([]);
   const [mediaTypes, setMediaTypes] = useState<('image' | 'video')[]>([]);
@@ -51,10 +76,167 @@ const PostPreviewScreen: React.FC = () => {
     setCurrentSlide(prev => Math.max(0, prev - 1));
   };
 
-  const handlePublish = () => {
-    console.log("TODO: Implement Publish Logic");
-    // startProcessing(); 
-    // Call upload function here...
+  // --- Upload Logic ---
+  const uploadMediaFile = async (file: File, userId: string): Promise<{ url: string, fullPath: string, type: MediaType }> => {
+    const uniqueID = uuidv4();
+    const fileExtension = file.name.split('.').pop() || 'file';
+    const path = `users/${userId}/post_media/${uniqueID}.${fileExtension}`;
+    const storageRef = ref(storage, path);
+    const contentType = file.type;
+    const mediaType = contentType.startsWith('video') ? MediaType.VIDEO : MediaType.IMAGE;
+
+    console.log(`DEBUG: Uploading ${mediaType} to path: ${path}`);
+
+    return new Promise((resolve, reject) => {
+      const uploadTask = uploadBytesResumable(storageRef, file, { contentType });
+
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes); // Progress is 0 to 1
+          console.log(`Upload progress for ${path}: ${progress * 100}%`);
+          // We'll update the overall progress outside this function
+        },
+        (error) => {
+          console.error(`Error uploading file ${path}:`, error);
+          reject(error);
+        },
+        async () => {
+          try {
+             // Try to get metadata to verify upload
+            await getMetadata(storageRef);
+            console.log(`DEBUG: Upload successful and verified for ${path}`);
+
+            // Attempt to get direct GCS URL
+            const directUrl = getDirectGcsUrl(path);
+            if (directUrl) {
+                // Basic verification (HEAD request might be better but adds complexity)
+                console.log(`DEBUG: Using direct GCS URL: ${directUrl}`);
+                 resolve({ url: directUrl, fullPath: path, type: mediaType });
+                 return;
+            }
+
+            // Fallback to standard download URL
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            console.log(`DEBUG: Using standard Firebase download URL: ${downloadURL}`);
+            resolve({ url: downloadURL, fullPath: path, type: mediaType });
+          } catch (error) {
+            console.error(`Error verifying or getting URL for ${path}:`, error);
+            // Fallback attempt if direct URL fails or verification has issues
+             try {
+                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                console.log(`DEBUG: Using standard Firebase download URL (fallback): ${downloadURL}`);
+                resolve({ url: downloadURL, fullPath: path, type: mediaType });
+             } catch (finalError) {
+                 console.error(`Final error getting download URL for ${path}:`, finalError);
+                 reject(finalError);
+             }
+          }
+        }
+      );
+    });
+  };
+
+  // Placeholder for thumbnail generation
+  const generateThumbnail = async (file: File): Promise<{ thumbnailUrl: string | null, thumbnailColor: string | null }> => {
+    console.log("Skipping thumbnail generation for now.");
+    // TODO: Implement actual thumbnail generation (e.g., using canvas or backend)
+    return { thumbnailUrl: null, thumbnailColor: null }; // Placeholder
+  };
+
+  const handlePublish = async () => {
+    if (!currentUser || !organizationId) {
+      setError("User not authenticated or organization not selected.");
+      return;
+    }
+    if (selectedFiles.length === 0) {
+      setError("No media selected.");
+      return;
+    }
+
+    startProcessing();
+    let overallProgress = 0;
+    setUploadProgress(0);
+
+    try {
+      const uploadPromises = selectedFiles.map(file => uploadMediaFile(file, currentUser.uid));
+      // We might need a more granular progress update based on individual file progresses
+      // For now, just update based on completion count
+      const uploadedMediaResults = await Promise.all(uploadPromises.map(async (p, index) => {
+          const result = await p;
+          overallProgress = (index + 1) / selectedFiles.length;
+          setUploadProgress(overallProgress);
+          return result;
+      }));
+
+      // Generate thumbnails (currently placeholders)
+      const thumbnailPromises = selectedFiles.map((file, index) => 
+          uploadedMediaResults[index].type === MediaType.VIDEO ? generateThumbnail(file) : Promise.resolve({ thumbnailUrl: null, thumbnailColor: null })
+      );
+      const thumbnailResults = await Promise.all(thumbnailPromises);
+
+      // Construct MediaItem array for Firestore
+      const mediaItemsForFirestore: MediaItem[] = uploadedMediaResults.map((uploadResult, index) => ({
+        id: uploadResult.fullPath.split('/').pop()?.split('.')[0] || uuidv4(), // Extract UUID or generate new
+        url: uploadResult.url,
+        type: uploadResult.type,
+        order: index,
+        thumbnailUrl: thumbnailResults[index].thumbnailUrl,
+        thumbnailColor: thumbnailResults[index].thumbnailColor,
+      }));
+
+      // Determine overall post type
+      let postMediaType: MediaType | undefined;
+      const hasVideo = mediaItemsForFirestore.some(item => item.type === MediaType.VIDEO);
+      if (mediaItemsForFirestore.length > 1) {
+        postMediaType = MediaType.CAROUSEL_ALBUM; // Use CAROUSEL_ALBUM for multiple items
+      } else if (hasVideo) {
+        postMediaType = MediaType.VIDEO;
+      } else if (mediaItemsForFirestore.length === 1) {
+        postMediaType = MediaType.IMAGE;
+      }
+
+      // Determine background color (placeholder)
+      const backgroundColorHex = thumbnailResults[0]?.thumbnailColor || null; // Use first item's color or null
+      
+      // Prepare Firestore document data
+      const postData = {
+        caption: caption,
+        created_time: Timestamp.now(),
+        media: mediaItemsForFirestore.map(item => ({
+          id: item.id,
+          order: item.order,
+          thumbnail_color: item.thumbnailColor,
+          // Conditionally add fields based on type (Firestore structure)
+          ...(item.type === MediaType.VIDEO 
+            ? { media_type: 'video', video_url: item.url, image_url: item.thumbnailUrl } 
+            : { media_type: 'image', image_url: item.url })
+        })),
+        media_type: postMediaType?.toLowerCase(), // Ensure lowercase for consistency if needed
+        nonprofit: doc(db, 'nonprofits', organizationId), // Reference
+        num_comments: 0,
+        num_likes: 0,
+        user_id: currentUser.uid,
+        username: currentUser.displayName || "Anonymous",
+        // community: doc(db, 'communities', organization.communityRef), // Omit for now
+        background_color_hex: backgroundColorHex,
+        is_for_members_only: isForMembersOnly,
+        is_for_broader_ecosystem: isForBroaderEcosystem,
+        video: hasVideo, // Set video flag based on content
+      };
+
+      console.log("Creating post with data:", postData);
+      await addDoc(collection(db, 'posts'), postData);
+
+      console.log("Post created successfully!");
+      resetState(); // Reset context state
+      closePreviewScreen(); // Close the preview screen
+
+    } catch (error: any) {
+      console.error("Error publishing post:", error);
+      setError(`Failed to publish post: ${error.message || 'Unknown error'}`);
+    } finally {
+      stopProcessing(); // Ensure processing stops even if there's an error
+    }
   };
 
   if (!isPreviewScreenOpen) {

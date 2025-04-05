@@ -80,6 +80,8 @@ const InfoBox: React.FC<InfoBoxProps> = ({
 
   // Get the post creation context actions
   const { openOptionsModal } = usePostCreation();
+  // Get organization ID
+  const orgId = organization.id;
 
   return (
     <div className="bg-card p-5 text-white continuous-corner">
@@ -131,7 +133,15 @@ const InfoBox: React.FC<InfoBoxProps> = ({
           <div className="flex flex-col space-y-2"> 
             {/* Update Create Post Button onClick */}
             <button 
-              onClick={openOptionsModal}
+              onClick={() => {
+                // Ensure orgId is not null before opening
+                if (orgId) {
+                  openOptionsModal(orgId); // Pass the organization ID
+                } else {
+                  console.error("Cannot create post: Organization ID is null");
+                  // Optionally show an error to the user
+                }
+              }}
               className="w-full h-10 ios-rounded-sm font-marfa font-semibold text-base transition-all duration-200 hover:opacity-90 relative overflow-hidden"
               style={{ 
                 backgroundColor: theme?.primaryColor || '#ADD3FF',
