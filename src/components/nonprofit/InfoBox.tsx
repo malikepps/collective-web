@@ -137,7 +137,15 @@ const InfoBox: React.FC<InfoBoxProps> = ({
               {/* Copied subtle glow animation */}
               <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity duration-700"></div> 
               {/* Changed text content */}
-              <div className="relative z-10">Create a post</div> 
+              <div className="relative z-10 flex items-center justify-center"> 
+                <DirectSVG
+                  icon="square-plus"
+                  size={18}
+                  style={SVGIconStyle.SOLID}
+                  primaryColor={buttonTextColor().replace('#', '')}
+                />
+                <span className="ml-2">Create a post</span>
+              </div> 
             </button>
 
             {/* Row for Edit, Share, Theme */}
