@@ -125,24 +125,19 @@ const InfoBox: React.FC<InfoBoxProps> = ({
         {isUserStaff ? (
           // --- Staff Management Buttons --- 
           <div className="flex flex-col space-y-2"> 
-            {/* Create Post Button Placeholder */}
-            <button
+            {/* Create Post Button Placeholder - EXACT COPY of 'See membership options' button below */}
+            <button 
               onClick={() => console.log('TODO: Implement Create Post')}
-              className="w-full h-10 ios-rounded-sm font-marfa font-medium text-sm transition-all duration-200 hover:opacity-90 relative overflow-hidden bg-transparent"
+              className="w-full h-10 ios-rounded-sm font-marfa font-semibold text-base transition-all duration-200 hover:opacity-90 relative overflow-hidden"
               style={{ 
-                backgroundColor: theme?.primaryColor ? `#${theme.primaryColor}` : '#ADD3FF',
+                backgroundColor: theme?.primaryColor || '#ADD3FF',
                 color: buttonTextColor()
               }}
             >
-              <div className="relative z-10 flex items-center">
-                <DirectSVG
-                  icon="square-plus"
-                  size={18}
-                  style={SVGIconStyle.SOLID}
-                  primaryColor={buttonTextColor().replace('#', '')} // Match text color
-                />
-                <span className="ml-2">Create a post</span>
-              </div>
+              {/* Copied subtle glow animation */}
+              <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity duration-700"></div> 
+              {/* Changed text content */}
+              <div className="relative z-10">Create a post</div> 
             </button>
 
             {/* Row for Edit, Share, Theme */}
