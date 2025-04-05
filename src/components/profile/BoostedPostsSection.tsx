@@ -74,7 +74,7 @@ const BoostedPostsSection: React.FC<BoostedPostsSectionProps> = ({ boosts }) => 
               id: boost.postId, // Use postId from BoostData
               caption: boost.caption,
               mediaItems: boost.mediaItems,
-              backgroundColorHex: boost.backgroundColorHex,
+              backgroundColorHex: boost.backgroundColorHex ?? undefined, // Convert null to undefined
               createdDate: boost.boostedAt, // Use boostedAt as a placeholder date
               nonprofitId: boost.organization?.id || null,
               userId: user?.uid || null, // Assume boosted by current user
