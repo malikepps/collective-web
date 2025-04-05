@@ -75,7 +75,6 @@ export const PostCreationProvider: React.FC<PostCreationProviderProps> = ({ chil
       isPreviewScreenOpen: true, 
       selectedFiles: files, 
       isOptionsModalOpen: false, // Close options modal when preview opens
-      organizationId: null // Reset organizationId as well
     })),
     closePreviewScreen: () => setState(s => ({ ...s, isPreviewScreenOpen: false, selectedFiles: [] })), // Clear files on close
     openCaptionSheet: () => setState(s => ({ ...s, isCaptionSheetOpen: true })),
