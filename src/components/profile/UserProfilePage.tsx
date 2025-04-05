@@ -10,7 +10,7 @@ import ProfileBio from './ProfileBio'; // TODO: Create this component
 import { useRouter } from 'next/router';
 import { DirectSVG } from '@/lib/components/icons'; // Assuming DirectSVG is available
 import { SVGIconStyle } from '@/lib/components/icons/SVGIcon'; // Assuming SVGIconStyle is available
-import { CollectiveUser } from '@/lib/models/User'; // Assuming User model is available
+import { CollectiveUser, UserType } from '@/lib/models/User'; // Import UserType from User.ts
 
 // TODO: Replace with actual hook/service later
 const useUserProfileData = (uid: string | undefined): { userData: CollectiveUser | null, loading: boolean, error: Error | null } => {
@@ -30,6 +30,14 @@ const useUserProfileData = (uid: string | undefined): { userData: CollectiveUser
     setTimeout(() => {
       setUserData({
         id: uid,
+        displayName: `${'Malik'} ${'Epps'}`, // Construct from first/last
+        email: 'placeholder@example.com', // Placeholder
+        phoneNumber: '+16785754730', // Placeholder
+        type: UserType.INDIVIDUAL, // Default enum value
+        createdAt: new Date(), // Placeholder
+        isOnboarded: true, // Placeholder
+        hasSetUpOrganization: false, // Placeholder
+        isSuperUser: false, // Placeholder
         firstName: 'Malik',
         lastName: 'Epps',
         username: 'malikepps',
@@ -37,9 +45,8 @@ const useUserProfileData = (uid: string | undefined): { userData: CollectiveUser
         bio: 'This is a sample bio. It can be multiple lines long and supports basic text formatting.',
         city: 'Durham',
         state: 'NC',
-        zipCode: '27701',
+        zipCode: '27705', // Updated zip from image
         communityDisplayName: null, // Or 'Community Name'
-        // other fields...
       });
       setLoading(false);
     }, 1000);
