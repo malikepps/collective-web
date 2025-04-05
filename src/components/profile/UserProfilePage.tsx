@@ -13,9 +13,9 @@ import { SVGIconStyle } from '@/lib/components/icons/SVGIcon'; // Assuming SVGIc
 import { CollectiveUser } from '@/lib/models/User'; // Assuming User model is available
 
 // TODO: Replace with actual hook/service later
-const useUserProfileData = (uid: string | undefined): { userData: Partial<CollectiveUser> | null, loading: boolean, error: Error | null } => {
+const useUserProfileData = (uid: string | undefined): { userData: CollectiveUser | null, loading: boolean, error: Error | null } => {
   // Placeholder implementation
-  const [userData, setUserData] = useState<Partial<CollectiveUser> | null>(null);
+  const [userData, setUserData] = useState<CollectiveUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 

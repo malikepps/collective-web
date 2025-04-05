@@ -5,7 +5,7 @@ import { CollectiveUser } from '@/lib/models/User';
 interface ProfileHeaderProps {
   // Using Partial because the placeholder hook currently returns Partial<CollectiveUser>
   // When the real hook is implemented, this can be changed back to CollectiveUser if needed.
-  userData: Partial<CollectiveUser>; 
+  userData: CollectiveUser; // Use CollectiveUser now that the model includes lastName
 }
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData }) => {

@@ -20,6 +20,7 @@ export interface CollectiveUser {
   hasSetUpOrganization: boolean;
   isSuperUser: boolean;
   firstName: string | null;
+  lastName: string | null;
 }
 
 export const userFromFirestore = (doc: DocumentSnapshot): CollectiveUser | null => {
@@ -41,6 +42,7 @@ export const userFromFirestore = (doc: DocumentSnapshot): CollectiveUser | null 
     hasSetUpOrganization: data.has_setup_organization || false,
     isSuperUser: data.is_super_user || false,
     firstName: data.first_name || null,
+    lastName: data.last_name || null,
   };
 };
 
