@@ -3,6 +3,7 @@ import { Organization } from '@/lib/models/Organization';
 import { useTheme } from '@/lib/context/ThemeContext';
 import { isColorLight } from '@/lib/models/Theme';
 import { DirectFontAwesome, DirectSVG, SVGIconStyle } from '@/lib/components/icons';
+import { usePostCreation } from '@/lib/context/PostCreationContext';
 
 interface InfoBoxProps {
   organization: Organization;
@@ -77,6 +78,9 @@ const InfoBox: React.FC<InfoBoxProps> = ({
     }
   };
 
+  // Get the post creation context actions
+  const { openOptionsModal } = usePostCreation();
+
   return (
     <div className="bg-card p-5 text-white continuous-corner">
       {/* Top buttons row */}
@@ -125,9 +129,9 @@ const InfoBox: React.FC<InfoBoxProps> = ({
         {isUserStaff ? (
           // --- Staff Management Buttons --- 
           <div className="flex flex-col space-y-2"> 
-            {/* Create Post Button Placeholder - EXACT COPY of 'See membership options' button below */}
+            {/* Update Create Post Button onClick */}
             <button 
-              onClick={() => console.log('TODO: Implement Create Post')}
+              onClick={openOptionsModal}
               className="w-full h-10 ios-rounded-sm font-marfa font-semibold text-base transition-all duration-200 hover:opacity-90 relative overflow-hidden"
               style={{ 
                 backgroundColor: theme?.primaryColor || '#ADD3FF',

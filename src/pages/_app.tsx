@@ -4,6 +4,7 @@ import '@/styles/fontawesome.css';
 import type { AppProps } from 'next/app';
 import { AuthProvider } from '@/lib/context/AuthContext';
 import { ThemeProvider } from '@/lib/context/ThemeContext';
+import { PostCreationProvider } from '@/lib/context/PostCreationContext';
 import { useEffect } from 'react';
 import Head from 'next/head';
 import loadFontAwesomeFonts from '@/lib/utils/fontLoader';
@@ -100,14 +101,16 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <Head>
-          <title>Collective</title>
-          <meta name="description" content="A better way to donate" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          {/* FontAwesome will be loaded dynamically with proper error handling by SVGIconInitializer */}
-        </Head>
-        <SVGIconInitializer />
-        <Component {...pageProps} />
+        <PostCreationProvider>
+          <Head>
+            <title>Collective</title>
+            <meta name="description" content="A better way to donate" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            {/* FontAwesome will be loaded dynamically with proper error handling by SVGIconInitializer */}
+          </Head>
+          <SVGIconInitializer />
+          <Component {...pageProps} />
+        </PostCreationProvider>
       </ThemeProvider>
     </AuthProvider>
   );
