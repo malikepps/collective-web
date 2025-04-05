@@ -21,6 +21,9 @@ export interface CollectiveUser {
   isSuperUser: boolean;
   firstName: string | null;
   lastName: string | null;
+  city: string | null;
+  state: string | null;
+  communityDisplayName: string | null;
 }
 
 export const userFromFirestore = (doc: DocumentSnapshot): CollectiveUser | null => {
@@ -43,6 +46,9 @@ export const userFromFirestore = (doc: DocumentSnapshot): CollectiveUser | null 
     isSuperUser: data.is_super_user || false,
     firstName: data.first_name || null,
     lastName: data.last_name || null,
+    city: data.city || null,
+    state: data.state || null,
+    communityDisplayName: data.community_display_name || null,
   };
 };
 
