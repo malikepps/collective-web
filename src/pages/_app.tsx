@@ -11,6 +11,7 @@ import loadFontAwesomeFonts from '@/lib/utils/fontLoader';
 import { printAvailableFonts } from '@/lib/components/icons';
 import preloadFontAwesomeFonts from '@/lib/utils/fontAwesomeFontLoader';
 import SVGIconInitializer from '@/lib/components/icons/SVGIconInitializer';
+import PostCreateOptionsModal from '@/components/post/PostCreateOptionsModal';
 
 export default function App({ Component, pageProps }: AppProps) {
   // Initialize font loading when app mounts
@@ -110,6 +111,7 @@ export default function App({ Component, pageProps }: AppProps) {
           </Head>
           <SVGIconInitializer />
           <Component {...pageProps} />
+          <PostCreateOptionsModal />
         </PostCreationProvider>
       </ThemeProvider>
     </AuthProvider>
