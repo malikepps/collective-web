@@ -326,81 +326,8 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
             isUserInCommunity={isUserInCommunity}
             onToggleCommunity={toggleCommunity}
             hasRelationship={relationship !== null}
+            isUserStaff={isUserStaff}
           />
-          
-          {/* Management Buttons Section - Only for Staff */}
-          {isUserStaff && (
-            <div className="px-4 mt-4 mb-2"> {/* Add padding and margin like iOS */}
-              <div className="flex flex-col space-y-2"> {/* VStack equivalent with spacing */}
-
-                {/* Create Post Button Placeholder */}
-                <button
-                  onClick={() => console.log('TODO: Implement Create Post')}
-                  style={{
-                    backgroundColor: theme?.primaryColor ? `#${theme.primaryColor}` : '#ADD3FF',
-                    color: isLight(theme?.primaryColor || 'ADD3FF') ? '#000000' : '#FFFFFF', // Dynamic text color
-                  }}
-                  className="flex items-center justify-center w-full h-10 rounded-lg font-marfa font-medium text-sm" // Adjusted height/font
-                >
-                  <DirectSVG
-                    icon="square-plus" // Same icon
-                    size={18} // Adjusted size
-                    style={SVGIconStyle.SOLID}
-                    // Color will be inherited from button text color
-                    primaryColor={isLight(theme?.primaryColor || 'ADD3FF') ? '000000' : 'FFFFFF'} // Match text color
-                  />
-                  <span className="ml-2">Create a post</span>
-                </button>
-
-                {/* Row for Edit, Share, Theme */}
-                <div className="flex space-x-2"> {/* HStack equivalent */}
-                  {/* Edit Details Button Placeholder */}
-                  <button
-                    onClick={() => console.log('TODO: Implement Edit Details')}
-                    style={{ color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#8BBEF9' }}
-                    className="flex items-center justify-center flex-grow h-10 bg-gray-800 rounded-lg font-marfa text-sm" // bg-gray-800 approximates Color(white: 0.2)
-                  >
-                    <DirectSVG
-                      icon="pencil" // Same icon
-                      size={15} // Adjusted size
-                      style={SVGIconStyle.SOLID}
-                      primaryColor={theme?.secondaryColor || '8BBEF9'} // Match text color
-                    />
-                    <span className="ml-2">Edit Details</span>
-                  </button>
-
-                  {/* Share Profile Button Placeholder */}
-                  <button
-                    onClick={() => console.log('TODO: Implement Share Profile')}
-                    style={{ color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#8BBEF9' }}
-                    className="flex items-center justify-center flex-grow h-10 bg-gray-800 rounded-lg font-marfa text-sm"
-                  >
-                    <DirectSVG
-                      icon="share" // Same icon
-                      size={15}
-                      style={SVGIconStyle.SOLID}
-                      primaryColor={theme?.secondaryColor || '8BBEF9'} // Match text color
-                    />
-                    <span className="ml-2">Share profile</span>
-                  </button>
-
-                  {/* Theme Picker Button Placeholder */}
-                  <button
-                    onClick={() => console.log('TODO: Implement Theme Picker')}
-                    style={{ color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#8BBEF9' }}
-                    className="flex items-center justify-center h-10 px-3 bg-gray-800 rounded-lg" // Fixed padding instead of flex-grow
-                  >
-                    <DirectSVG
-                      icon="palette" // Same icon
-                      size={15}
-                      style={SVGIconStyle.SOLID}
-                      primaryColor={theme?.secondaryColor || '8BBEF9'} // Match text color
-                    />
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
           
           {/* Collective Section */}
           <div className="mt-1">
@@ -408,7 +335,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
               organization={organization}
               onShowFilterSheet={handleShowFilterSheet}
               displayFilter={displayFilter}
-              isUserStaff={isUserStaff} // <-- Pass isUserStaff prop
+              isUserStaff={isUserStaff}
             />
           </div>
           

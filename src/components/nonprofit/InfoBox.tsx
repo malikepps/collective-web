@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Organization } from '@/lib/models/Organization';
 import { useTheme } from '@/lib/context/ThemeContext';
 import { isColorLight } from '@/lib/models/Theme';
-import { DirectFontAwesome } from '@/lib/components/icons';
+import { DirectFontAwesome, DirectSVG, SVGIconStyle } from '@/lib/components/icons';
 
 interface InfoBoxProps {
   organization: Organization;
@@ -13,6 +13,7 @@ interface InfoBoxProps {
   isUserInCommunity?: boolean;
   onToggleCommunity?: () => Promise<boolean>;
   hasRelationship?: boolean;
+  isUserStaff?: boolean;
 }
 
 const InfoBox: React.FC<InfoBoxProps> = ({
@@ -23,13 +24,15 @@ const InfoBox: React.FC<InfoBoxProps> = ({
   isUserMember = false,
   isUserInCommunity = false,
   onToggleCommunity,
-  hasRelationship = false
+  hasRelationship = false,
+  isUserStaff = false
 }) => {
   console.log("[DEBUG] InfoBox rendering with state:", {
     organizationId: organization.id,
     isUserMember,
     isUserInCommunity,
-    hasRelationship
+    hasRelationship,
+    isUserStaff
   });
   
   const { getTheme } = useTheme();
@@ -41,9 +44,10 @@ const InfoBox: React.FC<InfoBoxProps> = ({
       organizationId: organization.id,
       isUserMember,
       isUserInCommunity,
-      hasRelationship
+      hasRelationship,
+      isUserStaff
     });
-  }, [organization.id, isUserMember, isUserInCommunity, hasRelationship]);
+  }, [organization.id, isUserMember, isUserInCommunity, hasRelationship, isUserStaff]);
   
   // Determine the text color based on the theme's primary color brightness
   const buttonTextColor = (): string => {
@@ -53,6 +57,16 @@ const InfoBox: React.FC<InfoBoxProps> = ({
     }
     // Default text color if theme doesn't exist
     return '#000000';
+  };
+  
+  // Helper to determine text color for secondary button
+  const secondaryButtonTextColor = (): string => {
+    // Ensure theme and secondaryColor exist
+    if (theme?.secondaryColor) {
+      return isColorLight(theme.secondaryColor) ? '#000000' : '#FFFFFF';
+    }
+    // Default based on common secondary color (#ADD3FF)
+    return '#000000'; 
   };
   
   const handleToggleCommunity = async () => {
@@ -108,51 +122,128 @@ const InfoBox: React.FC<InfoBoxProps> = ({
         data-community={isUserInCommunity ? "true" : "false"}
         data-relationship={hasRelationship ? "true" : "false"}
       >
-        {isUserMember ? (
-          // Member badge for members - more compact with internal padding
-          <div className="flex justify-center">
-            <div 
-              className="ios-rounded-sm font-marfa font-semibold text-base flex items-center justify-center px-6 py-1.5"
+        {isUserStaff ? (
+          // --- Staff Management Buttons --- 
+          <div className="flex flex-col space-y-2"> 
+            {/* Create Post Button Placeholder */}
+            <button
+              onClick={() => console.log('TODO: Implement Create Post')}
+              className="flex items-center justify-center w-full h-10 rounded-lg font-marfa font-medium text-sm transition-all duration-200 hover:opacity-90 relative overflow-hidden"
               style={{ 
-                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                backgroundColor: theme?.primaryColor ? `#${theme.primaryColor}` : '#ADD3FF',
+                color: buttonTextColor()
               }}
             >
-              <span className="text-[#FFD966] flex items-center">
-                <span className="mr-1">✨</span>
-                <span>Member</span>
-              </span>
+              {/* Add subtle glow animation similar to iOS app */}
+              <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity duration-700"></div>
+              <div className="relative z-10 flex items-center">
+                <DirectSVG
+                  icon="square-plus"
+                  size={18}
+                  style={SVGIconStyle.SOLID}
+                  primaryColor={buttonTextColor().replace('#', '')} // Match text color
+                />
+                <span className="ml-2">Create a post</span>
+              </div>
+            </button>
+
+            {/* Row for Edit, Share, Theme */}
+            <div className="flex space-x-2"> 
+              {/* Edit Details Button Placeholder */}
+              <button
+                onClick={() => console.log('TODO: Implement Edit Details')}
+                style={{ color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#8BBEF9' }}
+                className="flex items-center justify-center flex-grow h-10 bg-gray-800 rounded-lg font-marfa text-sm"
+              >
+                <DirectSVG
+                  icon="pencil"
+                  size={15}
+                  style={SVGIconStyle.SOLID}
+                  primaryColor={theme?.secondaryColor || '8BBEF9'}
+                />
+                <span className="ml-2">Edit Details</span>
+              </button>
+
+              {/* Share Profile Button Placeholder */}
+              <button
+                onClick={() => console.log('TODO: Implement Share Profile')}
+                style={{ color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#8BBEF9' }}
+                className="flex items-center justify-center flex-grow h-10 bg-gray-800 rounded-lg font-marfa text-sm"
+              >
+                <DirectSVG
+                  icon="share"
+                  size={15}
+                  style={SVGIconStyle.SOLID}
+                  primaryColor={theme?.secondaryColor || '8BBEF9'}
+                />
+                <span className="ml-2">Share profile</span>
+              </button>
+
+              {/* Theme Picker Button Placeholder */}
+              <button
+                onClick={() => console.log('TODO: Implement Theme Picker')}
+                style={{ color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#8BBEF9' }}
+                className="flex items-center justify-center h-10 px-3 bg-gray-800 rounded-lg"
+              >
+                <DirectSVG
+                  icon="palette"
+                  size={15}
+                  style={SVGIconStyle.SOLID}
+                  primaryColor={theme?.secondaryColor || '8BBEF9'}
+                />
+              </button>
             </div>
           </div>
         ) : (
-          // Membership options button for non-members
-          <button 
-            onClick={() => {
-              console.log("[DEBUG] See membership options clicked");
-              onShowMembershipOptions();
-            }}
-            className="w-full h-10 ios-rounded-sm font-marfa font-semibold text-base transition-all duration-200 hover:opacity-90 relative overflow-hidden"
-            style={{ 
-              backgroundColor: theme?.primaryColor || '#ADD3FF',
-              color: buttonTextColor()
-            }}
-          >
-            {/* Add subtle glow animation similar to iOS app */}
-            <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity duration-700"></div>
-            <span className="relative z-10">See membership options</span>
-          </button>
-        )}
-        
-        {/* Only show Join Community button if user has NO relationship with the nonprofit */}
-        {!hasRelationship && (
-          <button 
-            onClick={handleToggleCommunity}
-            className="bg-white/20 w-full h-10 ios-rounded-sm font-marfa font-semibold text-base"
-            style={{ 
-              color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#ADD3FF' 
-            }}
-          >
-            Join community
-          </button>
+          // --- Public/Non-Staff Buttons --- 
+          <>
+            {isUserMember ? (
+              // Member badge for members - more compact with internal padding
+              <div className="flex justify-center">
+                <div 
+                  className="ios-rounded-sm font-marfa font-semibold text-base flex items-center justify-center px-6 py-1.5"
+                  style={{ 
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                  }}
+                >
+                  <span className="text-[#FFD966] flex items-center">
+                    <span className="mr-1">✨</span>
+                    <span>Member</span>
+                  </span>
+                </div>
+              </div>
+            ) : (
+              // Membership options button for non-members
+              <button 
+                onClick={() => {
+                  console.log("[DEBUG] See membership options clicked");
+                  onShowMembershipOptions();
+                }}
+                className="w-full h-10 ios-rounded-sm font-marfa font-semibold text-base transition-all duration-200 hover:opacity-90 relative overflow-hidden"
+                style={{ 
+                  backgroundColor: theme?.primaryColor || '#ADD3FF',
+                  color: buttonTextColor()
+                }}
+              >
+                {/* Add subtle glow animation similar to iOS app */}
+                <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity duration-700"></div>
+                <span className="relative z-10">See membership options</span>
+              </button>
+            )}
+            
+            {/* Only show Join Community button if user has NO relationship with the nonprofit */}
+            {!hasRelationship && (
+              <button 
+                onClick={handleToggleCommunity}
+                className="bg-white/20 w-full h-10 ios-rounded-sm font-marfa font-semibold text-base"
+                style={{ 
+                  color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#ADD3FF' 
+                }}
+              >
+                Join community
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>
