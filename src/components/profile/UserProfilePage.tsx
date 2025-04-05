@@ -177,7 +177,7 @@ const UserProfilePage: React.FC = () => {
           {/* TODO: Organizations Section Component */}
           {/* <OrganizationsSection 
             organizations={organizations} 
-            onViewAll={() => { /* Show Full Screen Cover */ }} 
+            onViewAll={() => { /* Removed nested comment */ }} 
           /> */}
            <div className="p-4 bg-gray-600 mx-4 rounded-lg shadow">
              Organizations Section Placeholder ({organizations.length} orgs)
