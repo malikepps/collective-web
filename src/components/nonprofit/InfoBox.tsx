@@ -153,7 +153,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
               <button
                 onClick={() => console.log('TODO: Implement Edit Details')}
                 style={{ color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#8BBEF9' }}
-                className="flex items-center justify-center flex-grow h-10 bg-gray-800 rounded-lg font-marfa text-sm"
+                className="flex items-center justify-center flex-grow h-10 bg-white/20 rounded-lg font-marfa text-sm"
               >
                 <DirectSVG
                   icon="pencil"
@@ -168,7 +168,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
               <button
                 onClick={() => console.log('TODO: Implement Share Profile')}
                 style={{ color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#8BBEF9' }}
-                className="flex items-center justify-center flex-grow h-10 bg-gray-800 rounded-lg font-marfa text-sm"
+                className="flex items-center justify-center flex-grow h-10 bg-white/20 rounded-lg font-marfa text-sm"
               >
                 <DirectSVG
                   icon="share"
@@ -183,7 +183,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
               <button
                 onClick={() => console.log('TODO: Implement Theme Picker')}
                 style={{ color: theme?.secondaryColor ? `#${theme.secondaryColor}` : '#8BBEF9' }}
-                className="flex items-center justify-center h-10 px-3 bg-gray-800 rounded-lg"
+                className="flex items-center justify-center h-10 px-3 bg-white/20 rounded-lg"
               >
                 <DirectSVG
                   icon="palette"
