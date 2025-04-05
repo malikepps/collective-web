@@ -5,7 +5,7 @@ import { usePostBoosts } from '@/lib/hooks/usePostBoosts';
 // import useUserProfileData from '@/lib/hooks/useUserProfileData'; // TODO: Create this hook
 import ProfileHeader from './ProfileHeader'; // TODO: Create this component
 import ProfileBio from './ProfileBio'; // TODO: Create this component
-// import OrganizationsSection from './OrganizationsSection'; // TODO: Create this component
+import OrganizationsSection from './OrganizationsSection'; // TODO: Create this component
 // import BoostedPostsSection from './BoostedPostsSection'; // TODO: Create this component
 import { useRouter } from 'next/router';
 import { DirectSVG } from '@/lib/components/icons'; // Assuming DirectSVG is available
@@ -78,6 +78,14 @@ const UserProfilePage: React.FC = () => {
     console.log('Opening Edit Bio Sheet...');
     setShowEditBioSheet(true);
     // Later, this will actually open the modal/sheet
+  };
+
+  // State and handler for Organizations Full Screen Cover (placeholder)
+  const [showOrganizationsCover, setShowOrganizationsCover] = useState(false);
+  const handleViewAllOrgs = () => {
+    console.log('Opening Organizations Full Screen Cover...');
+    setShowOrganizationsCover(true);
+    // Later, this will actually open the cover
   };
 
   // --- Scroll Handling for Nav Bar Opacity ---
@@ -174,13 +182,11 @@ const UserProfilePage: React.FC = () => {
           {/* Profile Bio Component */}
           <ProfileBio bio={userData.bio} onEdit={handleEditBio} />
 
-          {/* TODO: Organizations Section Component */}
-          {/* <OrganizationsSection 
+          {/* Organizations Section Component */}
+          <OrganizationsSection 
             organizations={organizations} 
-          /> */}
-           <div className="p-4 bg-gray-600 mx-4 rounded-lg shadow">
-             Organizations Section Placeholder ({organizations.length} orgs)
-           </div>
+            onViewAll={handleViewAllOrgs} 
+          />
 
           {/* TODO: Boosted Posts Section Component */}
           {/* <BoostedPostsSection boosts={boosts} /> */}
