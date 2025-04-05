@@ -1,7 +1,7 @@
 import React from 'react';
 import PostCard from '@/components/post/PostCard'; // Assuming PostCard is correctly located
 import { BoostData, boostService } from '@/lib/services/boostService'; // Import BoostData and boostService
-import { usePostLikes } from '@/lib/hooks/usePostLikes'; // Need likes to pass to PostCard
+import { usePostReactions } from '@/lib/hooks/usePostReactions'; // Correct hook import
 import { usePostBoosts as useProfileBoosts } from '@/lib/hooks/usePostBoosts'; // Alias to avoid name clash
 import { useAuth } from '@/lib/context/AuthContext';
 import { useRouter } from 'next/router';
@@ -13,7 +13,7 @@ interface BoostedPostsSectionProps {
 const BoostedPostsSection: React.FC<BoostedPostsSectionProps> = ({ boosts }) => {
   const { user } = useAuth();
   const router = useRouter();
-  const { likedPosts, toggleLike } = usePostLikes();
+  const { likedPosts, isPostLiked, toggleLike } = usePostReactions(); // Use correct hook and destructure its return values
   const { boostedPosts: userBoostedPosts, toggleBoost } = useProfileBoosts(); // Use aliased hook
 
   // Function to handle showing post detail (placeholder)
@@ -43,9 +43,9 @@ const BoostedPostsSection: React.FC<BoostedPostsSectionProps> = ({ boosts }) => 
               organization={organization} // Pass the organization data from BoostData
               isUserMember={false} // TODO: Determine if user is member of this org
               isUserStaff={false}  // TODO: Determine if user is staff of this org
-              isLiked={likedPosts.includes(post.id)}
+              isLiked={isPostLiked(post.id)} // Use isPostLiked function from hook
               isBoosted={userBoostedPosts.includes(post.id)} // Use state from aliased hook
-              onToggleLike={() => toggleLike(post)} // Use function from likes hook
+              onToggleLike={() => toggleLike(post.id)} // Pass postId to toggleLike
               onToggleBoost={() => toggleBoost(post)} // Use function from boosts hook
               onShowDetail={() => handleShowDetail(post.id)}
               // onDeletePost prop is optional, not needed here typically
