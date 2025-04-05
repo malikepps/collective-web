@@ -76,14 +76,6 @@ const InfoBox: React.FC<InfoBoxProps> = ({
       console.log("[DEBUG] Toggle community result:", result);
     }
   };
-  
-  // --- Add console log before return ---
-  const createPostBgColor = theme?.primaryColor ? `#${theme.primaryColor}` : '#ADD3FF';
-  console.log("[DEBUG] InfoBox Create Post Button Style:", { 
-    backgroundColor: createPostBgColor, 
-    color: buttonTextColor() 
-  });
-  // --- End log ---
 
   return (
     <div className="bg-card p-5 text-white continuous-corner">
@@ -138,7 +130,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
               onClick={() => console.log('TODO: Implement Create Post')}
               className="flex items-center justify-center w-full h-10 rounded-lg font-marfa font-medium text-sm transition-all duration-200 hover:opacity-90 relative overflow-hidden"
               style={{ 
-                backgroundColor: createPostBgColor,
+                backgroundColor: theme?.primaryColor ? `#${theme.primaryColor}` : '#ADD3FF',
                 color: buttonTextColor()
               }}
             >
