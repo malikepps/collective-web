@@ -6,7 +6,7 @@ import { usePostBoosts } from '@/lib/hooks/usePostBoosts';
 import ProfileHeader from './ProfileHeader'; // TODO: Create this component
 import ProfileBio from './ProfileBio'; // TODO: Create this component
 import OrganizationsSection from './OrganizationsSection'; // TODO: Create this component
-// import BoostedPostsSection from './BoostedPostsSection'; // TODO: Create this component
+import BoostedPostsSection from './BoostedPostsSection'; // TODO: Create this component
 import { useRouter } from 'next/router';
 import { DirectSVG } from '@/lib/components/icons'; // Assuming DirectSVG is available
 import { SVGIconStyle } from '@/lib/components/icons/SVGIcon'; // Assuming SVGIconStyle is available
@@ -206,11 +206,10 @@ const UserProfilePage: React.FC = () => {
             onViewAll={handleViewAllOrgs} 
           />
 
-          {/* TODO: Boosted Posts Section Component */}
-          {/* <BoostedPostsSection boosts={boosts} /> */}
-          <div className="p-4 bg-gray-500 mx-4 rounded-lg shadow">
-             Boosted Posts Placeholder ({boosts.length} boosts)
-           </div>
+          {/* Boosted Posts Section Component */}
+          <div className="mx-4"> {/* Add margin to match other sections */}
+            <BoostedPostsSection boosts={boosts} />
+          </div>
 
         </div>
       </div>
