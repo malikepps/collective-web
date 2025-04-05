@@ -42,7 +42,7 @@ const PostPreviewScreen: React.FC = () => {
     openCaptionSheet, 
     organizationId // Get organizationId from context
   } = usePostCreation();
-  const { currentUser } = useAuth(); // Get current user
+  const { user } = useAuth(); // Change currentUser to user
 
   const [previews, setPreviews] = useState<string[]>([]);
   const [mediaTypes, setMediaTypes] = useState<('image' | 'video')[]>([]);
@@ -144,7 +144,7 @@ const PostPreviewScreen: React.FC = () => {
   };
 
   const handlePublish = async () => {
-    if (!currentUser || !organizationId) {
+    if (!user || !organizationId) {
       setError("User not authenticated or organization not selected.");
       return;
     }
@@ -158,7 +158,7 @@ const PostPreviewScreen: React.FC = () => {
     setUploadProgress(0);
 
     try {
-      const uploadPromises = selectedFiles.map(file => uploadMediaFile(file, currentUser.uid));
+      const uploadPromises = selectedFiles.map(file => uploadMediaFile(file, user.uid));
       // We might need a more granular progress update based on individual file progresses
       // For now, just update based on completion count
       const uploadedMediaResults = await Promise.all(uploadPromises.map(async (p, index) => {
@@ -215,8 +215,8 @@ const PostPreviewScreen: React.FC = () => {
         nonprofit: doc(db, 'nonprofits', organizationId), // Reference
         num_comments: 0,
         num_likes: 0,
-        user_id: currentUser.uid,
-        username: currentUser.displayName || "Anonymous",
+        user_id: user.uid,
+        username: user.displayName || "Anonymous",
         // community: doc(db, 'communities', organization.communityRef), // Omit for now
         background_color_hex: backgroundColorHex,
         is_for_members_only: isForMembersOnly,
