@@ -128,7 +128,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
             {/* Create Post Button Placeholder */}
             <button
               onClick={() => console.log('TODO: Implement Create Post')}
-              className="flex items-center justify-center w-full h-10 rounded-lg font-marfa font-medium text-sm transition-all duration-200 hover:opacity-90 relative overflow-hidden bg-transparent"
+              className="w-full h-10 ios-rounded-sm font-marfa font-medium text-sm transition-all duration-200 hover:opacity-90 relative overflow-hidden bg-transparent"
               style={{ 
                 backgroundColor: theme?.primaryColor ? `#${theme.primaryColor}` : '#ADD3FF',
                 color: buttonTextColor()
