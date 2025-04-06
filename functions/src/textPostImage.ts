@@ -91,10 +91,10 @@ export const generateTextPostImage = functionsV1
 
         const titleLength = title.trim().length;
         let fontSizePx: number;
-        if (titleLength < 80) fontSizePx = 100;
-        else if (titleLength < 120) fontSizePx = 80;
-        else if (titleLength < 160) fontSizePx = 70;
-        else fontSizePx = 60;
+        if (titleLength < 80) fontSizePx = 150;
+        else if (titleLength < 120) fontSizePx = 120;
+        else if (titleLength < 160) fontSizePx = 100;
+        else fontSizePx = 90;
 
         const htmlContent = `
             <html>
@@ -102,8 +102,7 @@ export const generateTextPostImage = functionsV1
                 <style>
                     @font-face {
                         font-family: 'Marfa';
-                        /* Updated path and filename, removed ttf */
-                        src: url('./fonts/ABCMarfa-Semibold-Trial.woff2') format('woff2');
+                        src: url('FONT_PLACEHOLDER') format('woff2'); /* Placeholder */
                         font-weight: 600;
                         font-style: normal;
                         font-display: swap;
@@ -111,31 +110,29 @@ export const generateTextPostImage = functionsV1
                     body {
                         margin: 0;
                         width: 1080px;
-                        height: 1350px;
+                        height: 1080px; /* Changed height for square */
                         background: linear-gradient(to bottom, #${darkerShade}, ${themePrimaryColor});
-                        display: flex;
-                        align-items: center; /* Center vertically */
-                        justify-content: flex-start; /* Align content to the left */
-                        box-sizing: border-box;
-                        font-family: 'Marfa', sans-serif; /* Use Marfa */
-                        overflow: hidden; /* Prevent potential scrollbars */
+                        font-family: 'Marfa', sans-serif;
+                        overflow: hidden;
                     }
                     .title-container {
                         width: 100%;
-                        padding: 60px; /* Generous padding */
+                        height: 100%; /* Make container full height */
+                        padding: 80px; /* Increased padding */
                         box-sizing: border-box;
+                        display: flex; /* Make container a flex container */
+                        align-items: center; /* Vertically center content (the .title div) */
+                        justify-content: center; /* Horizontally center content block */
                     }
                     .title {
-                        font-weight: 600; /* Semibold */
+                        font-weight: 600;
                         font-size: ${fontSizePx}px;
-                        color: ${textColorRgba}; /* Has opacity */
-                        text-align: left;
-                        line-height: 1.2; /* Adjust line height for readability */
-                        /* Optional shadow for light text on light background */
-                        ${textColorRgba.startsWith('rgba(255') ? 'text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);' : ''}
-                        /* Prevent text overflowing the container */
-                        word-wrap: break-word; /* Allow long words to break */
-                         overflow-wrap: break-word;
+                        color: ${textColorRgba};
+                        text-align: left; /* Keep text left-aligned */
+                        line-height: 1.15; /* Adjusted line height */
+                        width: 100%; /* Ensure title div takes available width */
+                        word-wrap: break-word;
+                        overflow-wrap: break-word;
                     }
                 </style>
             </head>
