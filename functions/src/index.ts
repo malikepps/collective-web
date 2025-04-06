@@ -1,3 +1,8 @@
+import * as admin from "firebase-admin";
+
+// Initialize Firebase Admin SDK
+admin.initializeApp();
+
 /**
  * Import function triggers from their respective submodules:
  *
