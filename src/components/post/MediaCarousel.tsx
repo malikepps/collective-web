@@ -241,8 +241,8 @@ export default function MediaCarousel({
             className="min-w-full h-full flex-shrink-0 relative"
           >
             {item.type === MediaType.VIDEO ? (
-              // Video Player Wrapper - Added flex centering
-              <div className="absolute inset-0 bg-black video-player-wrapper flex items-center justify-center" style={{ overflow: 'hidden' }}> 
+              // Video Player Wrapper
+              <div className="absolute inset-0 bg-black video-player-wrapper" style={{ overflow: 'hidden' }}> 
                 <ReactPlayer
                   ref={index === currentPage ? playerRef : null} 
                   url={item.url}
@@ -255,8 +255,6 @@ export default function MediaCarousel({
                     height: '100%',
                     objectFit: 'cover' 
                   }}
-                  width="100%" // Re-add width prop
-                  height="100%" // Re-add height prop
                   playing={index === currentPage} 
                   loop={true} 
                   muted={true} 
