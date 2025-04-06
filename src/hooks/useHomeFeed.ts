@@ -1,6 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase/config';
-import { collection, query, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
+import { 
+  collection, 
+  query, 
+  orderBy, 
+  limit, 
+  getDocs, 
+  doc, 
+  getDoc, 
+  DocumentReference
+} from 'firebase/firestore';
 import { Post } from '@/lib/models/Post';
 import { Organization } from '@/lib/models/Organization';
 // We might need user relationship later to determine staff/member status for posts
@@ -51,11 +60,16 @@ export function useHomeFeed(): UseHomeFeedReturn {
       const postsSnapshot = await getDocs(postsQuery);
       const posts = postsSnapshot.docs.map(doc => {
         const data = doc.data();
+        // Extract nonprofit ID from the DocumentReference
+        const nonprofitRef = data.nonprofit as DocumentReference | undefined;
+        const nonprofitId = nonprofitRef?.id;
+
         return {
           id: doc.id,
           ...data,
           // Ensure createdDate is a Date object (Firestore timestamps need conversion)
           createdDate: data.created_time?.toDate ? data.created_time.toDate() : new Date(),
+          nonprofitId: nonprofitId, // Assign the extracted ID
         } as Post;
       });
       console.log(`[useHomeFeed] Fetched ${posts.length} posts.`);
