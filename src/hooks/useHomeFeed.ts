@@ -10,8 +10,8 @@ import {
   getDoc, 
   DocumentReference
 } from 'firebase/firestore';
-import { Post } from '@/lib/models/Post';
-import { Organization } from '@/lib/models/Organization';
+import { Post, postFromFirestore } from '@/lib/models/Post';
+import { Organization, organizationFromFirestore } from '@/lib/models/Organization';
 // We might need user relationship later to determine staff/member status for posts
 // import { useUserOrganizationRelationship } from './useUserOrganizationRelationship';
 
@@ -58,21 +58,11 @@ export function useHomeFeed(): UseHomeFeedReturn {
         // Add pagination later: startAfter(lastVisibleDoc)
       );
       const postsSnapshot = await getDocs(postsQuery);
-      const posts = postsSnapshot.docs.map(doc => {
-        const data = doc.data();
-        // Extract nonprofit ID from the DocumentReference
-        const nonprofitRef = data.nonprofit as DocumentReference | undefined;
-        const nonprofitId = nonprofitRef?.id;
-
-        return {
-          id: doc.id,
-          ...data,
-          // Ensure createdDate is a Date object (Firestore timestamps need conversion)
-          createdDate: data.created_time?.toDate ? data.created_time.toDate() : new Date(),
-          nonprofitId: nonprofitId, // Assign the extracted ID
-        } as Post;
-      });
-      console.log(`[useHomeFeed] Fetched ${posts.length} posts.`);
+      const posts = postsSnapshot.docs
+        .map(doc => postFromFirestore(doc)) // Use postFromFirestore
+        .filter((post): post is Post => post !== null); // Filter out nulls
+      
+      console.log(`[useHomeFeed] Parsed ${posts.length} posts using postFromFirestore.`);
 
       if (posts.length === 0) {
         setLoading(false);
@@ -92,9 +82,13 @@ export function useHomeFeed(): UseHomeFeedReturn {
       const organizationsMap = new Map<string, Organization>();
       organizationDocs.forEach(docSnap => {
         if (docSnap.exists()) {
-          const orgData = { id: docSnap.id, ...docSnap.data() } as Organization;
-          organizationsMap.set(docSnap.id, orgData);
-          console.log(`[useHomeFeed] Fetched organization: ${orgData.name} (${orgData.id})`);
+          const orgData = organizationFromFirestore(docSnap); // Use organizationFromFirestore
+          if (orgData) {
+            organizationsMap.set(docSnap.id, orgData);
+            console.log(`[useHomeFeed] Parsed organization using organizationFromFirestore: ${orgData.name} (${orgData.id})`);
+          } else {
+             console.warn(`[useHomeFeed] organizationFromFirestore failed for ID: ${docSnap.id}`);
+          }
         } else {
            console.warn(`[useHomeFeed] Organization document not found for ID: ${docSnap.id}`);
         }
