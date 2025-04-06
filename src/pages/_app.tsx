@@ -14,7 +14,7 @@ import SVGIconInitializer from '@/lib/components/icons/SVGIconInitializer';
 import PostCreateOptionsModal from '@/components/post/PostCreateOptionsModal';
 import PostPreviewScreen from '@/components/post/PostPreviewScreen';
 import CaptionEditSheet from '@/components/post/CaptionEditSheet';
-import TextPostCreateScreen from '@/components/post/TextPostCreateScreen';
+import TextPostCreateScreen from '../components/post/TextPostCreateScreen';
 
 export default function App({ Component, pageProps }: AppProps) {
   // Initialize font loading when app mounts
