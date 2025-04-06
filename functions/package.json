@@ -27,6 +27,6 @@
   "private": true,
   "files": [
     "lib/**/*",
-    "node_modules/puppeteer/.local-chromium/"
+    "node_modules/puppeteer/**/*"
   ]
 }
