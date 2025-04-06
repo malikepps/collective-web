@@ -242,12 +242,18 @@ export default function MediaCarousel({
           >
             {item.type === MediaType.VIDEO ? (
               // Video Player Wrapper
-              <div className="absolute inset-0 bg-black video-player-wrapper">
+              <div className="absolute inset-0 bg-black video-player-wrapper" style={{ overflow: 'hidden' }}>
                 <ReactPlayer
                   ref={index === currentPage ? playerRef : null} // Only attach ref to current player
                   url={item.url}
-                  width="100%"
-                  height="100%"
+                  style={{ 
+                    position: 'absolute', 
+                    top: 0, 
+                    left: 0,
+                    width: '100%', // Explicit width in style
+                    height: '100%', // Explicit height in style
+                    objectFit: 'cover' 
+                  }}
                   playing={index === currentPage} // Autoplay only if current
                   loop={true} // Loop the video
                   muted={true} // Autoplay usually requires video to be muted
@@ -265,12 +271,6 @@ export default function MediaCarousel({
                       },
                     },
                   }}
-                  style={{ 
-                    position: 'absolute', 
-                    top: 0, 
-                    left: 0,
-                    objectFit: 'cover'
-                  }} // Ensure player fills container
                 />
 
                 {/* Conditionally render the play button */}
