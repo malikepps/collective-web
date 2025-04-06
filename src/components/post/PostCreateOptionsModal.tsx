@@ -6,7 +6,8 @@ const PostCreateOptionsModal: React.FC = () => {
   const { 
     isOptionsModalOpen, 
     closeOptionsModal, 
-    openPreviewScreen 
+    openPreviewScreen, 
+    openTextCreateScreen
   } = usePostCreation();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -40,8 +41,9 @@ const PostCreateOptionsModal: React.FC = () => {
 
   const handleStartWriting = () => {
     // Placeholder for Start Writing logic
-    console.log("TODO: Implement Start Writing");
-    // closeOptionsModal(); // Optionally close modal after selection
+    // console.log("TODO: Implement Start Writing");
+    openTextCreateScreen(); // Open the text create screen
+    // closeOptionsModal(); // Optionally close modal after selection - openTextCreateScreen already handles this
   };
 
   // --- Render ---

@@ -13,34 +13,41 @@ import { useRouter } from 'next/router'; // Import useRouter
 // We might need a carousel library later, for now basic implementation
 
 const PostPreviewScreen: React.FC = () => {
-  const { 
-    isPreviewScreenOpen, 
-    closePreviewScreen, 
-    selectedFiles, 
-    caption,
+  const {
+    isPreviewScreenOpen,
+    closePreviewScreen,
+    selectedFiles,
+    caption, // For text posts, this is the plain text content
     isForMembersOnly,
     toggleMembersOnly,
     isForBroaderEcosystem,
     toggleBroaderEcosystem,
-    startProcessing, 
-    stopProcessing, // Added stopProcessing
-    setUploadProgress, // Added setUploadProgress
-    setError, // Added setError
-    resetState, // Added resetState
-    isProcessing,    
-    openCaptionSheet, 
-    organizationId // Get organizationId from context
+    startProcessing,
+    stopProcessing,
+    setUploadProgress,
+    setError,
+    resetState,
+    isProcessing,
+    openCaptionSheet,
+    organizationId,
+    // --- Text Post Context Fields ---
+    isTextPost,
+    generatedImageUrl,
+    text_post_title,
+    text_content_html,
+    backgroundColorHex,
+    // -------------------------------
   } = usePostCreation();
-  const { user } = useAuth(); // Change currentUser to user
-  const router = useRouter(); // Initialize router
+  const { user } = useAuth();
+  const router = useRouter();
 
   const [previews, setPreviews] = useState<string[]>([]);
   const [mediaTypes, setMediaTypes] = useState<('image' | 'video')[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Generate previews when files change
+  // Generate previews only if it's NOT a text post
   useEffect(() => {
-    if (selectedFiles.length > 0) {
+    if (!isTextPost && selectedFiles.length > 0) {
       const newPreviews: string[] = [];
       const newMediaTypes: ('image' | 'video')[] = [];
       selectedFiles.forEach(file => {
@@ -49,14 +56,17 @@ const PostPreviewScreen: React.FC = () => {
       });
       setPreviews(newPreviews);
       setMediaTypes(newMediaTypes);
-      setCurrentSlide(0); // Reset to first slide
+      setCurrentSlide(0);
 
-      // Cleanup object URLs on unmount or when files change again
       return () => {
         newPreviews.forEach(url => URL.revokeObjectURL(url));
       };
+    } else {
+      // Clear previews if it becomes a text post or files are cleared
+      setPreviews([]);
+      setMediaTypes([]);
     }
-  }, [selectedFiles]);
+  }, [selectedFiles, isTextPost]); // Add isTextPost dependency
 
   const handleNextSlide = () => {
     setCurrentSlide(prev => Math.min(prev + 1, previews.length - 1));
@@ -108,116 +118,168 @@ const PostPreviewScreen: React.FC = () => {
   // Placeholder for thumbnail generation
   const generateThumbnail = async (file: File): Promise<{ thumbnailUrl: string | null, thumbnailColor: string | null }> => {
     console.log("Skipping thumbnail generation for now.");
-    // TODO: Implement actual thumbnail generation (e.g., using canvas or backend)
-    return { thumbnailUrl: null, thumbnailColor: null }; // Placeholder
+    return { thumbnailUrl: null, thumbnailColor: null };
   };
 
+  // --- handlePublish Updated for Text Posts ---
   const handlePublish = async () => {
     if (!user || !organizationId) {
       setError("User not authenticated or organization not selected.");
       return;
     }
-    if (selectedFiles.length === 0) {
-      setError("No media selected.");
-      return;
-    }
 
     startProcessing();
-    let overallProgress = 0;
-    setUploadProgress(0);
 
     try {
-      const uploadPromises = selectedFiles.map(file => uploadMediaFile(file, user.uid));
-      // We might need a more granular progress update based on individual file progresses
-      // For now, just update based on completion count
-      const uploadedMediaResults = await Promise.all(uploadPromises.map(async (p, index) => {
-          const result = await p;
-          overallProgress = (index + 1) / selectedFiles.length;
-          setUploadProgress(overallProgress);
-          return result;
-      }));
+      let postData: any; // Use 'any' temporarily, define a proper Post type later
 
-      // Generate thumbnails (currently placeholders)
-      const thumbnailPromises = selectedFiles.map((file, index) => 
-          uploadedMediaResults[index].type === MediaType.VIDEO ? generateThumbnail(file) : Promise.resolve({ thumbnailUrl: null, thumbnailColor: null })
-      );
-      const thumbnailResults = await Promise.all(thumbnailPromises);
+      // --- Text Post Logic ---
+      if (isTextPost) {
+        if (!generatedImageUrl || !text_post_title || !text_content_html) {
+          setError("Missing text post details (image URL, title, or content).");
+          stopProcessing();
+          return;
+        }
 
-      // Construct MediaItem array for Firestore
-      const mediaItemsForFirestore: MediaItem[] = uploadedMediaResults.map((uploadResult, index) => ({
-        id: uploadResult.fullPath.split('/').pop()?.split('.')[0] || uuidv4(), // Extract UUID or generate new
-        url: uploadResult.url,
-        type: uploadResult.type,
-        order: index,
-        thumbnailUrl: thumbnailResults[index].thumbnailUrl,
-        thumbnailColor: thumbnailResults[index].thumbnailColor,
-      }));
+        const mediaItemForTextPost: MediaItem = {
+          id: uuidv4(), // Generate a new ID for the media item
+          url: generatedImageUrl,
+          type: MediaType.IMAGE, // Text post's visual representation is an image
+          order: 0,
+          thumbnailUrl: null, // No separate thumbnail for generated image
+          thumbnailColor: backgroundColorHex || null,
+        };
 
-      // Determine overall post type
-      let postMediaType: MediaType | undefined;
-      const hasVideo = mediaItemsForFirestore.some(item => item.type === MediaType.VIDEO);
-      if (mediaItemsForFirestore.length > 1) {
-        postMediaType = MediaType.CAROUSEL_ALBUM; // Use CAROUSEL_ALBUM for multiple items
-      } else if (hasVideo) {
-        postMediaType = MediaType.VIDEO;
-      } else if (mediaItemsForFirestore.length === 1) {
-        postMediaType = MediaType.IMAGE;
+        postData = {
+          caption: caption, // Plain text content
+          created_time: Timestamp.now(),
+          media: [{
+            id: mediaItemForTextPost.id,
+            order: mediaItemForTextPost.order,
+            thumbnail_color: mediaItemForTextPost.thumbnailColor,
+            media_type: 'image',
+            image_url: mediaItemForTextPost.url,
+          }],
+          media_type: MediaType.IMAGE.toLowerCase(), // Overall post type is image
+          nonprofit: doc(db, 'nonprofits', organizationId),
+          num_comments: 0,
+          num_likes: 0,
+          user_id: user.uid,
+          username: user.displayName || "Anonymous",
+          background_color_hex: backgroundColorHex || null,
+          is_for_members_only: isForMembersOnly,
+          is_for_broader_ecosystem: isForBroaderEcosystem,
+          video: false, // Text posts are not videos
+          // --- Text Post Specific Fields ---
+          is_text_post: true,
+          text_post_title: text_post_title,
+          text_content: text_content_html, // Store the rich HTML content
+        };
+
+      } else { 
+        // --- Existing Media Post Logic ---
+        if (selectedFiles.length === 0) {
+          setError("No media selected.");
+          stopProcessing(); // Stop processing if no files
+          return;
+        }
+
+        let overallProgress = 0;
+        setUploadProgress(0);
+
+        const uploadPromises = selectedFiles.map(file => uploadMediaFile(file, user.uid));
+        const uploadedMediaResults = await Promise.all(uploadPromises.map(async (p, index) => {
+            const result = await p;
+            overallProgress = (index + 1) / selectedFiles.length;
+            setUploadProgress(overallProgress);
+            return result;
+        }));
+
+        const thumbnailPromises = selectedFiles.map((file, index) =>
+            uploadedMediaResults[index].type === MediaType.VIDEO ? generateThumbnail(file) : Promise.resolve({ thumbnailUrl: null, thumbnailColor: null })
+        );
+        const thumbnailResults = await Promise.all(thumbnailPromises);
+
+        const mediaItemsForFirestore: MediaItem[] = uploadedMediaResults.map((uploadResult, index) => ({
+          id: uploadResult.fullPath.split('/').pop()?.split('.')[0] || uuidv4(),
+          url: uploadResult.url,
+          type: uploadResult.type,
+          order: index,
+          thumbnailUrl: thumbnailResults[index].thumbnailUrl,
+          thumbnailColor: thumbnailResults[index].thumbnailColor,
+        }));
+
+        let postMediaType: MediaType | undefined;
+        const hasVideo = mediaItemsForFirestore.some(item => item.type === MediaType.VIDEO);
+        if (mediaItemsForFirestore.length > 1) {
+          postMediaType = MediaType.CAROUSEL_ALBUM;
+        } else if (hasVideo) {
+          postMediaType = MediaType.VIDEO;
+        } else if (mediaItemsForFirestore.length === 1) {
+          postMediaType = MediaType.IMAGE;
+        }
+
+        const calculatedBackgroundColorHex = thumbnailResults[0]?.thumbnailColor || null;
+
+        postData = {
+          caption: caption, // User-provided caption for media
+          created_time: Timestamp.now(),
+          media: mediaItemsForFirestore.map(item => ({
+            id: item.id,
+            order: item.order,
+            thumbnail_color: item.thumbnailColor,
+            ...(item.type === MediaType.VIDEO
+              ? { media_type: 'video', video_url: item.url, image_url: item.thumbnailUrl }
+              : { media_type: 'image', image_url: item.url })
+          })),
+          media_type: postMediaType?.toLowerCase(),
+          nonprofit: doc(db, 'nonprofits', organizationId),
+          num_comments: 0,
+          num_likes: 0,
+          user_id: user.uid,
+          username: user.displayName || "Anonymous",
+          background_color_hex: calculatedBackgroundColorHex,
+          is_for_members_only: isForMembersOnly,
+          is_for_broader_ecosystem: isForBroaderEcosystem,
+          video: hasVideo,
+          // --- Ensure text post fields are false/null for media posts ---
+          is_text_post: false,
+          text_post_title: null,
+          text_content: null,
+        };
       }
 
-      // Determine background color (placeholder)
-      const backgroundColorHex = thumbnailResults[0]?.thumbnailColor || null; // Use first item's color or null
-      
-      // Prepare Firestore document data
-      const postData = {
-        caption: caption,
-        created_time: Timestamp.now(),
-        media: mediaItemsForFirestore.map(item => ({
-          id: item.id,
-          order: item.order,
-          thumbnail_color: item.thumbnailColor,
-          // Conditionally add fields based on type (Firestore structure)
-          ...(item.type === MediaType.VIDEO 
-            ? { media_type: 'video', video_url: item.url, image_url: item.thumbnailUrl } 
-            : { media_type: 'image', image_url: item.url })
-        })),
-        media_type: postMediaType?.toLowerCase(), // Ensure lowercase for consistency if needed
-        nonprofit: doc(db, 'nonprofits', organizationId), // Reference
-        num_comments: 0,
-        num_likes: 0,
-        user_id: user.uid,
-        username: user.displayName || "Anonymous",
-        // community: doc(db, 'communities', organization.communityRef), // Omit for now
-        background_color_hex: backgroundColorHex,
-        is_for_members_only: isForMembersOnly,
-        is_for_broader_ecosystem: isForBroaderEcosystem,
-        video: hasVideo, // Set video flag based on content
-      };
-
+      // --- Common Firestore Save Logic ---
       console.log("Creating post with data:", postData);
       await addDoc(collection(db, 'posts'), postData);
 
       console.log("Post created successfully!");
-      resetState(); // Reset context state
-      closePreviewScreen(); // Close the preview screen
-      router.replace(router.asPath); // Refresh page data using replace
+      resetState();
+      closePreviewScreen();
+      router.replace(router.asPath);
 
     } catch (error: any) {
       console.error("Error publishing post:", error);
       setError(`Failed to publish post: ${error.message || 'Unknown error'}`);
     } finally {
-      stopProcessing(); // Ensure processing stops even if there's an error
+      stopProcessing();
     }
   };
 
   if (!isPreviewScreenOpen) {
     return null;
   }
+  
+  // Determine if publish button should be disabled
+  const isPublishDisabled = isProcessing || 
+                            (isTextPost && !generatedImageUrl) || 
+                            (!isTextPost && selectedFiles.length === 0);
 
   return (
     <div className="fixed inset-0 z-[60] flex flex-col bg-[#242426] text-white">
       {/* Top Bar */}
       <div className="flex items-center justify-between p-4 border-b border-gray-700">
-        <button 
+        <button
           onClick={closePreviewScreen}
           className="font-marfa text-base text-white hover:text-gray-300"
           disabled={isProcessing}
@@ -225,10 +287,10 @@ const PostPreviewScreen: React.FC = () => {
           Cancel
         </button>
         <span className="font-marfa font-semibold text-lg">Post preview</span>
-        <button 
+        <button
           onClick={handlePublish}
           className="font-marfa font-semibold text-sm text-white bg-blue-600 px-4 py-1.5 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isProcessing || previews.length === 0}
+          disabled={isPublishDisabled} // Use calculated disabled state
         >
           {isProcessing ? 'Publishing...' : 'Publish'}
         </button>
@@ -236,67 +298,84 @@ const PostPreviewScreen: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="flex-grow overflow-y-auto">
-        {/* Media Preview Carousel */}
-        {previews.length > 0 && (
-          <div className="relative w-full aspect-[4/5] bg-black mb-4"> {/* Approx 4:5 aspect ratio */} 
-            {/* Media Display */}
-            <div className="w-full h-full flex items-center justify-center overflow-hidden">
-              {mediaTypes[currentSlide] === 'video' ? (
-                <video 
-                  src={previews[currentSlide]}
-                  controls
+        {/* Media Preview Section (Conditional Rendering) */}
+        <div className="relative w-full aspect-[4/5] bg-black mb-4">
+          <div className="w-full h-full flex items-center justify-center overflow-hidden">
+            {isTextPost ? (
+              // --- Text Post Image Display ---
+              generatedImageUrl ? (
+                <img
+                  src={generatedImageUrl}
+                  alt={text_post_title || "Generated Text Post Image"}
                   className="max-w-full max-h-full object-contain"
                 />
               ) : (
-                <img 
-                  src={previews[currentSlide]} 
-                  alt={`Preview ${currentSlide + 1}`}
-                  className="max-w-full max-h-full object-contain"
-                />
-              )}
-            </div>
-
-            {/* Carousel Controls */}
-            {previews.length > 1 && (
-              <>
-                {currentSlide > 0 && (
-                  <button 
-                    onClick={handlePrevSlide} 
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 rounded-full p-2 text-white hover:bg-black/60"
-                    aria-label="Previous slide"
-                  >
-                    <DirectSVG icon="chevron-left" size={20} style={SVGIconStyle.SOLID} primaryColor="currentColor"/>
-                  </button>
-                )}
-                {currentSlide < previews.length - 1 && (
-                  <button 
-                    onClick={handleNextSlide} 
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 rounded-full p-2 text-white hover:bg-black/60"
-                    aria-label="Next slide"
-                  >
-                    <DirectSVG icon="chevron-right" size={20} style={SVGIconStyle.SOLID} primaryColor="currentColor"/>
-                  </button>
-                )}
-                {/* Dots Indicator */}
-                <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
-                  {previews.map((_, index) => (
-                    <div 
-                      key={`dot-${index}`} 
-                      className={`h-1.5 rounded-full ${index === currentSlide ? 'bg-white w-4' : 'bg-white/50 w-1.5'} transition-all duration-200`}
-                    />
-                  ))}
-                </div>
-              </>
+                // Optional: Placeholder while image loads or if error
+                <div className="text-gray-500">Generating image...</div>
+              )
+            ) : (
+              // --- Existing Media Carousel Display ---
+              previews.length > 0 ? (
+                mediaTypes[currentSlide] === 'video' ? (
+                  <video
+                    src={previews[currentSlide]}
+                    controls
+                    className="max-w-full max-h-full object-contain"
+                  />
+                ) : (
+                  <img
+                    src={previews[currentSlide]}
+                    alt={`Preview ${currentSlide + 1}`}
+                    className="max-w-full max-h-full object-contain"
+                  />
+                )
+              ) : (
+                 // Optional: Placeholder if no media selected (for non-text posts)
+                 <div className="text-gray-500">No media selected</div>
+              )
             )}
           </div>
-        )}
 
-        {/* Caption Section */}
+          {/* Carousel Controls (Only show for non-text posts with multiple items) */}
+          {!isTextPost && previews.length > 1 && (
+            <>
+              {currentSlide > 0 && (
+                <button
+                  onClick={handlePrevSlide}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 rounded-full p-2 text-white hover:bg-black/60"
+                  aria-label="Previous slide"
+                >
+                  <DirectSVG icon="chevron-left" size={20} style={SVGIconStyle.SOLID} primaryColor="currentColor"/>
+                </button>
+              )}
+              {currentSlide < previews.length - 1 && (
+                <button
+                  onClick={handleNextSlide}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 rounded-full p-2 text-white hover:bg-black/60"
+                  aria-label="Next slide"
+                >
+                  <DirectSVG icon="chevron-right" size={20} style={SVGIconStyle.SOLID} primaryColor="currentColor"/>
+                </button>
+              )}
+              {/* Dots Indicator */}
+              <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+                {previews.map((_, index) => (
+                  <div
+                    key={`dot-${index}`}
+                    className={`h-1.5 rounded-full ${index === currentSlide ? 'bg-white w-4' : 'bg-white/50 w-1.5'} transition-all duration-200`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Caption Section (remains the same, displays context.caption) */}
         <div className="px-4 mb-4">
           <label htmlFor="caption-input" className="block font-marfa font-medium text-sm text-gray-400 mb-1">
             Caption
           </label>
-          <div 
+          <div
             onClick={openCaptionSheet} // Open sheet on click
             className="w-full min-h-[60px] p-3 bg-gray-800 rounded-lg cursor-pointer text-white font-marfa text-sm leading-relaxed"
           >
@@ -304,7 +383,7 @@ const PostPreviewScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Audience Settings */}
+        {/* Audience Settings (remains the same) */}
         <div className="px-4 mb-6 space-y-3">
            <label className="block font-marfa font-medium text-sm text-gray-400 mb-1">
             Post Visibility
@@ -312,9 +391,9 @@ const PostPreviewScreen: React.FC = () => {
           {/* Members Only Toggle */}
           <label htmlFor="membersOnlyToggle" className="flex items-center justify-between p-3 bg-gray-800 rounded-lg cursor-pointer">
             <span className="font-marfa text-sm text-white">Only visible to members</span>
-            <input 
-              type="checkbox" 
-              id="membersOnlyToggle" 
+            <input
+              type="checkbox"
+              id="membersOnlyToggle"
               checked={isForMembersOnly}
               onChange={toggleMembersOnly}
               className="sr-only peer"
@@ -325,9 +404,9 @@ const PostPreviewScreen: React.FC = () => {
           {/* Broader Ecosystem Toggle */}
            <label htmlFor="broaderEcosystemToggle" className="flex items-center justify-between p-3 bg-gray-800 rounded-lg cursor-pointer">
             <span className="font-marfa text-sm text-white">Share to broader ecosystem</span>
-            <input 
-              type="checkbox" 
-              id="broaderEcosystemToggle" 
+            <input
+              type="checkbox"
+              id="broaderEcosystemToggle"
               checked={isForBroaderEcosystem}
               onChange={toggleBroaderEcosystem}
               className="sr-only peer"
@@ -336,7 +415,7 @@ const PostPreviewScreen: React.FC = () => {
           </label>
         </div>
 
-      </div> 
+      </div>
     </div>
   );
 };

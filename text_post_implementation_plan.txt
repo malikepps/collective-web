@@ -1,0 +1,281 @@
+# Text Post Implementation Plan
+
+This document outlines the steps to implement the text post feature, involving a React frontend component, a server-side Cloud Function for image generation, and modifications to the existing post creation flow.
+
+## Phase 1: Frontend - Text Input UI
+
+1.  **Create Component (`TextPostCreateScreen.tsx`):**
+    *   Create a new file, e.g., `src/components/post/TextPostCreateScreen.tsx`.
+    *   This component should likely be a modal or a full-screen view triggered when the "Start writing" option is selected.
+    *   It should manage its own visibility state or be controlled by a parent component/context.
+
+2.  **Install TipTap:**
+    *   Add TipTap dependencies: `@tiptap/react`, `@tiptap/starter-kit`.
+    *   ```bash
+      npm install @tiptap/react @tiptap/starter-kit
+      # or yarn add @tiptap/react @tiptap/starter-kit
+      ```
+
+3.  **Component State:**
+    *   Use `useState` for the `title` string.
+    *   Initialize TipTap's `useEditor` hook to manage the rich text content. Configure it with `@tiptap/starter-kit` to enable basic formatting (bold, italic, underline).
+
+4.  **UI Elements:**
+    *   Add a styled `<input type="text">` for the `title`, bound to the `title` state. Apply Marfa Medium font, similar to the iOS version's input field.
+    *   Integrate TipTap's `<EditorContent editor={editor} />` for the main content area. Style it appropriately (background, text color, placeholder text "Start writing...").
+    *   Add a formatting toolbar (optional but recommended) connected to TipTap editor commands (`editor.chain().focus().toggleBold().run()`, etc.).
+    *   Add a "Next" button.
+    *   Add a "Cancel" or "Close" button.
+
+5.  **"Next" Button Logic:**
+    *   Disable the button if the `title` is empty.
+    *   On click:
+        *   Get the HTML content from the TipTap editor (`editor.getHTML()`).
+        *   Get the plain text content (`editor.getText()`).
+        *   Access the `PostCreationContext`: `const { setTextPostDetails, setCaption, organizationId, startProcessing, stopProcessing, setError, openTextPreviewScreen } = usePostCreation();`.
+        *   Access the `AuthContext`: `const { user } = useAuth();`.
+        *   Validate user and `organizationId`.
+        *   Call `setCaption(plainTextContent);`.
+        *   Call `setTextPostDetails(title, htmlContent);`.
+        *   Call `startProcessing();`.
+        *   Invoke the `generateTextPostImage` Cloud Function (see Phase 2) using Firebase SDK's `httpsCallable`.
+            *   Pass `{ title: title, organizationId: organizationId }` as arguments. (UserId is automatically included by callable functions).
+        *   Handle the response:
+            *   **On Success:** Receive `{ imageUrl, backgroundColorHex }`. Call `openTextPreviewScreen(imageUrl);`. (Need to consider how `backgroundColorHex` is passed to the preview/publish step - maybe add to context?).
+            *   **On Error:** Call `setError(error.message);`. Call `stopProcessing();`. Display an error message to the user.
+        *   Handle `stopProcessing()` in a `finally` block if applicable.
+
+6.  **Integration:**
+    *   Modify `PostCreateOptionsModal.tsx`: When "Start writing" is clicked, instead of logging, trigger the opening of `TextPostCreateScreen.tsx`.
+    *   Ensure `TextPostCreateScreen.tsx` is rendered within the `PostCreationProvider` tree.
+
+## Phase 2: Backend - Cloud Function (`generateTextPostImage`)
+
+1.  **Setup Cloud Function:**
+    *   Initialize Firebase Functions if not already done (`firebase init functions`). Choose Node.js/TypeScript.
+    *   Create a new file for the function (e.g., `functions/src/textPostImage.ts`).
+
+2.  **Dependencies:**
+    *   Add necessary dependencies to `functions/package.json`:
+        *   `puppeteer` (or `puppeteer-core` if using a pre-installed Chrome in the environment).
+        *   `firebase-admin` (usually already there).
+        *   `firebase-functions` (usually already there).
+    *   Run `npm install` or `yarn install` inside the `functions` directory.
+
+3.  **Implement HTTPS Callable Function:**
+    *   ```typescript
+      import * as functions from "firebase-functions";
+      import * as admin from "firebase-admin";
+      import puppeteer from "puppeteer";
+      // Initialize admin SDK if not already done in index.ts
+      // admin.initializeApp();
+
+      // Utility to determine text color (implement based on isLight logic)
+      const getTextColor = (hexColor: string): string => {
+          // ... implementation to return "rgba(0, 0, 0, 0.7)" or "rgba(255, 255, 255, 0.7)"
+          if (!hexColor) return "rgba(255, 255, 255, 0.7)"; // Default white-ish
+          const hex = hexColor.startsWith('#') ? hexColor.slice(1) : hexColor;
+          if (hex.length !== 6) return "rgba(255, 255, 255, 0.7)";
+          try {
+              const r = parseInt(hex.substring(0, 2), 16);
+              const g = parseInt(hex.substring(2, 4), 16);
+              const b = parseInt(hex.substring(4, 6), 16);
+              const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+              return brightness > 150 ? "rgba(0, 0, 0, 0.7)" : "rgba(255, 255, 255, 0.7)";
+          } catch (e) {
+              return "rgba(255, 255, 255, 0.7)";
+          }
+      };
+
+      // Utility to calculate darker shade for gradient
+      const darkenColor = (hexColor: string, amount: number = 0.1): string => {
+         // ... implementation (similar to frontend) returning hex string WITHOUT '#'
+         if (!hexColor) return "000000";
+          const hex = hexColor.startsWith('#') ? hexColor.slice(1) : hexColor;
+          if (hex.length !== 6) return "000000";
+          try {
+              let r = parseInt(hex.substring(0, 2), 16);
+              let g = parseInt(hex.substring(2, 4), 16);
+              let b = parseInt(hex.substring(4, 6), 16);
+              r = Math.floor(r * (1 - amount));
+              g = Math.floor(g * (1 - amount));
+              b = Math.floor(b * (1 - amount));
+              return `${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+          } catch (e) {
+              return "000000";
+          }
+      };
+
+      export const generateTextPostImage = functions.https.onCall(async (data, context) => {
+          if (!context.auth) {
+              throw new functions.https.HttpsError("unauthenticated", "User must be logged in.");
+          }
+          const userId = context.auth.uid;
+          const { title, organizationId } = data;
+
+          if (!title || !organizationId) {
+              throw new functions.https.HttpsError("invalid-argument", "Missing title or organizationId.");
+          }
+
+          let browser = null;
+          try {
+              // 1. Fetch Organization Theme
+              const orgDoc = await admin.firestore().doc(`nonprofits/${organizationId}`).get();
+              const orgData = orgDoc.data();
+              const themeId = orgData?.themeId;
+              let themePrimaryColor = "#2E5C8A"; // Default fallback
+              if (themeId) {
+                  const themeDoc = await admin.firestore().doc(`themes/${themeId}`).get();
+                  themePrimaryColor = themeDoc.data()?.primaryColor || themePrimaryColor;
+                  if (!themePrimaryColor.startsWith('#')) {
+                     themePrimaryColor = `#${themePrimaryColor}`;
+                  }
+              }
+              const backgroundColorHex = themePrimaryColor.substring(1); // Remove # for function result
+              const darkerShade = darkenColor(backgroundColorHex, 0.2); // Darker shade for gradient top
+              const textColorRgba = getTextColor(backgroundColorHex); // Includes 0.7 opacity
+
+              // 2. Determine Font Size (Updated based on user feedback)
+              const titleLength = title.length;
+              let fontSizePx;
+              if (titleLength < 80) fontSizePx = 100;
+              else if (titleLength < 120) fontSizePx = 80;
+              else if (titleLength < 160) fontSizePx = 70;
+              else fontSizePx = 60;
+
+              // 3. Define HTML Template (Include @font-face for Marfa)
+              // NOTE: Ensure Marfa font files are packaged with the function!
+              const htmlContent = `
+                  <html>
+                  <head>
+                      <style>
+                          @font-face {
+                              font-family: 'Marfa'; /* Use a consistent name */
+                              src: url('fonts/ABCMarfaUnlicensedTrial-Semibold.woff2') format('woff2'), /* Adjust paths */
+                                   url('fonts/ABCMarfaUnlicensedTrial-Semibold.ttf') format('truetype');
+                              font-weight: 600; /* Semibold */
+                              font-style: normal;
+                          }
+                          body {
+                              margin: 0;
+                              width: 1080px;
+                              height: 1350px;
+                              background: linear-gradient(to bottom, #${darkerShade}, ${themePrimaryColor});
+                              display: flex;
+                              align-items: center; /* Center vertically */
+                              justify-content: flex-start; /* Align content to the left */
+                              box-sizing: border-box;
+                              font-family: 'Marfa', sans-serif; /* Use Marfa */
+                          }
+                          .title {
+                              font-weight: 600; /* Semibold */
+                              font-size: ${fontSizePx}px;
+                              color: ${textColorRgba}; /* Has opacity */
+                              text-align: left;
+                              padding: 50px; /* Consistent padding */
+                              width: 100%; /* Ensure padding works relative to container */
+                              box-sizing: border-box;
+                              /* Optional shadow for light text */
+                              ${textColorRgba.includes('255') ? 'text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);' : ''}
+                          }
+                      </style>
+                  </head>
+                  <body>
+                      <div class="title">${title}</div>
+                  </body>
+                  </html>
+              `;
+
+              // 4. Launch Puppeteer
+              // Adjust launch options for Cloud Functions environment
+              browser = await puppeteer.launch({
+                   args: ['--no-sandbox', '--disable-setuid-sandbox']
+              });
+              const page = await browser.newPage();
+
+              // 5. Set Content and Viewport
+              await page.setViewport({ width: 1080, height: 1350 });
+              await page.setContent(htmlContent, { waitUntil: 'networkidle0' }); // Wait for fonts etc.
+
+              // 6. Take Screenshot
+              const screenshotBuffer = await page.screenshot({ type: 'jpeg', quality: 90 });
+
+              // 7. Upload to Storage
+              const timestamp = Date.now();
+              const filePath = `users/${userId}/post_media/text-posts/${timestamp}.jpg`;
+              const bucket = admin.storage().bucket(); // Default bucket
+              const file = bucket.file(filePath);
+              await file.save(screenshotBuffer, {
+                  metadata: { contentType: 'image/jpeg' },
+              });
+
+              // 8. Get Download URL (using publicUrl or signedUrl if needed, but public is simpler if rules allow)
+              // Make sure the path allows public read or generate a signed URL.
+              // Simplest: Construct the public URL (requires public read access on the object/path)
+              const imageUrl = `https://storage.googleapis.com/${bucket.name}/${filePath}`;
+
+               // Optional: Make the file public if needed (check security implications)
+               // await file.makePublic();
+
+              // 9. Return Result
+              return { imageUrl, backgroundColorHex };
+
+          } catch (error: any) {
+              console.error("Error generating text post image:", error);
+              throw new functions.https.HttpsError("internal", "Failed to generate image", error.message);
+          } finally {
+              if (browser) {
+                  await browser.close();
+              }
+          }
+      });
+
+      ```
+
+4.  **Font Packaging:**
+    *   Create a directory within your `functions` source folder (e.g., `functions/src/fonts`).
+    *   Place the Marfa Semibold font files (`.woff2`, `.ttf`) inside this directory.
+    *   Adjust the `@font-face` `url(...)` paths in the HTML template to correctly reference these packaged files relative to the function's execution context (e.g., `url('./fonts/Marfa-Semibold.woff2')`).
+
+5.  **Deployment:**
+    *   Deploy the function using `firebase deploy --only functions:generateTextPostImage`.
+
+## Phase 3: Frontend - Adapting Preview & Publish
+
+1.  **Modify `PostPreviewScreen.tsx`:**
+    *   Access the new context fields: `const { ..., isTextPost, generatedImageUrl, text_post_title, text_content_html, caption } = usePostCreation();`.
+    *   **Media Display:**
+        *   Conditionally render the media section.
+        *   If `isTextPost` is true and `generatedImageUrl` exists, display an `<img>` tag with `src={generatedImageUrl}`. Style it appropriately (e.g., `aspect-[4/5]`).
+        *   If `isTextPost` is false, render the existing `selectedFiles` preview carousel logic.
+    *   **Caption Display:**
+        *   The existing caption section currently shows `context.caption`. For text posts, this now correctly holds the plain text content. Ensure this display area handles multi-line text well.
+    *   **Title Display (Optional):** You might want to display the `text_post_title` somewhere on the preview screen for confirmation, although it's visually represented in the generated image.
+
+2.  **Modify `handlePublish` in `PostPreviewScreen.tsx`:**
+    *   Inside `handlePublish`, check the `isTextPost` flag from context.
+    *   **If `isTextPost`:**
+        *   Ensure `generatedImageUrl`, `text_post_title`, `text_content_html`, and `caption` (plain text) are available from context.
+        *   Get `backgroundColorHex` (needs to be passed from the function call result, likely via context). Add `backgroundColorHex` to the context state and update `openTextPreviewScreen` to accept/store it.
+        *   Construct the `postData` object:
+            *   `caption`: Use `caption` from context (plain text).
+            *   `text_content`: Use `text_content_html` from context.
+            *   `text_post_title`: Use `text_post_title` from context.
+            *   `is_text_post`: `true`.
+            *   `media_type`: `"image"`.
+            *   `media`: `[{ id: uuidv4(), image_url: generatedImageUrl, media_type: 'image', order: 0, thumbnail_color: backgroundColorHex }]`.
+            *   `backgroundColorHex`: Use the value from context.
+            *   Other fields (`created_time`, `nonprofit`, `user_id`, etc.) as usual.
+        *   Call `addDoc(collection(db, 'posts'), postData);`.
+        *   Proceed with `resetState`, `closePreviewScreen`, `router.replace`.
+    *   **Else (if not `isTextPost`):**
+        *   Execute the existing media upload and post creation logic.
+
+## Phase 4: Testing & Refinement
+
+1.  Thoroughly test the text post creation flow.
+2.  Verify image generation in the Cloud Function logs.
+3.  Check Firestore data structure for text posts.
+4.  Adjust styling (font sizes, padding, gradient, opacity) in the Cloud Function's HTML template as needed for visual accuracy.
+5.  Optimize Cloud Function performance (memory allocation, cold starts).
+6.  Ensure error handling is robust on both frontend and backend. 

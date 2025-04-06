@@ -33,6 +33,9 @@ export interface Post {
   mediaType?: MediaType;
   mediaItems?: MediaItem[];
   backgroundColorHex: string | null;
+
+  // New field for text posts
+  text_content?: string; // Stores raw HTML or markdown from text editor
 }
 
 // Helper function to parse document references or paths
@@ -247,7 +250,8 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
     mediaItems,
     backgroundColorHex: data.background_color_hex as string || null,
     isForMembersOnly: data.is_for_members_only === true,
-    isForBroaderEcosystem: data.is_for_broader_ecosystem === true
+    isForBroaderEcosystem: data.is_for_broader_ecosystem === true,
+    text_content: data.text_content as string || undefined // Read text_content, default to undefined
   };
   
   console.log(`[DEBUG] Successfully created post object: ${doc.id}, nonprofitId: ${nonprofitId}`);

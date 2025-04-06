@@ -10,6 +10,7 @@ import CollectiveSection from './CollectiveSection';
 import FilterBottomSheet from './FilterBottomSheet';
 import PostsSection from './PostsSection';
 import NavigationDrawer from '../NavigationDrawer';
+import TextPostCreateScreen from '../post/TextPostCreateScreen';
 import { DirectSVG } from '@/lib/components/icons';
 import { SVGIconStyle } from '@/lib/components/icons/SVGIcon';
 import { useTheme } from '@/lib/context/ThemeContext';
@@ -377,6 +378,9 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
           onClose={() => setShowFilterSheet(false)}
           theme={theme}
         />
+        
+        {/* Text Post Creation Screen */}
+        <TextPostCreateScreen />
         
         {/* Navigation drawer */}
         <NavigationDrawer 
