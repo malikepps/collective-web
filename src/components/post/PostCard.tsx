@@ -19,6 +19,7 @@ interface PostCardProps {
   onToggleBoost: () => void;
   onShowDetail: () => void;
   onDeletePost?: () => void;
+  showOrganizationHeader?: boolean;
 }
 
 export default function PostCard({
@@ -31,7 +32,8 @@ export default function PostCard({
   onToggleLike,
   onToggleBoost,
   onShowDetail,
-  onDeletePost
+  onDeletePost,
+  showOrganizationHeader = false
 }: PostCardProps) {
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -276,12 +278,28 @@ export default function PostCard({
         </div>
       )}
       
+      {/* Conditionally render Organization Header */}
+      {showOrganizationHeader && (
+        <div className="px-4 pt-3 pb-1 flex items-center">
+          <img
+            src={organization.photoURL || '/default-avatar.png'}
+            alt={`${organization.name} logo`}
+            className="w-8 h-8 rounded-full mr-3 object-cover border border-gray-700"
+          />
+          <span className="text-white font-marfa text-sm font-medium line-clamp-1">
+            {organization.name}
+          </span>
+        </div>
+      )}
+      
       {shouldRenderContent && (
         <>
-          {/* Date moved above caption */}
-          <div className="px-4 pt-2 text-gray-300 text-sm">
-            {formattedDate}
-          </div>
+          {/* Date - Moved below conditional org header */}
+          {!showOrganizationHeader && (
+             <div className="px-4 pt-2 text-gray-300 text-sm">
+               {formattedDate}
+             </div>
+          )}
           
           {/* Caption with fade effect - similar to MembershipTierCard */}
           {post.caption && (
