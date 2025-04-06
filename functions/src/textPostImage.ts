@@ -69,20 +69,20 @@ export const generateTextPostImage = functionsV1
         }
 
         const orgData = orgDoc.data();
-        const themeId = orgData?.themeId;
+        const theme_id = orgData?.theme_id as string | undefined;
         let themePrimaryColor = "#2E5C8A"; // Default fallback (Collective Blue)
 
-        if (themeId) {
-            const themeDocRef = admin.firestore().doc(`themes/${themeId}`);
+        if (theme_id) {
+            const themeDocRef = admin.firestore().doc(`themes/${theme_id}`);
             const themeDoc = await themeDocRef.get();
             if (themeDoc.exists && themeDoc.data()?.primaryColor) {
                  const colorFromDb = themeDoc.data()?.primaryColor;
                  themePrimaryColor = colorFromDb.startsWith('#') ? colorFromDb : `#${colorFromDb}`;
             } else {
-                console.warn(`Theme document ${themeId} not found or missing primaryColor for org ${organizationId}. Using default.`);
+                console.warn(`Theme document ${theme_id} not found or missing primaryColor. Using default.`);
             }
         } else {
-            console.warn(`No themeId found for organization ${organizationId}. Using default color.`);
+            console.warn(`No theme_id found for organization ${organizationId}. Using default color.`);
         }
 
         const backgroundColorHex = themePrimaryColor.startsWith('#') ? themePrimaryColor.slice(1) : themePrimaryColor;
@@ -181,6 +181,10 @@ export const generateTextPostImage = functionsV1
             metadata: { contentType: 'image/jpeg' },
         });
         console.log("Screenshot uploaded.");
+
+        // Make the file publicly readable
+        await file.makePublic();
+        console.log("Made file public.");
 
         const imageUrl = file.publicUrl();
         console.log("Generated image URL:", imageUrl);
