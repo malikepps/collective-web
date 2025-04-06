@@ -241,33 +241,36 @@ export default function MediaCarousel({
             className="min-w-full h-full flex-shrink-0 relative"
           >
             {item.type === MediaType.VIDEO ? (
-              // Video Player Wrapper
-              <div className="absolute inset-0 bg-black video-player-wrapper" style={{ overflow: 'hidden' }}>
+              // Video Player Wrapper - Added flex centering
+              <div className="absolute inset-0 bg-black video-player-wrapper flex items-center justify-center" style={{ overflow: 'hidden' }}> 
                 <ReactPlayer
-                  ref={index === currentPage ? playerRef : null} // Only attach ref to current player
+                  ref={index === currentPage ? playerRef : null} 
                   url={item.url}
+                  // Use style prop for sizing and object-fit
                   style={{ 
                     position: 'absolute', 
                     top: 0, 
                     left: 0,
-                    width: '100%', // Explicit width in style
-                    height: '100%', // Explicit height in style
+                    width: '100%', 
+                    height: '100%',
                     objectFit: 'cover' 
                   }}
-                  playing={index === currentPage} // Autoplay only if current
-                  loop={true} // Loop the video
-                  muted={true} // Autoplay usually requires video to be muted
-                  playsinline // Important for iOS inline playback
-                  controls={false} // Hide default controls initially for cleaner look
-                  onReady={() => index === currentPage && setIsLoading(false)} // Only update loading for current slide
+                  width="100%" // Re-add width prop
+                  height="100%" // Re-add height prop
+                  playing={index === currentPage} 
+                  loop={true} 
+                  muted={true} 
+                  playsinline 
+                  controls={false} 
+                  onReady={() => index === currentPage && setIsLoading(false)} 
                   onError={() => index === currentPage && setIsLoading(false)}
                   config={{
                     file: {
                       attributes: {
                         controlsList: 'nodownload',
                         disablePictureInPicture: true,
-                        playsInline: true, // Redundant but safe
-                        webkitPlaysInline: true, // For iOS Safari
+                        playsInline: true, 
+                        webkitPlaysInline: true,
                       },
                     },
                   }}
