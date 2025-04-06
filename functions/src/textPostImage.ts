@@ -158,16 +158,22 @@ export const generateTextPostImage = functionsV1
         const page = await browser.newPage();
         console.log("Puppeteer launched.");
 
-        await page.setViewport({ width: 1080, height: 1350 });
+        // Set viewport to square (1080x1080)
+        await page.setViewport({ width: 1080, height: 1080 });
         console.log("Setting HTML content...");
         await page.setContent(htmlContent, { waitUntil: ['networkidle0', 'domcontentloaded'] });
         console.log("HTML content set.");
+
+        // Wait for fonts to be ready instead of a fixed timeout
+        await page.evaluateHandle('document.fonts.ready');
+        console.log("Fonts ready.");
 
         console.log("Taking screenshot...");
         const screenshotBuffer = await page.screenshot({
             type: 'jpeg',
             quality: 90,
-            clip: { x: 0, y: 0, width: 1080, height: 1350 }
+            // Clip to square dimensions
+            clip: { x: 0, y: 0, width: 1080, height: 1080 }
         });
         console.log("Screenshot taken.");
 

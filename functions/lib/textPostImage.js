@@ -108,21 +108,21 @@ exports.generateTextPostImage = functionsV1
             throw new functionsV1.https.HttpsError("not-found", `Organization ${organizationId} not found.`);
         }
         const orgData = orgDoc.data();
-        const themeId = orgData === null || orgData === void 0 ? void 0 : orgData.themeId;
+        const theme_id = orgData === null || orgData === void 0 ? void 0 : orgData.theme_id;
         let themePrimaryColor = "#2E5C8A"; // Default fallback (Collective Blue)
-        if (themeId) {
-            const themeDocRef = admin.firestore().doc(`themes/${themeId}`);
+        if (theme_id) {
+            const themeDocRef = admin.firestore().doc(`themes/${theme_id}`);
             const themeDoc = await themeDocRef.get();
             if (themeDoc.exists && ((_a = themeDoc.data()) === null || _a === void 0 ? void 0 : _a.primaryColor)) {
                 const colorFromDb = (_b = themeDoc.data()) === null || _b === void 0 ? void 0 : _b.primaryColor;
                 themePrimaryColor = colorFromDb.startsWith('#') ? colorFromDb : `#${colorFromDb}`;
             }
             else {
-                console.warn(`Theme document ${themeId} not found or missing primaryColor for org ${organizationId}. Using default.`);
+                console.warn(`Theme document ${theme_id} not found or missing primaryColor. Using default.`);
             }
         }
         else {
-            console.warn(`No themeId found for organization ${organizationId}. Using default color.`);
+            console.warn(`No theme_id found for organization ${organizationId}. Using default color.`);
         }
         const backgroundColorHex = themePrimaryColor.startsWith('#') ? themePrimaryColor.slice(1) : themePrimaryColor;
         const darkerShade = darkenColor(backgroundColorHex, 0.2);
@@ -197,15 +197,20 @@ exports.generateTextPostImage = functionsV1
         });
         const page = await browser.newPage();
         console.log("Puppeteer launched.");
-        await page.setViewport({ width: 1080, height: 1350 });
+        // Set viewport to square (1080x1080)
+        await page.setViewport({ width: 1080, height: 1080 });
         console.log("Setting HTML content...");
         await page.setContent(htmlContent, { waitUntil: ['networkidle0', 'domcontentloaded'] });
         console.log("HTML content set.");
+        // Wait for fonts to be ready instead of a fixed timeout
+        await page.evaluateHandle('document.fonts.ready');
+        console.log("Fonts ready.");
         console.log("Taking screenshot...");
         const screenshotBuffer = await page.screenshot({
             type: 'jpeg',
             quality: 90,
-            clip: { x: 0, y: 0, width: 1080, height: 1350 }
+            // Clip to square dimensions
+            clip: { x: 0, y: 0, width: 1080, height: 1080 }
         });
         console.log("Screenshot taken.");
         const timestamp = Date.now();
@@ -217,6 +222,9 @@ exports.generateTextPostImage = functionsV1
             metadata: { contentType: 'image/jpeg' },
         });
         console.log("Screenshot uploaded.");
+        // Make the file publicly readable
+        await file.makePublic();
+        console.log("Made file public.");
         const imageUrl = file.publicUrl();
         console.log("Generated image URL:", imageUrl);
         return { imageUrl, backgroundColorHex };

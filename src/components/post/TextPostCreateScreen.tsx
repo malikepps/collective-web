@@ -77,9 +77,8 @@ const TextPostCreateScreen: React.FC = () => {
       // console.log('[TextPostCreateScreen] Background Color Hex:', data.backgroundColorHex);
       
       // Pass image URL and background color hex to the preview screen action
+      stopProcessing();
       openTextPreviewScreen(data.imageUrl, data.backgroundColorHex || null);
-      // Close this screen after opening preview
-      // closeTextCreateScreen(); // Preview screen will handle closing flow later
 
     } catch (error: any) {
       console.error('[TextPostCreateScreen] Error calling cloud function:', error);
@@ -96,13 +95,23 @@ const TextPostCreateScreen: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm">
       {/* Modal Content */}
-      <div className="bg-[#242426] rounded-xl shadow-xl w-full max-w-lg p-6 flex flex-col h-[80vh]">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
+      <div className="bg-[#242426] rounded-xl shadow-xl w-full max-w-lg p-6 flex flex-col h-[80vh] relative">
+        {/* Loading Overlay */}  
+        {isProcessing && (
+          <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10 rounded-xl">
+            {/* <Spinner size="large" /> */}
+            {/* Use a simple CSS spinner */}
+            <div className="w-12 h-12 border-4 border-t-blue-500 border-gray-700 rounded-full animate-spin"></div>
+          </div>
+        )}
+
+        {/* Header (z-index potentially needed if overlay overlaps) */}
+        <div className="flex justify-between items-center mb-4 relative z-20">
           <button 
             onClick={closeTextCreateScreen}
-            className="p-1 text-gray-500 hover:text-white transition-colors"
+            className="p-1 text-gray-500 hover:text-white transition-colors disabled:opacity-50"
             aria-label="Cancel text post"
+            disabled={isProcessing} // Disable close button while processing
           >
             <DirectSVG icon="xmark" size={20} style={SVGIconStyle.SOLID} primaryColor="currentColor" />
           </button>
@@ -116,19 +125,23 @@ const TextPostCreateScreen: React.FC = () => {
           </button>
         </div>
 
-        {/* Title Input */}
+        {/* Title Input (z-index potentially needed) */}
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Enter title here..."
           maxLength={160} // Add character limit consistent with plan
-          className="w-full px-4 py-3 mb-4 bg-gray-800 border border-gray-700 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-marfa font-medium text-xl" // Style similar to iOS
+          className="w-full px-4 py-3 mb-4 bg-gray-800 border border-gray-700 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-marfa font-medium text-xl relative z-20" // Style similar to iOS
+          disabled={isProcessing} // Disable input while processing
         />
 
-        {/* TipTap Editor */}
-        <div className="flex-grow overflow-y-auto mb-4 bg-gray-900 rounded-lg">
-          <EditorContent editor={editor} />
+        {/* TipTap Editor (z-index potentially needed) */}
+        <div className="flex-grow overflow-y-auto mb-4 bg-gray-900 rounded-lg relative z-20">
+          {/* Disable editor interaction while processing */}  
+          <div className={`${isProcessing ? 'pointer-events-none opacity-50' : ''}`}>
+            <EditorContent editor={editor} />
+          </div>
         </div>
 
         {/* Optional: Add Formatting Toolbar here */}
