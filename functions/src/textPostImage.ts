@@ -1,6 +1,7 @@
 import * as functionsV1 from "firebase-functions/v1";
 import * as admin from "firebase-admin";
-import puppeteer from "puppeteer";
+import puppeteer from 'puppeteer-core';
+import chromium from 'chrome-aws-lambda';
 
 // Utility to determine text color
 const getTextColor = (hexColor: string): string => {
@@ -42,7 +43,7 @@ const darkenColor = (hexColor: string, amount: number = 0.2): string => {
 // --- Generate Text Post Image Function ---
 // Increase memory and timeout for Puppeteer using v1 syntax
 export const generateTextPostImage = functionsV1
-    .runWith({ memory: '1GB', timeoutSeconds: 120 }) // Use functionsV1
+    .runWith({ memory: '1GB', timeoutSeconds: 120 })
     .https.onCall(async (data: { title: string; organizationId: string }, context: functionsV1.https.CallableContext) => {
     if (!context.auth) {
         throw new functionsV1.https.HttpsError("unauthenticated", "User must be logged in.");
@@ -146,13 +147,13 @@ export const generateTextPostImage = functionsV1
             </html>
         `;
 
-        console.log("Launching Puppeteer...");
+        // 4. Launch Puppeteer using chrome-aws-lambda
+        console.log("Launching Puppeteer with chrome-aws-lambda...");
         browser = await puppeteer.launch({
-             args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--font-render-hinting=none'
-            ]
+            args: chromium.args,
+            defaultViewport: chromium.defaultViewport,
+            executablePath: await chromium.executablePath,
+            headless: chromium.headless,
         });
         const page = await browser.newPage();
         console.log("Puppeteer launched.");
@@ -176,7 +177,7 @@ export const generateTextPostImage = functionsV1
         const file = bucket.file(filePath);
 
         console.log(`Uploading screenshot to gs://${bucket.name}/${filePath}...`);
-        await file.save(screenshotBuffer, {
+        await file.save(screenshotBuffer as Buffer, {
             metadata: { contentType: 'image/jpeg' },
         });
         console.log("Screenshot uploaded.");
@@ -193,7 +194,7 @@ export const generateTextPostImage = functionsV1
         const errorDetails = error instanceof functionsV1.https.HttpsError ? error.details : undefined;
         throw new functionsV1.https.HttpsError(errorCode, `Failed to generate image: ${errorMessage}`, errorDetails);
     } finally {
-        if (browser) {
+        if (browser !== null) {
             console.log("Closing Puppeteer browser...");
             await browser.close();
             console.log("Browser closed.");

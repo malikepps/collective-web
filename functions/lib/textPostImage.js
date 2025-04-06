@@ -39,7 +39,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateTextPostImage = void 0;
 const functionsV1 = __importStar(require("firebase-functions/v1"));
 const admin = __importStar(require("firebase-admin"));
-const puppeteer_1 = __importDefault(require("puppeteer"));
+const puppeteer_core_1 = __importDefault(require("puppeteer-core"));
+const chrome_aws_lambda_1 = __importDefault(require("chrome-aws-lambda"));
 // Utility to determine text color
 const getTextColor = (hexColor) => {
     if (!hexColor)
@@ -84,7 +85,7 @@ const darkenColor = (hexColor, amount = 0.2) => {
 // --- Generate Text Post Image Function ---
 // Increase memory and timeout for Puppeteer using v1 syntax
 exports.generateTextPostImage = functionsV1
-    .runWith({ memory: '1GB', timeoutSeconds: 120 }) // Use functionsV1
+    .runWith({ memory: '1GB', timeoutSeconds: 120 })
     .https.onCall(async (data, context) => {
     var _a, _b;
     if (!context.auth) {
@@ -186,13 +187,13 @@ exports.generateTextPostImage = functionsV1
             </body>
             </html>
         `;
-        console.log("Launching Puppeteer...");
-        browser = await puppeteer_1.default.launch({
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--font-render-hinting=none'
-            ]
+        // 4. Launch Puppeteer using chrome-aws-lambda
+        console.log("Launching Puppeteer with chrome-aws-lambda...");
+        browser = await puppeteer_core_1.default.launch({
+            args: chrome_aws_lambda_1.default.args,
+            defaultViewport: chrome_aws_lambda_1.default.defaultViewport,
+            executablePath: await chrome_aws_lambda_1.default.executablePath,
+            headless: chrome_aws_lambda_1.default.headless,
         });
         const page = await browser.newPage();
         console.log("Puppeteer launched.");
@@ -228,7 +229,7 @@ exports.generateTextPostImage = functionsV1
         throw new functionsV1.https.HttpsError(errorCode, `Failed to generate image: ${errorMessage}`, errorDetails);
     }
     finally {
-        if (browser) {
+        if (browser !== null) {
             console.log("Closing Puppeteer browser...");
             await browser.close();
             console.log("Browser closed.");
