@@ -286,7 +286,7 @@ export default function PostCard({
             alt={`${organization.name} logo`}
             className="w-10 h-10 rounded-full mr-3 object-cover"
           />
-          <span className="text-white text-base font-marfa-medium line-clamp-1">
+          <span className="text-white text-lg font-marfa-medium line-clamp-1">
             {organization.name}
           </span>
         </div>
@@ -306,7 +306,7 @@ export default function PostCard({
             <div className="px-4 py-2 relative">
               <p 
                 ref={captionRef}
-                className="text-white text-base overflow-hidden max-h-24"
+                className="text-white opacity-85 font-marfa font-light overflow-hidden max-h-24"
                 style={{
                   maskImage: needsExpansion ? 'linear-gradient(to bottom, black 70%, transparent 100%)' : 'none',
                   WebkitMaskImage: needsExpansion ? 'linear-gradient(to bottom, black 70%, transparent 100%)' : 'none'

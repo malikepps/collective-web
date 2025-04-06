@@ -265,7 +265,12 @@ export default function MediaCarousel({
                       },
                     },
                   }}
-                  style={{ position: 'absolute', top: 0, left: 0 }} // Ensure player fills container
+                  style={{ 
+                    position: 'absolute', 
+                    top: 0, 
+                    left: 0,
+                    objectFit: 'cover'
+                  }} // Ensure player fills container
                 />
 
                 {/* Conditionally render the play button */}
