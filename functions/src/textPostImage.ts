@@ -75,11 +75,11 @@ export const generateTextPostImage = functionsV1
         if (theme_id) {
             const themeDocRef = admin.firestore().doc(`themes/${theme_id}`);
             const themeDoc = await themeDocRef.get();
-            if (themeDoc.exists && themeDoc.data()?.primaryColor) {
-                 const colorFromDb = themeDoc.data()?.primaryColor;
+            if (themeDoc.exists && themeDoc.data()?.primary_color) {
+                 const colorFromDb = themeDoc.data()?.primary_color as string;
                  themePrimaryColor = colorFromDb.startsWith('#') ? colorFromDb : `#${colorFromDb}`;
             } else {
-                console.warn(`Theme document ${theme_id} not found or missing primaryColor. Using default.`);
+                console.warn(`Theme document ${theme_id} not found or missing primary_color. Using default.`);
             }
         } else {
             console.warn(`No theme_id found for organization ${organizationId}. Using default color.`);
