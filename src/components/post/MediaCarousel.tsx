@@ -241,8 +241,8 @@ export default function MediaCarousel({
             className="min-w-full h-full flex-shrink-0 relative"
           >
             {item.type === MediaType.VIDEO ? (
-              // Video Thumbnail with Play Button
-              <div className="absolute inset-0 bg-black">
+              // Video Player Wrapper
+              <div className="absolute inset-0 bg-black video-player-wrapper">
                 <ReactPlayer
                   ref={index === currentPage ? playerRef : null} // Only attach ref to current player
                   url={item.url}

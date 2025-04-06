@@ -77,6 +77,12 @@ export default function HomePage() {
             background-color: #111214; /* Match iOS dark background */
             overscroll-behavior: none; /* Prevent pull-to-refresh/overscroll effects */
           }
+          /* Force video elements inside the carousel wrapper to cover */
+          .video-player-wrapper video {
+            object-fit: cover !important;
+            width: 100% !important; /* Ensure width fills container */
+            height: 100% !important; /* Ensure height fills container */
+          }
         `}</style>
       </Head>
 
