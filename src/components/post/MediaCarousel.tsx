@@ -4,6 +4,7 @@ import { MediaType } from '@/lib/models/Post';
 import { DirectSVG } from '@/lib/components/icons';
 import { SVGIconStyle } from '@/lib/components/icons/SVGIcon';
 import MediaService from '@/lib/services/MediaService';
+import ReactPlayer from 'react-player';
 
 interface MediaCarouselProps {
   mediaItems: MediaItem[];
@@ -29,6 +30,7 @@ export default function MediaCarousel({
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [lastTapTime, setLastTapTime] = useState(0);
   const [imageDimensions, setImageDimensions] = useState<{width: number, height: number, naturalWidth: number, naturalHeight: number}[]>([]);
+  const playerRef = useRef<ReactPlayer | null>(null);
 
   // Sort media items by order
   const sortedMediaItems = [...mediaItems].sort((a, b) => a.order - b.order);
@@ -210,7 +212,8 @@ export default function MediaCarousel({
       className="relative overflow-hidden bg-gray-900"
       style={{ 
         width: '100%',
-        paddingBottom: `${(1 / aspectRatio) * 100}%` // Create a fixed aspect ratio container using padding
+        paddingBottom: `${(1 / aspectRatio) * 100}%`, // Create a fixed aspect ratio container using padding
+        touchAction: 'pan-y' // Prevent vertical scroll interference, may help horizontal swipes
       }}
       ref={carouselRef}
       onTouchStart={handleTouchStart}
@@ -240,26 +243,31 @@ export default function MediaCarousel({
             {item.type === MediaType.VIDEO ? (
               // Video Thumbnail with Play Button
               <div className="absolute inset-0 bg-black">
-                {(item.thumbnailUrl || item.url) && (
-                  <img
-                    ref={setImageRef(index)}
-                    src={item.thumbnailUrl || item.url}
-                    alt="Video thumbnail"
-                    className="w-full h-full object-cover"
-                    style={{
-                      position: 'absolute', 
-                      top: '0', 
-                      left: '0', 
-                      width: '100%', 
-                      height: '100%', 
-                      objectFit: 'cover' 
-                    }}
-                    onLoad={() => handleImageLoad(index)}
-                    onError={(e) => handleImageError(e, index)}
-                    loading="eager"
-                  />
-                )}
-                
+                <ReactPlayer
+                  ref={index === currentPage ? playerRef : null} // Only attach ref to current player
+                  url={item.url}
+                  width="100%"
+                  height="100%"
+                  playing={index === currentPage} // Autoplay only if current
+                  loop={true} // Loop the video
+                  muted={true} // Autoplay usually requires video to be muted
+                  playsinline // Important for iOS inline playback
+                  controls={false} // Hide default controls initially for cleaner look
+                  onReady={() => index === currentPage && setIsLoading(false)} // Only update loading for current slide
+                  onError={() => index === currentPage && setIsLoading(false)}
+                  config={{
+                    file: {
+                      attributes: {
+                        controlsList: 'nodownload',
+                        disablePictureInPicture: true,
+                        playsInline: true, // Redundant but safe
+                        webkitPlaysInline: true, // For iOS Safari
+                      },
+                    },
+                  }}
+                  style={{ position: 'absolute', top: 0, left: 0 }} // Ensure player fills container
+                />
+
                 {/* Conditionally render the play button */}
                 {showPlayButton && (
                   <div className="absolute bottom-4 right-4 z-10 flex items-center justify-center">

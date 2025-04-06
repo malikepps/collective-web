@@ -284,9 +284,9 @@ export default function PostCard({
           <img
             src={organization.photoURL || '/default-avatar.png'}
             alt={`${organization.name} logo`}
-            className="w-8 h-8 rounded-full mr-3 object-cover border border-gray-700"
+            className="w-10 h-10 rounded-full mr-3 object-cover"
           />
-          <span className="text-white font-marfa text-sm font-medium line-clamp-1">
+          <span className="text-white text-base font-marfa-medium line-clamp-1">
             {organization.name}
           </span>
         </div>

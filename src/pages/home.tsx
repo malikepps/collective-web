@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { useHomeFeed, FeedItem } from '@/hooks/useHomeFeed';
 import PostCard from '@/components/post/PostCard';
@@ -10,6 +10,23 @@ export default function HomePage() {
   const { feedItems, loading, error, fetchFeed } = useHomeFeed();
   const [showNavigationDrawer, setShowNavigationDrawer] = useState(false);
   const [showProximityDropdown, setShowProximityDropdown] = useState(false); // Placeholder state
+  const [scrollOffset, setScrollOffset] = useState(0); // State for scroll position
+  const mainScrollRef = useRef<HTMLElement>(null); // Ref for the main scrolling element
+
+  // Scroll handler to update scrollOffset
+  useEffect(() => {
+    const mainEl = mainScrollRef.current;
+    if (!mainEl) return;
+
+    const handleScroll = () => {
+      setScrollOffset(mainEl.scrollTop);
+    };
+
+    mainEl.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      mainEl.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   const handleOpenNavigationDrawer = () => {
     setShowNavigationDrawer(true);
@@ -37,6 +54,10 @@ export default function HomePage() {
     // Navigate to post detail page or show modal
   };
 
+  // Calculate header background opacity and blur based on scroll
+  const headerBgOpacity = Math.min(0.8, scrollOffset / 50); // Faster transition
+  const headerBlur = Math.min(8, scrollOffset / 10); // Apply blur sooner
+
   return (
     <>
       <Head>
@@ -60,10 +81,17 @@ export default function HomePage() {
       </Head>
 
       {/* Main container matching iOS dark background */}
-      <div className="min-h-screen bg-[#111214] flex flex-col">
+      <div className="min-h-screen bg-[#111214] flex flex-col h-screen overflow-hidden">
 
-        {/* Header matching iOS */}
-        <header className="bg-transparent pt-safe-top sticky top-0 z-20 px-4 h-[56px] flex items-center justify-between">
+        {/* Header matching iOS with dynamic background */}
+        <header
+          className="pt-safe-top sticky top-0 z-20 px-4 h-[56px] flex items-center justify-between transition-colors duration-200"
+          style={{
+            backgroundColor: `rgba(17, 18, 20, ${headerBgOpacity})`, // #111214 with opacity
+            backdropFilter: `blur(${headerBlur}px)`,
+            WebkitBackdropFilter: `blur(${headerBlur}px)`,
+          }}
+        >
           {/* Left: Menu Button */}
           <button
             onClick={handleOpenNavigationDrawer}
@@ -79,7 +107,7 @@ export default function HomePage() {
           </button>
 
           {/* Center: Title */}
-          <h1 className="text-white text-lg font-marfa font-medium absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <h1 className="text-white text-xl font-marfa font-medium absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
             Community
           </h1>
 
@@ -105,8 +133,8 @@ export default function HomePage() {
           </button>
         </header>
 
-        {/* Feed Content Area */}
-        <main className="flex-1 overflow-y-auto px-4 pt-2 pb-safe-bottom">
+        {/* Feed Content Area - Make this the scrollable element */}
+        <main ref={mainScrollRef} className="flex-1 overflow-y-auto px-4 pt-2 pb-safe-bottom scroll-smooth">
           {loading && (
             <div className="flex justify-center items-center h-40">
               <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>

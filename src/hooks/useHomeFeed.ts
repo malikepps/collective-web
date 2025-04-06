@@ -8,8 +8,10 @@ import {
   getDocs, 
   doc, 
   getDoc, 
-  DocumentReference
+  DocumentReference,
+  where
 } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 import { Post, postFromFirestore } from '@/lib/models/Post';
 import { Organization, organizationFromFirestore } from '@/lib/models/Organization';
 // We might need user relationship later to determine staff/member status for posts
@@ -40,7 +42,8 @@ export function useHomeFeed(): UseHomeFeedReturn {
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
-  // We might need pagination state later (lastVisibleDoc)
+  const auth = getAuth();
+  const currentUser = auth.currentUser;
 
   const fetchFeed = useCallback(async () => {
     console.log('[useHomeFeed] Starting feed fetch...');
@@ -94,18 +97,46 @@ export function useHomeFeed(): UseHomeFeedReturn {
         }
       });
 
-      // 4. Combine Posts and Organizations
+      // 4. Fetch User Reactions (Option A)
+      const userReactions = new Map<string, { liked: boolean; boosted: boolean }>();
+      if (currentUser) {
+        console.log(`[useHomeFeed] Fetching reactions for user: ${currentUser.uid}`);
+        const postIds = posts.map(p => p.id);
+        if (postIds.length > 0) {
+          // Firestore 'in' query limit is 30 - handle potentially large feeds if needed
+          const reactionQuery = query(
+            collection(db, 'user_post_reactions'),
+            where('user_id', '==', currentUser.uid),
+            where('post_id', 'in', postIds.slice(0, 30)) // Handle limitation
+          );
+          try {
+            const reactionSnapshot = await getDocs(reactionQuery);
+            reactionSnapshot.forEach(reactionDoc => {
+              const data = reactionDoc.data();
+              userReactions.set(data.post_id, {
+                liked: data.liked === true,
+                boosted: data.boosted === true,
+              });
+            });
+             console.log(`[useHomeFeed] Found ${reactionSnapshot.size} reactions for current user.`);
+          } catch (reactionError) {
+            console.error("[useHomeFeed] Error fetching user reactions:", reactionError);
+            // Continue without reactions if fetch fails
+          }
+        }
+      }
+
+      // 5. Combine Posts, Organizations, and Reactions
       const combinedFeedItems: FeedItem[] = posts
         .map(post => {
           const organization = organizationsMap.get(post.nonprofitId ?? '');
+          const reaction = userReactions.get(post.id) ?? { liked: false, boosted: false }; // Get reaction or default
           if (organization) {
-            // TODO: Replace placeholders with actual like/boost state logic
-            // TODO: Fetch user relationship if needed for isUserMember/isUserStaff
             return {
               post,
               organization,
-              isLiked: false, // Placeholder
-              isBoosted: false // Placeholder
+              isLiked: reaction.liked,
+              isBoosted: reaction.boosted
             };
           }
           console.warn(`[useHomeFeed] Could not find organization (${post.nonprofitId}) for post ${post.id}`);
@@ -123,12 +154,15 @@ export function useHomeFeed(): UseHomeFeedReturn {
       setLoading(false);
       console.log('[useHomeFeed] Feed fetch finished.');
     }
-  }, []); // Dependency array is empty, fetchFeed is stable
+  }, [currentUser]);
 
-  // Initial fetch on mount
+  // Initial fetch on mount - add currentUser to dependency
   useEffect(() => {
-    fetchFeed();
-  }, [fetchFeed]);
+    if (currentUser) { // Fetch only when user is available
+        fetchFeed();
+    }
+    // Re-fetch if user changes (login/logout)
+  }, [fetchFeed, currentUser]);
 
   return { feedItems, loading, error, fetchFeed };
 } 
