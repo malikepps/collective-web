@@ -246,12 +246,14 @@ export default function MediaCarousel({
                 <ReactPlayer
                   ref={index === currentPage ? playerRef : null} 
                   url={item.url}
-                  // Use style prop for sizing and object-fit
+                  // Remove explicit sizing/fitting from style prop, rely on CSS
                   style={{ 
-                    width: '100%', 
-                    height: '100%',
-                    objectFit: 'cover' 
+                    // width: '100%', 
+                    // height: '100%',
+                    // objectFit: 'cover' 
                   }}
+                  width="100%"
+                  height="100%"
                   playing={index === currentPage} 
                   loop={true} 
                   muted={true} 
