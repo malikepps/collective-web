@@ -10,7 +10,6 @@ interface MediaCarouselProps {
   mediaItems: MediaItem[];
   onDoubleTap?: () => void;
   aspectRatio?: number;
-  showPlayButton?: boolean;
   onPlayVideo?: () => void;
 }
 
@@ -18,13 +17,13 @@ export default function MediaCarousel({
   mediaItems,
   onDoubleTap,
   aspectRatio = 1.33, // Default 4:3 aspect ratio
-  showPlayButton = true,
   onPlayVideo
 }: MediaCarouselProps) {
   const [currentPage, setCurrentPage] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
   const carouselRef = useRef<HTMLDivElement>(null);
   const imageRefs = useRef<(HTMLImageElement | null)[]>([]);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -207,6 +206,13 @@ export default function MediaCarousel({
     setIsLoading(false);
   };
 
+  // --- NEW: Toggle Mute Function ---
+  const handleToggleMute = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation(); // Prevent triggering other tap handlers
+    setIsMuted(prev => !prev);
+  };
+  // --- END NEW ---
+
   return (
     <div 
       className="relative overflow-hidden bg-gray-900"
@@ -246,17 +252,12 @@ export default function MediaCarousel({
                 <ReactPlayer
                   ref={index === currentPage ? playerRef : null} 
                   url={item.url}
-                  // Remove explicit sizing/fitting from style prop, rely on CSS
-                  style={{
-                    // width: '100%',
-                    // height: '100%',
-                    // objectFit: 'cover' // Style now handled globally
-                  }}
+                  style={{}}
                   width="100%"
                   height="100%"
                   playing={index === currentPage} 
                   loop={true} 
-                  muted={true} 
+                  muted={isMuted}
                   playsinline 
                   controls={false} 
                   onReady={() => index === currentPage && setIsLoading(false)} 
@@ -273,17 +274,21 @@ export default function MediaCarousel({
                   }}
                 />
 
-                {/* Conditionally render the play button */}
-                {showPlayButton && (
-                  <div className="absolute bottom-4 right-4 z-10 flex items-center justify-center">
-                    <DirectSVG
-                      icon="circle-play"
-                      size={50}
-                      style={SVGIconStyle.SOLID}
-                      primaryColor="ffffff"
-                    />
-                  </div>
-                )}
+                {/* --- MODIFIED: Mute/Unmute Toggle Button --- */}
+                <button 
+                  className="absolute bottom-4 right-4 z-10 flex items-center justify-center p-1"
+                  onClick={handleToggleMute}
+                  aria-label={isMuted ? "Unmute video" : "Mute video"}
+                >
+                  <DirectSVG
+                    icon={isMuted ? "volume-off" : "volume"}
+                    size={24} // Adjust size as needed
+                    style={SVGIconStyle.SOLID}
+                    primaryColor="ffffff"
+                    className="opacity-50" // Apply 50% opacity
+                  />
+                </button>
+                {/* --- END MODIFICATION --- */}
               </div>
             ) : (
               // Image
