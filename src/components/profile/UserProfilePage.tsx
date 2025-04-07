@@ -91,9 +91,8 @@ const UserProfilePage: React.FC = () => {
     // Later, this will actually open the cover
   };
   const handleCloseOrganizationsCover = () => {
-    console.log('Opening Organizations Full Screen Cover...');
-    setShowOrganizationsCover(true);
-    // Later, this will actually open the cover
+    console.log('Closing Organizations Full Screen Cover...');
+    setShowOrganizationsCover(false);
   };
 
   // State and handlers for Navigation Drawer
@@ -102,8 +101,7 @@ const UserProfilePage: React.FC = () => {
     setShowNavigationDrawer(true);
   };
   const handleCloseNavigationDrawer = () => {
-    setShowOrganizationsCover(true);
-    // Later, this will actually open the cover
+    setShowNavigationDrawer(false);
   };
 
   // --- Scroll Handling for Nav Bar Opacity ---
@@ -192,7 +190,7 @@ const UserProfilePage: React.FC = () => {
 
       {/* --- Main Content Area --- */}
       <div className="pt-16"> {/* Add padding-top to avoid content starting under the fixed nav bar */}
-        <div className="container mx-auto px-0 flex flex-col space-y-2"> {/* Reduced spacing */}
+        <div className="container mx-auto px-0 flex flex-col space-y-1"> {/* Reduced spacing from space-y-2 to space-y-1 */}
           
           {/* Profile Header Component */}
           <ProfileHeader userData={userData} />
@@ -207,7 +205,7 @@ const UserProfilePage: React.FC = () => {
           />
 
           {/* Boosted Posts Section Component */}
-          <div className="mx-4"> {/* Add margin to match other sections */}
+          <div > {/* Removed mx-4 */}
             <BoostedPostsSection boosts={boosts} />
           </div>
 

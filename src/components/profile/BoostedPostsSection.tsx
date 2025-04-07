@@ -101,6 +101,7 @@ const BoostedPostsSection: React.FC<BoostedPostsSectionProps> = ({ boosts }) => 
                 onToggleLike={() => toggleLike(boost.postId)} // Pass postId to toggleLike
                 onToggleBoost={() => toggleBoost(postForCard)} // Pass reconstructed Post for toggleBoost
                 onShowDetail={() => handleShowDetail(boost.postId)}
+                showOrganizationHeader={true}
                 // onDeletePost prop is optional, not needed here typically
               />
             );

@@ -96,7 +96,7 @@ const OrganizationsSection: React.FC<OrganizationsSectionProps> = ({ organizatio
                 className="flex space-x-2 px-2" // space-x-2 matches CollectiveSection
               >
                 {row.map(({ organization, relationship }) => (
-                   <div key={organization.id} className="flex-shrink-0"> {/* Removed min-w */} 
+                   <div key={organization.id} className="flex-shrink-0 mb-2"> {/* Added mb-2 for vertical spacing */}
                     <OrganizationLogo 
                       organization={organization}
                       relationship={relationship}
