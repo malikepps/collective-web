@@ -147,12 +147,29 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
   // Handle media
   let mediaType: MediaType | undefined = undefined;
   let mediaItems: MediaItem[] | undefined = undefined;
-  
-  // Check for the media array
-  if (Array.isArray(data.media)) {
+
+  // --- NEW: Prioritize mediaItems and mediaType fields if they exist ---
+  if (Array.isArray(data.mediaItems) && data.mediaItems.length > 0) {
+    console.log(`[DEBUG] Post ${doc.id} using modern mediaItems field.`);
+    mediaItems = data.mediaItems.map((item: any, index: number) => ({ // Add type safety if possible
+      id: item.id || `${doc.id}_${index}`, 
+      url: item.url || '',
+      type: item.type || MediaType.IMAGE, // Default to IMAGE if type is missing
+      order: typeof item.order === 'number' ? item.order : index,
+      thumbnailUrl: item.thumbnailUrl || null,
+      thumbnailColor: item.thumbnailColor || null
+    }));
+    // Assign mediaType if provided, otherwise infer later if needed
+    mediaType = data.mediaType as MediaType || undefined; 
+    console.log(`[DEBUG] Using mediaType field: ${mediaType}`);
+  }
+  // --- END NEW --- 
+  // --- OLD Logic (kept as fallback) ---
+  // Check for the media array (lowercase 'media')
+  else if (Array.isArray(data.media)) {
     // New format with media array
     const mediaArray = data.media as Record<string, any>[];
-    console.log(`[DEBUG] Post ${doc.id} has ${mediaArray.length} media items`);
+    console.log(`[DEBUG] Post ${doc.id} using legacy 'media' array field with ${mediaArray.length} items`);
     
     // Parse media type from data
     if (data.media_type) {
@@ -231,6 +248,20 @@ export const postFromFirestore = (doc: QueryDocumentSnapshot | DocumentSnapshot)
         thumbnailColor: null
       }];
     }
+  }
+  // --- END OLD Logic ---
+  
+  // Infer mediaType if it wasn't explicitly provided by mediaType field
+  if (!mediaType && mediaItems && mediaItems.length > 0) {
+      const hasVideo = mediaItems.some(item => item.type === MediaType.VIDEO);
+      if (mediaItems.length > 1) {
+          mediaType = MediaType.CAROUSEL_ALBUM;
+      } else if (hasVideo) {
+          mediaType = MediaType.VIDEO;
+      } else {
+          mediaType = MediaType.IMAGE;
+      }
+      console.log(`[DEBUG] Inferred media_type based on mediaItems: ${mediaType}`);
   }
   
   const post: Post = {
