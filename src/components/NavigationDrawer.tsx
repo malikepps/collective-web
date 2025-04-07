@@ -307,8 +307,13 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
                       src={userPhotoURL}
                       alt={userName} 
                       className="w-full h-full object-cover"
+                      onLoad={() => {
+                        // Log successful load
+                        console.log('[NavDrawer] Profile image loaded successfully:', userPhotoURL);
+                      }}
                       onError={(e) => {
-                        console.warn('Error loading profile image in drawer:', userPhotoURL);
+                        // Log error
+                        console.warn('[NavDrawer] Error loading profile image:', userPhotoURL);
                         (e.target as HTMLImageElement).style.display = 'none';
                       }}
                     />

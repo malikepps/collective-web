@@ -36,25 +36,34 @@ export function usePostBoosts() {
     const unsubscribe = onSnapshot(
       boostsQuery,
       (snapshot) => {
-        // Extract post IDs from boost documents
         const postIds = snapshot.docs.map(doc => doc.id);
+        console.log(`[usePostBoosts] Snapshot received. Boosted post IDs: [${postIds.join(', ')}]`);
         setBoostedPosts(postIds);
         
         // Load full boost data
+        console.log('[usePostBoosts] Attempting to load full boost data...');
         boostService.getBoostedPosts(50)
           .then(boostData => {
+            console.log(`[usePostBoosts] Successfully loaded ${boostData.length} full boost data items.`);
             setBoosts(boostData);
+            setError(null); // Clear previous errors on success
           })
           .catch(err => {
-            console.error('Error loading boost data:', err);
+            console.error('[usePostBoosts] Error loading full boost data via boostService:', err);
+            setError(err as Error); // Set error state
+            setBoosts([]); // Clear boosts on error
+          })
+          .finally(() => {
+            setLoading(false); // Ensure loading is set to false after attempt
           });
-        
-        setLoading(false);
+          
       },
       (err) => {
-        console.error('Error fetching boosted posts:', err);
+        console.error('[usePostBoosts] Error in onSnapshot listener:', err);
         setError(err as Error);
         setLoading(false);
+        setBoosts([]); // Clear boosts on listener error
+        setBoostedPosts([]);
       }
     );
     

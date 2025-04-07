@@ -21,6 +21,7 @@ interface CollectiveSectionProps {
 interface MemberWithRelationship extends Member {
   relationship: UserNonprofitRelationship;
   firstName?: string | null;
+  username?: string | null;
 }
 
 const CollectiveSection: React.FC<CollectiveSectionProps> = ({
@@ -80,7 +81,8 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
             photoURL: user.photoURL || undefined,
             role: relationship.displayFilter || 'community',
             relationship,
-            firstName: user.firstName
+            firstName: user.firstName,
+            username: user.username
           } as MemberWithRelationship;
         });
         
@@ -192,11 +194,14 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
   };
   
   // --- Add handler for member click --- 
-  const handleMemberClick = (memberId: string) => {
-    // TODO: Update this route when user profile routes are finalized
-    console.log(`TODO: Navigate to user profile for ID: ${memberId}`);
-    // Example future navigation:
-    // router.push(`/users/${memberId}`); 
+  const handleMemberClick = (memberId: string, username?: string | null) => {
+    if (username) {
+      console.log(`Navigating to user profile: /user/${username}`);
+      router.push(`/user/${username}`);
+    } else {
+      console.warn(`Cannot navigate to profile for user ${memberId}: username is missing.`);
+      // Potentially add fallback navigation or error display here if needed
+    }
   };
   // --- End handler --- 
 
@@ -270,7 +275,7 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
                 {row.map((member) => (
                   <button 
                     key={member.id} 
-                    onClick={() => handleMemberClick(member.id)}
+                    onClick={() => handleMemberClick(member.id, member.username)}
                     className="flex flex-col items-center min-w-[73px] text-left"
                   >
                     <PersonCircleView 

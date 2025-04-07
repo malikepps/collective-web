@@ -36,7 +36,7 @@ interface UseHomeFeedReturn {
   fetchFeed: () => Promise<void>; // Function to manually trigger fetch/refresh
 }
 
-const POSTS_PER_PAGE = 10; // Adjust as needed
+const POSTS_PER_PAGE = 50; // Increased from 10
 
 export function useHomeFeed(): UseHomeFeedReturn {
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
