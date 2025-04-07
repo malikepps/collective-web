@@ -5,15 +5,22 @@ import PostCard from '@/components/post/PostCard';
 import NavigationDrawer from '@/components/NavigationDrawer';
 import DirectSVG from '@/lib/components/icons/DirectSVG';
 import { SVGIconStyle } from '@/lib/components/icons/SVGIcon';
+import PostDetail from '@/components/post/PostDetail';
+import { Post } from '@/lib/models/Post';
+import { usePostReactions } from '@/lib/hooks/usePostReactions';
+import { usePostBoosts } from '@/lib/hooks/usePostBoosts';
 
 export default function HomePage() {
   const { feedItems, loading, error, fetchFeed } = useHomeFeed();
   const [showNavigationDrawer, setShowNavigationDrawer] = useState(false);
-  const [showProximityDropdown, setShowProximityDropdown] = useState(false); // Placeholder state
-  const [scrollOffset, setScrollOffset] = useState(0); // State for scroll position
-  const mainScrollRef = useRef<HTMLElement>(null); // Ref for the main scrolling element
+  const [showProximityDropdown, setShowProximityDropdown] = useState(false);
+  const [scrollOffset, setScrollOffset] = useState(0);
+  const mainScrollRef = useRef<HTMLElement>(null);
+  const [selectedPostItem, setSelectedPostItem] = useState<FeedItem | null>(null);
+  
+  const { isPostLiked, toggleLike } = usePostReactions();
+  const { isPostBoosted, toggleBoost } = usePostBoosts();
 
-  // Scroll handler to update scrollOffset
   useEffect(() => {
     const mainEl = mainScrollRef.current;
     if (!mainEl) return;
@@ -36,101 +43,82 @@ export default function HomePage() {
     setShowNavigationDrawer(false);
   };
 
-  // Placeholder function for toggling like state
-  const handleToggleLike = (postId: string) => {
-    console.log(`TODO: Toggle like for post ${postId}`);
-    // Add actual like logic here, possibly updating state in useHomeFeed or a separate context
+  const handleShowDetail = (item: FeedItem) => {
+    console.log(`Opening detail for post ${item.post.id}`);
+    setSelectedPostItem(item);
   };
 
-  // Placeholder function for toggling boost state
-  const handleToggleBoost = (postId: string) => {
-    console.log(`TODO: Toggle boost for post ${postId}`);
-    // Add actual boost logic here
+  const handleCloseDetail = () => {
+    setSelectedPostItem(null);
   };
 
-  // Placeholder function for showing post detail
-  const handleShowDetail = (postId: string) => {
-    console.log(`TODO: Show detail for post ${postId}`);
-    // Navigate to post detail page or show modal
-  };
-
-  // Calculate header background opacity and blur based on scroll
-  const headerBgOpacity = Math.min(0.8, scrollOffset / 50); // Faster transition
-  const headerBlur = Math.min(8, scrollOffset / 10); // Apply blur sooner
+  const headerBgOpacity = Math.min(0.8, scrollOffset / 50);
+  const headerBlur = Math.min(8, scrollOffset / 10);
 
   return (
     <>
       <Head>
         <title>Collective | Community</title>
         <meta name="description" content="Collective - Your community updates feed" />
-        {/* Add global styles if needed, e.g., for hiding scrollbars */}
         <style jsx global>{`
-          /* Example: Hide scrollbar */
           ::-webkit-scrollbar {
             display: none;
           }
           * {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;     /* Firefox */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
           }
           body {
-            background-color: #111214; /* Match iOS dark background */
-            overscroll-behavior: none; /* Prevent pull-to-refresh/overscroll effects */
+            background-color: #111214;
+            overscroll-behavior: none;
           }
-          /* Force video elements inside the carousel wrapper to cover */
           .video-player-wrapper video {
             object-fit: cover !important;
-            width: 100% !important; /* Ensure width fills container */
-            height: 100% !important; /* Ensure height fills container */
+            width: 100% !important;
+            height: 100% !important;
           }
         `}</style>
       </Head>
 
-      {/* Main container matching iOS dark background */}
       <div className="min-h-screen bg-[#111214] flex flex-col h-screen overflow-hidden">
 
-        {/* Header matching iOS with dynamic background */}
         <header
           className="pt-safe-top sticky top-0 z-20 px-4 h-[56px] flex items-center justify-between transition-colors duration-200"
           style={{
-            backgroundColor: `rgba(17, 18, 20, ${headerBgOpacity})`, // #111214 with opacity
+            backgroundColor: `rgba(17, 18, 20, ${headerBgOpacity})`,
             backdropFilter: `blur(${headerBlur}px)`,
             WebkitBackdropFilter: `blur(${headerBlur}px)`,
           }}
         >
-          {/* Left: Menu Button */}
           <button
             onClick={handleOpenNavigationDrawer}
-            className="flex items-center justify-center p-2 -ml-2" // Adjust padding/margin for hit area
+            className="flex items-center justify-center p-2 -ml-2"
             aria-label="Open navigation menu"
           >
             <DirectSVG
               icon="bars"
-              size={22} // Slightly smaller to match design
+              size={22}
               style={SVGIconStyle.SOLID}
               primaryColor="ffffff"
             />
           </button>
 
-          {/* Center: Title */}
           <h1 className="text-white text-xl font-marfa font-medium absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
             Community
           </h1>
 
-          {/* Right: Proximity Filter (Placeholder) */}
           <button
-            onClick={() => setShowProximityDropdown(!showProximityDropdown)} // Toggle placeholder dropdown state
+            onClick={() => setShowProximityDropdown(!showProximityDropdown)}
             className="flex items-center space-x-1 bg-white bg-opacity-10 rounded-full px-3 py-1 text-sm"
             aria-label="Select proximity filter"
           >
             <span className="text-white opacity-80 font-marfa">10 mi.</span>
             <DirectSVG
-              icon="chevron-down" // Use a chevron icon
+              icon="chevron-down"
               size={12}
               style={SVGIconStyle.SOLID}
-              primaryColor="ffffffcc" // White with opacity
+              primaryColor="ffffffcc"
             />
-            {/* Basic Dropdown Placeholder - Replace with actual implementation */}
             {showProximityDropdown && (
               <div className="absolute top-full right-0 mt-2 w-32 bg-gray-800 rounded-md shadow-lg z-30 p-2 text-white text-xs">
                 Dropdown Placeholder
@@ -139,7 +127,6 @@ export default function HomePage() {
           </button>
         </header>
 
-        {/* Feed Content Area - Make this the scrollable element */}
         <main ref={mainScrollRef} className="flex-1 overflow-y-auto px-4 pt-2 pb-safe-bottom scroll-smooth">
           {loading && (
             <div className="flex justify-center items-center h-40">
@@ -163,38 +150,48 @@ export default function HomePage() {
 
           {!loading && !error && feedItems.length > 0 && (
             <div className="space-y-4">
-              {feedItems.map((item) => (
-                <PostCard
-                  key={item.post.id}
-                  post={item.post}
-                  organization={item.organization}
-                  // Pass actual relationship status if available, otherwise defaults
-                  isUserMember={false} // Placeholder - Get from useUserOrganizationRelationship if needed
-                  isUserStaff={false}  // Placeholder - Get from useUserOrganizationRelationship if needed
-                  isLiked={item.isLiked} // Placeholder
-                  isBoosted={item.isBoosted} // Placeholder
-                  onToggleLike={() => handleToggleLike(item.post.id)}
-                  onToggleBoost={() => handleToggleBoost(item.post.id)}
-                  onShowDetail={() => handleShowDetail(item.post.id)}
-                  // onDeletePost prop - only needed if staff can delete from home feed
-                  showOrganizationHeader={true} // Explicitly show header on home feed
-                />
-              ))}
-              {/* Add "Caught Up" message or loading indicator for pagination later */}
+              {feedItems.map((item) => {
+                const liked = isPostLiked(item.post.id);
+                const boosted = isPostBoosted(item.post.id);
+                
+                return (
+                  <PostCard
+                    key={item.post.id}
+                    post={item.post}
+                    organization={item.organization}
+                    isUserMember={false}
+                    isUserStaff={false}
+                    isLiked={liked}
+                    isBoosted={boosted}
+                    onToggleLike={() => toggleLike(item.post.id)}
+                    onToggleBoost={() => toggleBoost(item.post)}
+                    onShowDetail={() => handleShowDetail(item)}
+                    showOrganizationHeader={true}
+                  />
+                );
+              })}
             </div>
           )}
         </main>
 
-        {/* Navigation Drawer */}
         <NavigationDrawer
           isOpen={showNavigationDrawer}
           onClose={handleCloseNavigationDrawer}
         />
 
-        {/* Bottom Nav Placeholder - Assuming this is handled globally or removed for web */}
-        {/* <div className="bg-[#1D1D1D] border-t border-gray-800 py-3 px-4 sticky bottom-0">
-          ... bottom nav buttons ...
-        </div> */}
+        {selectedPostItem && (
+          <PostDetail 
+            post={selectedPostItem.post} 
+            organization={selectedPostItem.organization} 
+            isUserMember={false}
+            isUserStaff={false}
+            isLiked={isPostLiked(selectedPostItem.post.id)} 
+            isBoosted={isPostBoosted(selectedPostItem.post.id)} 
+            onToggleLike={() => toggleLike(selectedPostItem.post.id)} 
+            onToggleBoost={() => toggleBoost(selectedPostItem.post)} 
+            onClose={handleCloseDetail}
+          /> 
+        )}
       </div>
     </>
   );

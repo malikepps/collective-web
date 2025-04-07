@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { MediaItem } from '@/lib/models/MediaItem';
 import { MediaType } from '@/lib/models/Post';
 import { DirectSVG } from '@/lib/components/icons';
@@ -24,12 +24,15 @@ export default function MediaCarousel({
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isIntersecting, setIsIntersecting] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
   const imageRefs = useRef<(HTMLImageElement | null)[]>([]);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [lastTapTime, setLastTapTime] = useState(0);
   const [imageDimensions, setImageDimensions] = useState<{width: number, height: number, naturalWidth: number, naturalHeight: number}[]>([]);
   const playerRef = useRef<ReactPlayer | null>(null);
+  const videoContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Sort media items by order
   const sortedMediaItems = [...mediaItems].sort((a, b) => a.order - b.order);
@@ -77,6 +80,42 @@ export default function MediaCarousel({
       window.removeEventListener('resize', logContainerDimensions);
     };
   }, []);
+
+  // --- Intersection Observer Setup --- 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        console.log(`[MediaCarousel] Intersection Observer update: ${entry.isIntersecting}`);
+        setIsIntersecting(entry.isIntersecting);
+      },
+      {
+        root: null, // Use the viewport as the root
+        rootMargin: '0px',
+        threshold: 0.5 // Trigger when 50% of the element is visible
+      }
+    );
+
+    const currentVideoContainer = videoContainerRef.current;
+    if (currentVideoContainer) {
+      observer.observe(currentVideoContainer);
+      console.log('[MediaCarousel] Intersection Observer observing video container.');
+    }
+
+    return () => {
+      if (currentVideoContainer) {
+        observer.unobserve(currentVideoContainer);
+        console.log('[MediaCarousel] Intersection Observer stopped observing video container.');
+      }
+    };
+  }, [currentPage]); // Re-run observer setup if the current page changes (if video is on new page)
+
+  // --- Effect to control playback based on intersection and current page --- 
+  useEffect(() => {
+    // Play only if it's the current page AND it's intersecting
+    const shouldPlay = currentPage === sortedMediaItems.findIndex(item => item.type === MediaType.VIDEO) && isIntersecting;
+    setIsPlaying(shouldPlay);
+    console.log(`[MediaCarousel] Playback state updated: shouldPlay=${shouldPlay}`);
+  }, [currentPage, isIntersecting, sortedMediaItems]);
 
   // Swipe handlers
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -206,12 +245,12 @@ export default function MediaCarousel({
     setIsLoading(false);
   };
 
-  // --- NEW: Toggle Mute Function ---
-  const handleToggleMute = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation(); // Prevent triggering other tap handlers
+  // --- Toggle Mute Function --- 
+  const handleToggleMute = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation(); 
     setIsMuted(prev => !prev);
-  };
-  // --- END NEW ---
+  }, []);
+  // --- End Mute --- 
 
   return (
     <div 
@@ -248,14 +287,17 @@ export default function MediaCarousel({
           >
             {item.type === MediaType.VIDEO ? (
               // Video Player Wrapper
-              <div className="absolute inset-0 bg-black video-player-wrapper" style={{ overflow: 'hidden' }}> 
+              <div 
+                ref={index === currentPage ? videoContainerRef : null}
+                className="absolute inset-0 bg-black video-player-wrapper" style={{ overflow: 'hidden' }}
+              > 
                 <ReactPlayer
                   ref={index === currentPage ? playerRef : null} 
                   url={item.url}
                   style={{}}
                   width="100%"
                   height="100%"
-                  playing={index === currentPage} 
+                  playing={isPlaying}
                   loop={true} 
                   muted={isMuted}
                   playsinline 
@@ -274,21 +316,20 @@ export default function MediaCarousel({
                   }}
                 />
 
-                {/* --- MODIFIED: Mute/Unmute Toggle Button --- */}
+                {/* Mute/Unmute Toggle Button - Updated Icon Logic */}
                 <button 
-                  className="absolute bottom-4 right-4 z-10 flex items-center justify-center p-1"
-                  onClick={handleToggleMute}
-                  aria-label={isMuted ? "Unmute video" : "Mute video"}
+                  className="absolute bottom-4 right-4 z-10 flex items-center justify-center p-1" 
+                  onClick={handleToggleMute} 
+                  aria-label={isMuted ? "Unmute video" : "Mute video"} 
                 >
-                  <DirectSVG
-                    icon={isMuted ? "volume-off" : "volume"}
-                    size={24} // Adjust size as needed
-                    style={SVGIconStyle.SOLID}
-                    primaryColor="ffffff"
-                    className="opacity-50" // Apply 50% opacity
-                  />
+                  <DirectSVG 
+                    icon={isMuted ? "volume-off" : "volume"} // Correctly toggle icon
+                    size={24} 
+                    style={SVGIconStyle.SOLID} 
+                    primaryColor="ffffff" 
+                    className="opacity-50" 
+                  /> 
                 </button>
-                {/* --- END MODIFICATION --- */}
               </div>
             ) : (
               // Image
