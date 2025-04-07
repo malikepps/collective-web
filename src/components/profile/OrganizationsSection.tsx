@@ -20,7 +20,7 @@ const OrganizationsSection: React.FC<OrganizationsSectionProps> = ({ organizatio
   const router = useRouter();
   const itemSize = 80; // Corresponds to itemSize in Swift
   const itemSpacing = 'space-x-3.5'; // Tailwind equivalent for 14px spacing
-  const rowSpacing = 'gap-3.5'; // Tailwind equivalent for 14px row gap
+  // rowSpacing is not used in the same way as CollectiveSection, we need space-y-1 between rows
 
   const handleOrgTap = (org: Organization, relationship: UserNonprofitRelationship | null) => {
     const targetPath = org.username ? `/${org.username}` : `/organization/${org.id}`; 
@@ -35,6 +35,21 @@ const OrganizationsSection: React.FC<OrganizationsSectionProps> = ({ organizatio
 
   // Determine layout based on count
   const useTwoRows = sortedOrgs.length > 5;
+
+  // Split members into rows (copied from CollectiveSection)
+  const getRows = () => {
+    if (!useTwoRows) {
+      return [sortedOrgs];
+    }
+    // Calculate number of items per row to balance both rows
+    const totalOrgs = sortedOrgs.length;
+    const itemsFirstRow = Math.ceil(totalOrgs / 2);
+    
+    return [
+      sortedOrgs.slice(0, itemsFirstRow),
+      sortedOrgs.slice(itemsFirstRow)
+    ];
+  };
 
   // Placeholder for empty state
   const EmptyPlaceholder = () => (
@@ -52,11 +67,11 @@ const OrganizationsSection: React.FC<OrganizationsSectionProps> = ({ organizatio
   );
 
   return (
-    <div className="bg-card-secondary rounded-xl overflow-hidden"> {/* Removed mx-4 */}
-      {/* Header */}
+    <div className="bg-card p-4 continuous-corner"> {/* Changed background, added padding and continuous-corner, removed overflow-hidden */}
+      {/* Header - Adding mb-4 */}
       <button 
         onClick={onViewAll}
-        className="w-full flex justify-between items-center p-4 hover:bg-gray-700/50 transition-colors"
+        className="w-full flex justify-between items-center mb-4 hover:bg-gray-700/50 transition-colors"
       >
         <h3 className="text-white font-marfa font-semibold text-xl"> {/* Adjusted size */}
           Organizations
@@ -69,35 +84,28 @@ const OrganizationsSection: React.FC<OrganizationsSectionProps> = ({ organizatio
         />
       </button>
 
-      {/* Organizations Grid/Row */}
-      <div className="overflow-x-auto pb-4 scrollbar-hide"> {/* Hide scrollbar */}
+      {/* Organizations Grid/Row - updated logic */} 
+      <div className="overflow-x-auto hide-scrollbar"> {/* Hide scrollbar */} 
         {sortedOrgs.length === 0 ? (
           <EmptyPlaceholder />
-        ) : useTwoRows ? (
-          // Two-row grid - Use flex-wrap approach
-          <div className={`flex flex-wrap ${rowSpacing} px-4`} style={{ height: `${itemSize * 2 + 14}px` }}> {/* Set fixed height for two rows + gap */}
-            {sortedOrgs.map(({ organization, relationship }) => (
-              <div key={organization.id} className="flex-shrink-0 mr-3.5 mb-3.5"> {/* Add spacing for wrapped items */}
-                <OrganizationLogo 
-                  organization={organization}
-                  relationship={relationship}
-                  size={itemSize}
-                  onTap={() => handleOrgTap(organization, relationship)}
-                />
-              </div>
-            ))}
-          </div>
         ) : (
-          // Single row
-          <div className={`flex ${itemSpacing} px-4`}>
-            {sortedOrgs.map(({ organization, relationship }) => (
-              <OrganizationLogo 
-                key={organization.id}
-                organization={organization}
-                relationship={relationship}
-                size={itemSize}
-                onTap={() => handleOrgTap(organization, relationship)}
-              />
+          <div className="flex flex-col space-y-1 min-w-min"> {/* Mimic CollectiveSection structure */}
+            {getRows().map((row, rowIndex) => (
+              <div 
+                key={`row-${rowIndex}`} 
+                className="flex space-x-2 px-2" // space-x-2 matches CollectiveSection
+              >
+                {row.map(({ organization, relationship }) => (
+                   <div key={organization.id} className="flex-shrink-0"> {/* Removed min-w */} 
+                    <OrganizationLogo 
+                      organization={organization}
+                      relationship={relationship}
+                      size={itemSize}
+                      onTap={() => handleOrgTap(organization, relationship)}
+                    />
+                  </div>
+                ))}
+              </div>
             ))}
           </div>
         )}

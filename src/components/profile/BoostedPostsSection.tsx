@@ -25,16 +25,14 @@ const BoostedPostsSection: React.FC<BoostedPostsSectionProps> = ({ boosts }) => 
   };
 
   return (
-    <div className="bg-card-secondary rounded-xl overflow-hidden"> {/* Match org section background/rounding */}
-      {/* Header */}
-      <div className="p-4 border-b border-gray-700"> {/* Add padding and border */}
-        <h3 className="text-white font-marfa font-semibold text-xl">
-          Boosted Posts
-        </h3>
-      </div>
+    <div className="bg-card p-4 text-white mt-1 continuous-corner"> {/* Match PostsSection styling */}
+      {/* Header - Removed border, added mb-4 */}
+      <h3 className="text-white font-marfa font-semibold text-xl mb-4">
+        Boosted Posts
+      </h3>
 
-      {/* Posts List */}
-      <div className="p-4 flex flex-col space-y-4"> {/* Add padding and spacing */}
+      {/* Posts List - Removed p-4 from here, kept spacing */}
+      <div className="flex flex-col space-y-4">
         {boosts.length === 0 ? (
           <p className="text-gray-400 text-center py-4">You haven't boosted any posts yet.</p>
         ) : (

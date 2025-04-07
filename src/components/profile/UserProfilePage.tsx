@@ -44,7 +44,7 @@ const useUserProfileData = (uid: string | undefined): { userData: CollectiveUser
         lastName: 'Epps',
         username: 'malikepps',
         // Use a placeholder format similar to configured domains, though this specific URL might not exist
-        photoURL: 'https://firebasestorage.googleapis.com/v0/b/collective-rp8rwq.appspot.com/o/users%2Fplaceholder.jpg?alt=media', 
+        photoURL: 'https://firebasestorage.googleapis.com/v0/b/collective-rp8rwq.appspot.com/o/users%2FnbWN14A9CKSPYaifWpznpMSIGAm2%2Fuploads%2Fprofile_1743356797788.jpg?alt=media&token=bba7d94a-1420-438c-9a59-9e326085e937', // Use actual photo URL
         bio: 'This is a sample bio. It can be multiple lines long and supports basic text formatting.',
         city: 'Durham',
         state: 'NC',
@@ -178,8 +178,8 @@ const UserProfilePage: React.FC = () => {
           @{userData.username || 'Profile'}
         </h1>
         
-        {/* Settings Button */}
-        <button onClick={handleSettings} className="p-2">
+        {/* Settings Button - Disabled */}
+        <button className="p-2" disabled> {/* Added disabled attribute */}
            <DirectSVG 
              icon="gear" 
              size={22} 

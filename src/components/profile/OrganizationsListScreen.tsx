@@ -29,7 +29,6 @@ const OrganizationsListScreen: React.FC<OrganizationsListScreenProps> = ({ isOpe
 
       {/* Content Area */}
       <div className="flex-grow overflow-y-auto p-4">
-        <p className="text-gray-400">Organization list placeholder...</p>
         {/* TODO: Map over organizations and display list items */}
       </div>
     </div>
