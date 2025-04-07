@@ -74,22 +74,34 @@ export default function PostCard({
   // Check if caption needs "Show More" button when component mounts or window resizes
   useEffect(() => {
     const checkHeight = () => {
-      if (captionRef.current && post.caption) {
-        // If the scroll height is greater than the client height, we need to show the expansion button
-        const needsToExpand = captionRef.current.scrollHeight > captionRef.current.clientHeight;
-        setNeedsExpansion(needsToExpand);
-      }
+      // Use requestAnimationFrame to wait for the next render cycle
+      requestAnimationFrame(() => { 
+        if (captionRef.current && post.caption) {
+          // Check scrollHeight vs clientHeight after the browser has likely rendered
+          const needsToExpand = captionRef.current.scrollHeight > captionRef.current.clientHeight;
+          // Add a small tolerance (e.g., 1 pixel) in case of rounding issues
+          // const needsToExpand = captionRef.current.scrollHeight > captionRef.current.clientHeight + 1;
+          setNeedsExpansion(needsToExpand);
+          // Enhanced Logging
+          console.log(`[PostCard] checkHeight (${post.id}): scrollH=${captionRef.current.scrollHeight}, clientH=${captionRef.current.clientHeight}, offsetW=${captionRef.current.offsetWidth}, needsExpand=${needsToExpand}`);
+        }
+      });
     };
 
+    // Initial check
     checkHeight();
     
-    // Add resize listener
+    // Check on resize
     window.addEventListener('resize', checkHeight);
     
+    // Check again after a short delay in case of slow rendering/font loading
+    const timer = setTimeout(checkHeight, 100); 
+
     return () => {
       window.removeEventListener('resize', checkHeight);
+      clearTimeout(timer); // Clear the timeout on cleanup
     };
-  }, [post.caption]);
+  }, [post.caption, post.id]); // Add post.id to dependencies for logging clarity
   
   // Preload media items
   useEffect(() => {
