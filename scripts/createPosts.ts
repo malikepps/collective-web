@@ -119,7 +119,7 @@ function createMediaItems(postData: InstagramPostData): { mediaType?: MediaType,
               url: childUrl,
               type: childMediaType,
               order: index,
-              thumbnailUrl: childMediaType === MediaType.VIDEO ? child.displayUrl : null,
+              thumbnailUrl: (childMediaType === MediaType.VIDEO ? child.displayUrl : null) ?? null,
               thumbnailColor: null
             });
           } else {

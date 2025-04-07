@@ -38,6 +38,7 @@
     "node_modules",
     "functions",
     ".next",
-    "out"
+    "out",
+    "scripts"
   ]
 }
