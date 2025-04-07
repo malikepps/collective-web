@@ -11,7 +11,7 @@ import {
   DocumentReference,
   where
 } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { useAuth } from '@/lib/context/AuthContext';
 import { Post, postFromFirestore } from '@/lib/models/Post';
 import { Organization, organizationFromFirestore } from '@/lib/models/Organization';
 // We might need user relationship later to determine staff/member status for posts
@@ -42,14 +42,20 @@ export function useHomeFeed(): UseHomeFeedReturn {
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
-  const auth = getAuth();
-  const currentUser = auth.currentUser;
+  const { user } = useAuth();
 
   const fetchFeed = useCallback(async () => {
-    console.log('[useHomeFeed] Starting feed fetch...');
+    if (!user) {
+        console.log('[useHomeFeed] fetchFeed called, but no user found. Aborting.');
+        setFeedItems([]);
+        setLoading(false);
+        setError(null);
+        return; 
+    }
+    
+    console.log(`[useHomeFeed] Starting feed fetch for user: ${user.uid}`);
     setLoading(true);
     setError(null);
-    // Reset items for a fresh fetch/refresh
     setFeedItems([]);
 
     try {
@@ -97,17 +103,15 @@ export function useHomeFeed(): UseHomeFeedReturn {
         }
       });
 
-      // 4. Fetch User Reactions (Option A)
+      // 4. Fetch User Reactions
       const userReactions = new Map<string, { liked: boolean; boosted: boolean }>();
-      if (currentUser) {
-        console.log(`[useHomeFeed] Fetching reactions for user: ${currentUser.uid}`);
-        const postIds = posts.map(p => p.id);
-        if (postIds.length > 0) {
-          // Firestore 'in' query limit is 30 - handle potentially large feeds if needed
+      console.log(`[useHomeFeed] Fetching reactions for user: ${user.uid}`);
+      const postIds = posts.map(p => p.id);
+      if (postIds.length > 0) {
           const reactionQuery = query(
-            collection(db, 'user_post_reactions'),
-            where('user_id', '==', currentUser.uid),
-            where('post_id', 'in', postIds.slice(0, 30)) // Handle limitation
+              collection(db, 'user_post_reactions'),
+              where('user_id', '==', user.uid),
+              where('post_id', 'in', postIds.slice(0, 30))
           );
           try {
             const reactionSnapshot = await getDocs(reactionQuery);
@@ -123,7 +127,6 @@ export function useHomeFeed(): UseHomeFeedReturn {
             console.error("[useHomeFeed] Error fetching user reactions:", reactionError);
             // Continue without reactions if fetch fails
           }
-        }
       }
 
       // 5. Combine Posts, Organizations, and Reactions
@@ -154,15 +157,20 @@ export function useHomeFeed(): UseHomeFeedReturn {
       setLoading(false);
       console.log('[useHomeFeed] Feed fetch finished.');
     }
-  }, [currentUser]);
+  }, [user]);
 
-  // Initial fetch on mount - add currentUser to dependency
+  // Initial fetch on mount - now depends on the context user state
   useEffect(() => {
-    if (currentUser) { // Fetch only when user is available
+    console.log('[useHomeFeed] useEffect triggered. User:', user?.uid);
+    if (user) {
         fetchFeed();
+    } else {
+        console.log('[useHomeFeed] No user found on initial mount, setting loading false.');
+        setLoading(false);
+        setFeedItems([]);
+        setError(null);
     }
-    // Re-fetch if user changes (login/logout)
-  }, [fetchFeed, currentUser]);
+  }, [fetchFeed]);
 
   return { feedItems, loading, error, fetchFeed };
 } 
