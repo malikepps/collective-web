@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { Organization } from '@/lib/models/Organization';
 import { db } from '@/lib/firebase/config';
 import { collection, getDocs, query, where, getDoc, doc } from 'firebase/firestore';
@@ -32,6 +33,7 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
   const [loading, setLoading] = useState(true);
   const { getTheme } = useTheme();
   const theme = getTheme(organization.themeId);
+  const router = useRouter();
   
   // Get secondary color from theme
   const secondaryColor = theme?.secondaryColor ? `#${theme.secondaryColor}` : '#ADD3FF';
@@ -189,6 +191,15 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
     }
   };
   
+  // --- Add handler for member click --- 
+  const handleMemberClick = (memberId: string) => {
+    // TODO: Update this route when user profile routes are finalized
+    console.log(`TODO: Navigate to user profile for ID: ${memberId}`);
+    // Example future navigation:
+    // router.push(`/users/${memberId}`); 
+  };
+  // --- End handler --- 
+
   return (
     <div className="bg-card p-4 text-white continuous-corner">
       {/* Header with filter button */}
@@ -257,12 +268,15 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
                 className="flex space-x-2 px-2"
               >
                 {row.map((member) => (
-                  <div key={member.id} className="flex flex-col items-center min-w-[73px]">
+                  <button 
+                    key={member.id} 
+                    onClick={() => handleMemberClick(member.id)}
+                    className="flex flex-col items-center min-w-[73px] text-left"
+                  >
                     <PersonCircleView 
                       member={member} 
                       style={getMemberStyle(member)}
                       themeId={organization.themeId || undefined}
-                      onClick={() => console.log('Member clicked:', member.name)}
                     />
                     <span 
                       className="text-white text-sm mt-1 w-20 truncate text-center font-marfa font-normal"
@@ -270,7 +284,7 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
                     >
                       {getDisplayName(member)}
                     </span>
-                  </div>
+                  </button>
                 ))}
               </div>
             ))}

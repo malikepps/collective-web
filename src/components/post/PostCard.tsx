@@ -196,11 +196,12 @@ export default function PostCard({
   // Only show card when we have media items or when we know there aren't any
   const mediaItems = getMediaItems();
   const shouldRenderContent = mediaItems.length === 0 || mediaReady;
+  const cardBackgroundColor = generateBackgroundColor(); // Calculate color outside
 
   return (
     <div 
-      className="bg-card rounded-xl overflow-hidden shadow-lg mb-4"
-      style={{ backgroundColor: generateBackgroundColor() }}
+      className="bg-card rounded-xl overflow-hidden shadow-lg mb-4" 
+      // Removed direct style application here, will apply to inner div
     >
       {/* Media Content - No rounded corners at bottom */}
       {mediaItems.length > 0 && (
@@ -278,132 +279,136 @@ export default function PostCard({
         </div>
       )}
       
-      {/* Conditionally render Organization Header */}
-      {showOrganizationHeader && (
-        <div className="px-4 pt-3 pb-1 flex items-center">
-          <img
-            src={organization.photoURL || '/default-avatar.png'}
-            alt={`${organization.name} logo`}
-            className="w-10 h-10 rounded-full mr-3 object-cover"
-          />
-          <span className="text-white text-lg font-marfa-medium line-clamp-1">
-            {organization.name}
-          </span>
-        </div>
-      )}
-      
-      {shouldRenderContent && (
-        <>
-          {/* Date - Moved below conditional org header */}
-          {!showOrganizationHeader && (
-             <div className="px-4 pt-2 text-gray-300 text-sm">
-               {formattedDate}
-             </div>
-          )}
-          
-          {/* Caption with fade effect - similar to MembershipTierCard */}
-          {post.caption && (
-            <div className="px-4 py-2 relative">
-              <p 
-                ref={captionRef}
-                className="text-white opacity-85 font-marfa font-light overflow-hidden max-h-24"
-                style={{
-                  maskImage: needsExpansion ? 'linear-gradient(to bottom, black 70%, transparent 100%)' : 'none',
-                  WebkitMaskImage: needsExpansion ? 'linear-gradient(to bottom, black 70%, transparent 100%)' : 'none'
-                }}
-              >
-                {post.caption}
-              </p>
-              
-              {/* Show more button */}
-              {needsExpansion && (
-                <div className="w-full text-center mt-1">
-                  <button 
-                    onClick={onShowDetail}
-                    className="text-white bg-black bg-opacity-40 rounded-full px-4 py-1 text-sm font-medium"
-                  >
-                    Show more
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-          
-          {/* Actions - removed border-t */}
-          <div className="px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center text-gray-300 text-sm">
-              <span className="flex items-center justify-center h-8 mr-2">
-                <DirectSVG
-                  icon="comment"
-                  size={20}
-                  style={SVGIconStyle.SOLID}
-                  primaryColor="9ca3af"
-                />
-              </span>
-              <span className="mr-3">{post.numComments}</span>
-            </div>
+      {/* Organization Header & Post Details Container */}
+      <div style={{ backgroundColor: cardBackgroundColor }}> {/* Apply themed background here */}
+        {/* Conditionally render Organization Header */} 
+        {showOrganizationHeader && ( 
+          <div className="px-4 pt-3 pb-1 flex items-center"> 
+            <img 
+              src={organization.photoURL || '/default-avatar.png'} 
+              alt={`${organization.name} logo`} 
+              className="w-10 h-10 rounded-full mr-3 object-cover" 
+            /> 
+            <span className="text-white text-lg font-marfa-medium line-clamp-1"> 
+              {organization.name} 
+            </span> 
+          </div> 
+        )} 
+
+        {/* Post Details (Date, Caption, Actions) */}
+        {shouldRenderContent && ( 
+          <> 
+            {/* Date - Moved below conditional org header */} 
+            {!showOrganizationHeader && ( 
+              <div className="px-4 pt-2 text-gray-300 text-sm"> 
+                {formattedDate} 
+              </div> 
+            )} 
             
-            <div className="flex items-center">
-              {/* Like Button - now using SVG for better alignment */}
-              <button 
-                className={`flex items-center justify-center w-8 h-8 mr-3 ${isLiked ? 'text-red-500' : 'text-white'}`}
-                onClick={() => {
-                  triggerHapticFeedback();
-                  onToggleLike();
-                }}
-                aria-label={isLiked ? "Unlike post" : "Like post"}
-                data-debug="like-button"
-                style={isLiked ? {} : { opacity: 0.5 }}
-              >
-                {isLiked ? (
-                  <span className="text-xl">❤️</span>
-                ) : (
-                  <DirectSVG
-                    icon="heart"
-                    size={20}
-                    style={SVGIconStyle.REGULAR}
-                    primaryColor="ffffff"
-                  />
+            {/* Caption with fade effect - similar to MembershipTierCard */}
+            {post.caption && ( 
+              <div className="px-4 py-2 relative">
+                <p 
+                  ref={captionRef}
+                  className="text-white opacity-85 font-marfa font-light overflow-hidden max-h-24"
+                  style={{
+                    maskImage: needsExpansion ? 'linear-gradient(to bottom, black 70%, transparent 100%)' : 'none',
+                    WebkitMaskImage: needsExpansion ? 'linear-gradient(to bottom, black 70%, transparent 100%)' : 'none'
+                  }}
+                >
+                  {post.caption}
+                </p>
+                
+                {/* Show more button */}
+                {needsExpansion && (
+                  <div className="w-full text-center mt-1">
+                    <button 
+                      onClick={onShowDetail}
+                      className="text-white bg-black bg-opacity-40 rounded-full px-4 py-1 text-sm font-medium"
+                    >
+                      Show more
+                    </button>
+                  </div>
                 )}
-              </button>
+              </div>
+            )} 
+            
+            {/* Actions - removed border-t */}
+            <div className="px-4 py-3 flex items-center justify-between"> 
+              <div className="flex items-center text-gray-300 text-sm">
+                <span className="flex items-center justify-center h-8 mr-2">
+                  <DirectSVG
+                    icon="comment"
+                    size={20}
+                    style={SVGIconStyle.SOLID}
+                    primaryColor="9ca3af"
+                  />
+                </span>
+                <span className="mr-3">{post.numComments}</span>
+              </div>
               
-              {/* Boost Button - now using SVG for better alignment */}
-              <button 
-                className="flex items-center justify-center w-8 h-8"
-                onClick={() => {
-                  triggerHapticFeedback();
-                  onToggleBoost();
-                }}
-                aria-label={isBoosted ? "Remove boost" : "Boost post"}
-                data-debug="boost-button"
-                style={isBoosted ? {} : { opacity: 0.5 }}
-              >
-                {isBoosted ? (
-                  <span style={{color: '#ff9500'}}>
+              <div className="flex items-center">
+                {/* Like Button - now using SVG for better alignment */}
+                <button 
+                  className={`flex items-center justify-center w-8 h-8 mr-3 ${isLiked ? 'text-red-500' : 'text-white'}`}
+                  onClick={() => {
+                    triggerHapticFeedback();
+                    onToggleLike();
+                  }}
+                  aria-label={isLiked ? "Unlike post" : "Like post"}
+                  data-debug="like-button"
+                  style={isLiked ? {} : { opacity: 0.5 }}
+                >
+                  {isLiked ? (
+                    <span className="text-xl">❤️</span>
+                  ) : (
                     <DirectSVG
-                      icon="rocket-launch"
+                      icon="heart"
                       size={20}
                       style={SVGIconStyle.REGULAR}
-                      color="ff9500"
-                      primaryColor="ff9500"
-                      isActive={true}
-                      className="debug-rocket-icon"
+                      primaryColor="ffffff"
                     />
-                  </span>
-                ) : (
-                  <DirectSVG
-                    icon="rocket"
-                    size={20}
-                    style={SVGIconStyle.REGULAR}
-                    primaryColor="ffffff"
-                    isActive={true}
-                  />
-                )}
-              </button>
-            </div>
-          </div>
-        </>
-      )}
+                  )}
+                </button>
+                
+                {/* Boost Button - now using SVG for better alignment */}
+                <button 
+                  className="flex items-center justify-center w-8 h-8"
+                  onClick={() => {
+                    triggerHapticFeedback();
+                    onToggleBoost();
+                  }}
+                  aria-label={isBoosted ? "Remove boost" : "Boost post"}
+                  data-debug="boost-button"
+                  style={isBoosted ? {} : { opacity: 0.5 }}
+                >
+                  {isBoosted ? (
+                    <span style={{color: '#ff9500'}}>
+                      <DirectSVG
+                        icon="rocket-launch"
+                        size={20}
+                        style={SVGIconStyle.REGULAR}
+                        color="ff9500"
+                        primaryColor="ff9500"
+                        isActive={true}
+                        className="debug-rocket-icon"
+                      />
+                    </span>
+                  ) : (
+                    <DirectSVG
+                      icon="rocket"
+                      size={20}
+                      style={SVGIconStyle.REGULAR}
+                      primaryColor="ffffff"
+                      isActive={true}
+                    />
+                  )}
+                </button>
+              </div>
+            </div> 
+          </> 
+        )} 
+      </div>
     </div>
   );
 } 

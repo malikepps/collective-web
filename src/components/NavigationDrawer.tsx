@@ -283,8 +283,11 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
         {/* User profile link (sticky at bottom) */}
         {(user || storedUserData) && (
           <>
-            <div className="border-t border-gray-700 fixed bottom-[calc(3.5rem)] left-0 w-4/5 max-w-sm z-10"></div>
-            <div className="fixed bottom-0 left-0 bg-[#1D1D1D] z-10 w-4/5 max-w-sm h-16">
+            {/* Divider line - Adjust color if needed */}
+            <div className="border-t border-gray-700 fixed bottom-[calc(3.5rem)] left-0 w-4/5 max-w-sm z-10"></div> 
+            
+            {/* Sticky container with new background and text color */}
+            <div className="fixed bottom-0 left-0 bg-gray-200 z-10 w-4/5 max-w-sm h-16"> 
               <button 
                 onClick={() => {
                   // Check authentication before navigating to profile
@@ -295,22 +298,28 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose }) 
                     navigateTo('/profile');
                   }
                 }}
-                className="w-full h-full flex items-center py-4 px-6 text-white"
+                className="w-full h-full flex items-center py-4 px-6"
               >
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-700 mr-3">
+                {/* Profile Picture */}
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-700 mr-3 flex-shrink-0">
                   {userPhotoURL ? (
                     <img 
-                      src={userPhotoURL} 
+                      src={userPhotoURL}
                       alt={userName} 
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        console.warn('Error loading profile image in drawer:', userPhotoURL);
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white text-sm">
+                    <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
                       {userInitial}
                     </div>
                   )}
                 </div>
-                <span className="text-base font-marfa">{userName}</span>
+                {/* User Name */}
+                <span className="text-base font-marfa text-black">{userName}</span>
               </button>
             </div>
           </>
