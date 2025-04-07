@@ -196,13 +196,13 @@ const CollectiveSection: React.FC<CollectiveSectionProps> = ({
   // --- Add handler for member click --- 
   const handleMemberClick = (memberId: string, username?: string | null) => {
     // Reverted navigation: Log intent until /user/[username].tsx page is created
-    console.log(`TODO: Navigate to user profile page for ID: ${memberId}, Username: ${username || '(none)'}`);
-    // if (username) {
-    //   console.log(`Navigating to user profile: /user/${username}`);
-    //   router.push(`/user/${username}`);
-    // } else {
-    //   console.warn(`Cannot navigate to profile for user ${memberId}: username is missing.`);
-    // }
+    // console.log(`TODO: Navigate to user profile page for ID: ${memberId}, Username: ${username || '(none)'}`);
+    if (username) {
+      console.log(`Navigating to user profile: /user/${username}`);
+      router.push(`/user/${username}`); // Re-enabled navigation
+    } else {
+      console.warn(`Cannot navigate to profile for user ${memberId}: username is missing.`);
+    }
   };
   // --- End handler --- 
 
