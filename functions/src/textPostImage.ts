@@ -102,7 +102,7 @@ export const generateTextPostImage = functionsV1
                 <style>
                     @font-face {
                         font-family: 'Marfa';
-                        src: url('FONT_PLACEHOLDER') format('woff2'); /* Placeholder */
+                        src: url('https://firebasestorage.googleapis.com/v0/b/collective-rp8rwq.appspot.com/o/public_fonts%2FABCMarfa-Semibold-Trial.woff2?alt=media&token=e7839412-c2c6-4baa-9291-f6b716410681') format('woff2'); /* Use public URL */
                         font-weight: 600;
                         font-style: normal;
                         font-display: swap;

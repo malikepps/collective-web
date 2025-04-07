@@ -250,7 +250,7 @@ export default function MediaCarousel({
                   style={{
                     // width: '100%',
                     // height: '100%',
-                    objectFit: 'cover' // Ensure the video fills the container, cropping if needed
+                    // objectFit: 'cover' // Style now handled globally
                   }}
                   width="100%"
                   height="100%"

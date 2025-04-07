@@ -156,3 +156,10 @@ body {
     display: none;  /* Chrome, Safari and Opera */
   }
 }
+
+/* Force ReactPlayer video to cover container */
+.video-player-wrapper video {
+  object-fit: cover !important;
+  width: 100% !important; 
+  height: 100% !important;
+}
