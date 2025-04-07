@@ -247,10 +247,10 @@ export default function MediaCarousel({
                   ref={index === currentPage ? playerRef : null} 
                   url={item.url}
                   // Remove explicit sizing/fitting from style prop, rely on CSS
-                  style={{ 
-                    // width: '100%', 
+                  style={{
+                    // width: '100%',
                     // height: '100%',
-                    // objectFit: 'cover' 
+                    objectFit: 'cover' // Ensure the video fills the container, cropping if needed
                   }}
                   width="100%"
                   height="100%"
