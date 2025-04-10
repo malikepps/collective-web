@@ -59,6 +59,10 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   const { getTheme } = useTheme();
   // Use the themeId from the local organization state
   const theme = organization.themeId ? getTheme(organization.themeId) : undefined;
+  // Add a log to see the derived theme object whenever organization.themeId changes
+  useEffect(() => {
+      console.log("[NonprofitProfile] Theme derived from useTheme:", theme);
+  }, [theme]);
   const [scrollOffset, setScrollOffset] = useState(0);
   const [showLinksSheet, setShowLinksSheet] = useState(false);
   const [showMissionSheet, setShowMissionSheet] = useState(false);
@@ -183,12 +187,12 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
 
   // Handler to update local organization state (passed to InfoBox)
   const handleOrganizationUpdate = (updatedData: Partial<Organization>) => {
-    console.log("[NonprofitProfile] Updating local organization state:", updatedData);
-    setOrganization(prevOrg => ({
-      ...prevOrg,
-      ...updatedData
-    }));
-    // Re-fetching theme via useTheme hook happens automatically due to state change
+    console.log("[NonprofitProfile] Received update. Current themeId:", organization.themeId, "New data:", updatedData);
+    setOrganization(prevOrg => {
+      const newOrg = { ...prevOrg, ...updatedData };
+      console.log("[NonprofitProfile] State updated. New themeId:", newOrg.themeId);
+      return newOrg;
+    });
   };
 
   // Calculate navbar background opacity based on scroll
@@ -298,7 +302,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
                   />
                 </button>
 
-                {/* Manage Media Button Placeholder */}
+                {/* Manage Media Button Placeholder - Check theme prop usage */}
                 <button
                   onClick={() => console.log('TODO: Implement Manage Media Sheet')}
                   className="flex items-center justify-center w-9 h-9 rounded-full bg-black bg-opacity-50 icon-shadow"
@@ -308,8 +312,8 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
                     icon="photo-film"
                     size={16}
                     style={SVGIconStyle.SOLID}
-                     // Use secondary theme color from local state's theme
-                    primaryColor={theme?.secondaryColor || '8BBEF9'}
+                    // Log the theme object being used here
+                    primaryColor={theme?.secondaryColor || '8BBEF9'} 
                   />
                 </button>
               </>

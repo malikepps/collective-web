@@ -111,10 +111,21 @@ export default function MediaCarousel({
 
   // --- Effect to control playback based on intersection and current page --- 
   useEffect(() => {
-    // Play only if it's the current page AND it's intersecting
-    const shouldPlay = currentPage === sortedMediaItems.findIndex(item => item.type === MediaType.VIDEO) && isIntersecting;
-    setIsPlaying(shouldPlay);
-    console.log(`[MediaCarousel] Playback state updated: shouldPlay=${shouldPlay}`);
+    const isCurrentVideoPage = currentPage === sortedMediaItems.findIndex(item => item.type === MediaType.VIDEO);
+    // Autoplay if it's the current video page, BUT pause if it's not intersecting.
+    const shouldPlay = isCurrentVideoPage && isIntersecting;
+    
+    // We only want to control play/pause for the *current* video based on intersection.
+    // If it's not the current page, it should definitely not be playing.
+    if (isCurrentVideoPage) {
+        setIsPlaying(shouldPlay);
+        console.log(`[MediaCarousel] Current video page. Playback state updated: isPlaying=${shouldPlay} (isIntersecting=${isIntersecting})`);
+    } else {
+        // Ensure non-current pages are not playing ( belt-and-suspenders )
+        setIsPlaying(false); 
+        console.log(`[MediaCarousel] Not current video page. Forcing isPlaying=false`);
+    }
+
   }, [currentPage, isIntersecting, sortedMediaItems]);
 
   // Swipe handlers

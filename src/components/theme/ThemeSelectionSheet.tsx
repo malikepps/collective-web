@@ -173,7 +173,7 @@ const ThemeSelectionSheet: React.FC<ThemeSelectionSheetProps> = ({
           onClick={onClose}
         >
           <motion.div
-            className="bg-gray-800 w-full ios-sheet-top overflow-hidden flex flex-col" // Changed bg-gray-900 to bg-gray-800
+            className="bg-card w-full ios-sheet-top overflow-hidden flex flex-col"
             style={{ maxHeight: '65vh' }}
             variants={sheetVariants}
             initial="hidden"
@@ -183,7 +183,7 @@ const ThemeSelectionSheet: React.FC<ThemeSelectionSheetProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-700 sticky top-0 bg-gray-800 z-10"> {/* Changed header bg too */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-700 sticky top-0 bg-card z-10">
               <button 
                 onClick={onClose}
                 className="text-blue-400 font-medium text-lg"
@@ -204,15 +204,13 @@ const ThemeSelectionSheet: React.FC<ThemeSelectionSheetProps> = ({
             {/* Content Area */}
             <div className="flex-grow overflow-y-auto p-4">
               {isLoading && (
-                <div className="flex justify-center items-center h-40"> {/* Added height for visibility */}
+                <div className="flex justify-center items-center h-40">
                   <p className="text-gray-400">Loading themes...</p>
-                  {/* Spinner could go here */}
                 </div>
               )}
               {error && (
                  <div className="text-center text-red-500 p-4">{error}</div>
               )}
-              {/* Render themes only if not loading and no error */}
               {!isLoading && !error && (
                 <div className="space-y-6">
                   {groupedAndSortedThemes.length > 0 ? (
@@ -233,7 +231,6 @@ const ThemeSelectionSheet: React.FC<ThemeSelectionSheetProps> = ({
                         </div>
                       ))
                   ) : (
-                     // Explicit message when loading is done but no themes are displayable
                      <p className="text-gray-500 text-center pt-10">No themes available to display.</p>
                   )}
                 </div>

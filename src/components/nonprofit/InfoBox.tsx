@@ -42,6 +42,11 @@ const InfoBox: React.FC<InfoBoxProps> = ({
   const { getTheme } = useTheme();
   const theme = getTheme(organization.themeId);
   
+  // Log the derived theme object in InfoBox
+  useEffect(() => {
+    console.log("[InfoBox] Theme derived from useTheme:", theme);
+  }, [theme]);
+  
   // Debug logs when membership status changes
   useEffect(() => {
     console.log("[DEBUG] InfoBox membership status changed:", {
@@ -99,12 +104,11 @@ const InfoBox: React.FC<InfoBoxProps> = ({
   };
 
   const handleSaveTheme = (newThemeId: string) => {
-    console.log("[InfoBox] Theme saved, new theme ID:", newThemeId);
-    // Call the callback prop passed from NonprofitProfile to update its state
+    console.log("[InfoBox] Theme saved, calling onOrganizationUpdate with new theme ID:", newThemeId);
     if (onOrganizationUpdate) {
       onOrganizationUpdate({ themeId: newThemeId });
     }
-    setShowThemeSheet(false); // Close the sheet after saving
+    setShowThemeSheet(false);
   };
 
   return (

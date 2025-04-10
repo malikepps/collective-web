@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { MediaType, Post } from '../src/lib/models/Post'; // Adjust path as needed
 import { MediaItem } from '../src/lib/models/MediaItem'; // Adjust path as needed
+import { v4 as uuidv4 } from 'uuid'; // Import uuid
+import axios from 'axios'; // Import axios for HTTP requests
 
 // --- Configuration ---
 const serviceAccountPath = path.resolve(__dirname, '../keys/Collective Dev Firebase Service Account.json');
@@ -38,8 +40,8 @@ interface InstagramChildPostData {
 try {
   const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-    // No need to specify storageBucket if only using Firestore
+    credential: admin.credential.cert(serviceAccount),
+    storageBucket: `${serviceAccount.project_id}.appspot.com`
   });
   admin.firestore().settings({ ignoreUndefinedProperties: true });
   console.log('Firebase Admin SDK Initialized.');
@@ -49,8 +51,57 @@ try {
 }
 
 const db = admin.firestore();
+const storage = admin.storage().bucket(); // Initialize storage bucket
 const nonprofitsCollection = db.collection('nonprofits');
 const postsCollection = db.collection('posts');
+
+// --- NEW: Function to upload post media ---
+async function uploadPostMedia(mediaUrl: string, postId: string, mediaIndex: number, isThumbnail: boolean = false): Promise<string | null> {
+  if (!mediaUrl) {
+    console.log(`Skipping media upload for post ${postId} index ${mediaIndex} - no URL provided.`);
+    return null;
+  }
+
+  console.log(`Attempting to download ${isThumbnail ? 'thumbnail' : 'media'} for post ${postId} index ${mediaIndex} from: ${mediaUrl}`);
+  try {
+    const response = await axios({
+      method: 'get',
+      url: mediaUrl,
+      responseType: 'arraybuffer' 
+    });
+
+    const mediaBuffer = Buffer.from(response.data, 'binary');
+    // Try to get a reasonable extension, default to jpg/mp4 based on likely type
+    const guessedExtension = mediaUrl.split('.').pop()?.split('?')[0] || (response.headers['content-type']?.includes('video') ? 'mp4' : 'jpg');
+    const uniqueFilename = `${mediaIndex}_${uuidv4()}.${guessedExtension}`;
+    const storageDir = isThumbnail ? `posts/${postId}/thumbnails` : `posts/${postId}`;
+    const storagePath = `${storageDir}/${uniqueFilename}`;
+    const file = storage.file(storagePath);
+
+    console.log(`Uploading ${isThumbnail ? 'thumbnail' : 'media'} for post ${postId} index ${mediaIndex} to: ${storagePath}`);
+
+    await file.save(mediaBuffer, {
+      metadata: {
+        contentType: response.headers['content-type'] || (isThumbnail ? 'image/jpeg' : 'application/octet-stream'), 
+      },
+      public: true, 
+    });
+    await file.makePublic(); 
+
+    // --- MODIFIED: Get URL with token from metadata ---
+    const [metadata] = await file.getMetadata();
+    const tokenizedUrl = metadata.mediaLink; 
+    // --- END MODIFICATION ---
+
+    console.log(`Successfully uploaded ${isThumbnail ? 'thumbnail' : 'media'}. Public URL: ${tokenizedUrl}`); // Use tokenized URL
+    return tokenizedUrl ?? null; // Return the URL with the token, or null if undefined
+
+  } catch (error: any) {
+    console.error(`Error downloading/uploading ${isThumbnail ? 'thumbnail' : 'media'} for post ${postId} index ${mediaIndex} from ${mediaUrl}:`, error.message || error);
+    return null; 
+  }
+}
+// --- END NEW MEDIA UPLOAD FUNCTION ---
 
 async function findNonprofitIdByName(name: string): Promise<string | null> {
   console.log(`Searching for nonprofit ID for: ${name}`);
@@ -69,108 +120,141 @@ async function findNonprofitIdByName(name: string): Promise<string | null> {
   }
 }
 
-function createMediaItems(postData: InstagramPostData): { mediaType?: MediaType, mediaItems?: MediaItem[] } {
+// --- MODIFIED: createMediaItems to use uploadPostMedia ---
+async function createMediaItems(postData: InstagramPostData): Promise<{ mediaType?: MediaType, mediaItems?: MediaItem[] }> {
   let mediaType: MediaType | undefined = undefined;
   let mediaItems: MediaItem[] = [];
 
   switch (postData.type) {
     case 'Image':
       if (postData.displayUrl) {
-        mediaType = MediaType.IMAGE;
-        mediaItems.push({
-          id: `${postData.id}_0`,
-          url: postData.displayUrl,
-          type: MediaType.IMAGE,
-          order: 0,
-          thumbnailUrl: null,
-          thumbnailColor: null
-        });
+        const firebaseUrl = await uploadPostMedia(postData.displayUrl, postData.id, 0);
+        if (firebaseUrl) {
+          mediaType = MediaType.IMAGE;
+          mediaItems.push({
+            id: `${postData.id}_0`,
+            url: firebaseUrl, // Use Firebase URL
+            type: MediaType.IMAGE,
+            order: 0,
+            thumbnailUrl: null,
+            thumbnailColor: null
+          });
+        }
       }
       break;
     case 'Video':
       if (postData.videoUrl) {
-        mediaType = MediaType.VIDEO;
-        mediaItems.push({
-          id: `${postData.id}_0`,
-          url: postData.videoUrl,
-          type: MediaType.VIDEO,
-          order: 0,
-          thumbnailUrl: postData.displayUrl || null, // Use displayUrl as thumbnail
-          thumbnailColor: null
-        });
+        const videoFirebaseUrl = await uploadPostMedia(postData.videoUrl, postData.id, 0);
+        let thumbnailFirebaseUrl: string | null = null;
+        if (postData.displayUrl) { // Upload thumbnail separately
+            thumbnailFirebaseUrl = await uploadPostMedia(postData.displayUrl, postData.id, 0, true);
+        }
+
+        if (videoFirebaseUrl) {
+          mediaType = MediaType.VIDEO;
+          mediaItems.push({
+            id: `${postData.id}_0`,
+            url: videoFirebaseUrl, // Use Firebase URL
+            type: MediaType.VIDEO,
+            order: 0,
+            thumbnailUrl: thumbnailFirebaseUrl ?? null, // Explicitly ensure null if undefined
+            thumbnailColor: null
+          });
+        }
       }
       break;
     case 'Sidecar':
       if (postData.childPosts && postData.childPosts.length > 0) {
         mediaType = MediaType.CAROUSEL_ALBUM;
-        postData.childPosts.forEach((child, index) => {
+        for (let index = 0; index < postData.childPosts.length; index++) {
+          const child = postData.childPosts[index];
           let childMediaType = MediaType.IMAGE;
-          let childUrl = child.displayUrl;
-          // Basic check if child might be a video - adjust if childPosts have explicit videoUrl
-          if (child.type === 'Video' && child.videoUrl) { 
+          let sourceUrl = child.displayUrl;
+          let sourceThumbnailUrl = null; // Only used if child is video
+
+          // Basic check if child might be a video
+          if (child.type === 'Video') { 
             childMediaType = MediaType.VIDEO;
-            childUrl = child.videoUrl; // Assuming child posts might have videoUrl
-            // Note: Instagram API might not provide videoUrl for children, test this
+            // Assume video URL might be in displayUrl or videoUrl for children
+            sourceUrl = child.videoUrl || child.displayUrl; 
+            sourceThumbnailUrl = child.displayUrl; // Use displayUrl as the source for thumbnail
           }
 
-          if (childUrl) {
-            mediaItems.push({
-              id: child.id || `${postData.id}_${index}`,
-              url: childUrl,
-              type: childMediaType,
-              order: index,
-              thumbnailUrl: (childMediaType === MediaType.VIDEO ? child.displayUrl : null) ?? null,
-              thumbnailColor: null
-            });
+          if (sourceUrl) {
+            const mediaFirebaseUrl = await uploadPostMedia(sourceUrl, postData.id, index);
+            let thumbnailFirebaseUrl: string | null = null;
+            if (childMediaType === MediaType.VIDEO && sourceThumbnailUrl) {
+                 thumbnailFirebaseUrl = await uploadPostMedia(sourceThumbnailUrl, postData.id, index, true);
+            }
+
+            if (mediaFirebaseUrl) {
+                mediaItems.push({
+                  id: child.id || `${postData.id}_${index}`,
+                  url: mediaFirebaseUrl, // Use Firebase URL
+                  type: childMediaType,
+                  order: index,
+                  thumbnailUrl: thumbnailFirebaseUrl ? thumbnailFirebaseUrl : null, // Use ternary to ensure null
+                  thumbnailColor: null
+                });
+            } else {
+                 console.warn(`Skipping child post ${index} for ${postData.id} due to media upload failure.`);
+            }
           } else {
-             console.warn(`Skipping child post ${index} for ${postData.id} due to missing URL.`);
+             console.warn(`Skipping child post ${index} for ${postData.id} due to missing source URL.`);
           }
-        });
-         // Filter out any items that didn't get a URL
+        }
+         // Filter out any items that failed upload
          mediaItems = mediaItems.filter(item => item.url);
          if (mediaItems.length === 0) {
             mediaType = undefined; // No valid media items found
          }
       } else if (postData.displayUrl) {
-         // Fallback for Sidecar with no childPosts but a displayUrl (treat as single image)
+         // Fallback for Sidecar with no childPosts but a displayUrl
          console.warn(`Sidecar post ${postData.id} has no childPosts, treating as single image.`);
-         mediaType = MediaType.IMAGE;
-         mediaItems.push({
-            id: `${postData.id}_0`,
-            url: postData.displayUrl,
-            type: MediaType.IMAGE,
-            order: 0,
-            thumbnailUrl: null,
-            thumbnailColor: null
-          });
+         const firebaseUrl = await uploadPostMedia(postData.displayUrl, postData.id, 0);
+         if (firebaseUrl) {
+            mediaType = MediaType.IMAGE;
+            mediaItems.push({
+              id: `${postData.id}_0`,
+              url: firebaseUrl,
+              type: MediaType.IMAGE,
+              order: 0,
+              thumbnailUrl: null,
+              thumbnailColor: null
+            });
+         }
       }
       break;
     default:
       console.warn(`Unknown post type: ${postData.type} for post ID: ${postData.id}`);
-      // Attempt to treat as image if displayUrl exists
       if (postData.displayUrl) {
-          mediaType = MediaType.IMAGE;
-          mediaItems.push({
-            id: `${postData.id}_0`,
-            url: postData.displayUrl,
-            type: MediaType.IMAGE,
-            order: 0,
-            thumbnailUrl: null,
-            thumbnailColor: null
-          });
+          const firebaseUrl = await uploadPostMedia(postData.displayUrl, postData.id, 0);
+          if (firebaseUrl) {
+            mediaType = MediaType.IMAGE;
+            mediaItems.push({
+              id: `${postData.id}_0`,
+              url: firebaseUrl,
+              type: MediaType.IMAGE,
+              order: 0,
+              thumbnailUrl: null,
+              thumbnailColor: null
+            });
+          }
        }
   }
 
   return { mediaType, mediaItems: mediaItems.length > 0 ? mediaItems : undefined };
 }
+// --- END MODIFIED createMediaItems ---
 
 async function createPostDocument(postData: InstagramPostData, nonprofitId: string) {
   console.log(`Processing post ID: ${postData.id} for nonprofit ID: ${nonprofitId}`);
 
-  const { mediaType, mediaItems } = createMediaItems(postData);
+  // Now createMediaItems is async due to uploads
+  const { mediaType, mediaItems } = await createMediaItems(postData);
 
   if (!mediaItems || mediaItems.length === 0) {
-    console.warn(`Skipping post ${postData.id} - no valid media items could be created.`);
+    console.warn(`Skipping post ${postData.id} - no valid media items could be created/uploaded.`);
     return;
   }
 
