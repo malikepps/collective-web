@@ -46,38 +46,46 @@ const ThemeSelectionSheet: React.FC<ThemeSelectionSheetProps> = ({
   // Fetch themes from Firestore on mount
   useEffect(() => {
     const fetchThemes = async () => {
-      if (!isOpen) return; // Don't fetch if sheet is not open
+      if (!isOpen) return;
       
       setIsLoading(true);
       setError(null);
-      console.log("Fetching themes from Firestore...");
+      console.log("[ThemeSheet] Fetching themes...");
       try {
         const themesCollection = collection(db, 'themes');
         const themeSnapshot = await getDocs(themesCollection);
+        console.log(`[ThemeSheet] Fetched ${themeSnapshot.docs.length} raw documents.`);
+        // Log raw data for one doc if available
+        if (themeSnapshot.docs.length > 0) {
+            console.log("[ThemeSheet] Raw data sample (doc 0):", themeSnapshot.docs[0].data());
+        }
         const themesList = themeSnapshot.docs.map((doc: QueryDocumentSnapshot) => ({
           id: doc.id,
           ...doc.data()
         } as ThemeDoc));
         setThemes(themesList);
-        console.log(`Fetched ${themesList.length} themes.`);
+        console.log("[ThemeSheet] Mapped themes state:", themesList);
       } catch (err) {
-        console.error("Error fetching themes:", err);
+        console.error("[ThemeSheet] Error fetching themes:", err);
         setError('Failed to load themes. Please try again.');
+      } finally { // Use finally to ensure isLoading is always set to false
+        setIsLoading(false);
+        console.log("[ThemeSheet] Fetching finished. isLoading:", false);
       }
-      setIsLoading(false);
     };
 
     fetchThemes();
-  }, [db, isOpen]); // Refetch if sheet re-opens
+  }, [db, isOpen]);
 
-  // Reset selection when initialThemeId changes (e.g., opening for different org)
+  // Reset selection when initialThemeId changes
   useEffect(() => {
     setSelectedThemeId(initialThemeId);
   }, [initialThemeId]);
 
   // Group and sort themes for display
   const groupedAndSortedThemes = useMemo(() => {
-    const categoryOrder = ["bright", "neutral", "subtle", "light"]; // Desired order
+    console.log("[ThemeSheet] Memoizing: Grouping and sorting themes. Input themes count:", themes.length);
+    const categoryOrder = ["bright", "neutral", "subtle", "light"];
     const groups: { [key: string]: ThemeDoc[] } = {};
 
     themes.forEach(theme => {
@@ -85,28 +93,27 @@ const ThemeSelectionSheet: React.FC<ThemeSelectionSheetProps> = ({
       if (!groups[category]) {
         groups[category] = [];
       }
-      // Only include themes with a primary color
-      if (theme.primary_color) {
-        groups[category].push(theme);
+      if (theme.primary_color) { // Ensure primary color exists
+          groups[category].push(theme);
+      } else {
+          console.log(`[ThemeSheet] Skipping theme ${theme.id} due to missing primary_color.`);
       }
     });
+    console.log("[ThemeSheet] Memoizing: Grouped themes (before sorting categories):", groups);
 
-    // Sort themes within each category by ROYGBIV
     Object.keys(groups).forEach(category => {
       groups[category] = sortByROYGBIV(groups[category]);
     });
 
-    // Sort the groups based on the defined category order
     const sortedGroups = Object.entries(groups).sort(([catA], [catB]) => {
       const indexA = categoryOrder.indexOf(catA);
       const indexB = categoryOrder.indexOf(catB);
-      // Place categories not in the order list at the end
-      if (indexA === -1 && indexB === -1) return catA.localeCompare(catB); // Alphabetical for others
+      if (indexA === -1 && indexB === -1) return catA.localeCompare(catB);
       if (indexA === -1) return 1;
       if (indexB === -1) return -1;
       return indexA - indexB;
     });
-
+    console.log("[ThemeSheet] Memoizing: Final grouped and sorted themes structure:", sortedGroups);
     return sortedGroups;
   }, [themes]);
 
@@ -118,7 +125,6 @@ const ThemeSelectionSheet: React.FC<ThemeSelectionSheetProps> = ({
     if (selectedThemeId !== initialThemeId && selectedThemeId) {
       setShowConfirmation(true);
     } else {
-      // If no change or no selection, just close
       onClose(); 
     }
   };
@@ -129,16 +135,14 @@ const ThemeSelectionSheet: React.FC<ThemeSelectionSheetProps> = ({
     setIsSaving(true);
     setShowConfirmation(false);
     setError(null);
-
+    console.log(`[ThemeSheet] Attempting to save theme ${selectedThemeId} for org ${organizationId}`);
     try {
       await updateNonprofitTheme(organizationId, selectedThemeId);
-      onSave(selectedThemeId); // Notify parent component of successful save
-      // onClose() will be called by the parent or in the success handler of updateNonprofitTheme if needed
+      console.log(`[ThemeSheet] Successfully saved theme.`);
+      onSave(selectedThemeId); 
     } catch (err) {
-      console.error("Error saving theme:", err);
+      console.error("[ThemeSheet] Error saving theme:", err);
       setError('Failed to save theme. Please try again.');
-      // Optionally keep the sheet open on error, or close it
-      // onClose(); 
     } finally {
       setIsSaving(false);
     }
@@ -154,6 +158,9 @@ const ThemeSelectionSheet: React.FC<ThemeSelectionSheetProps> = ({
     hidden: { y: "100%" },
     visible: { y: "0%" },
   };
+  
+  // Log state before rendering content area
+  console.log(`[ThemeSheet] Rendering content. isLoading: ${isLoading}, error: ${error}, groupedThemes count: ${groupedAndSortedThemes.length}`);
 
   return (
     <AnimatePresence>
@@ -163,20 +170,20 @@ const ThemeSelectionSheet: React.FC<ThemeSelectionSheetProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={onClose} // Close on backdrop click
+          onClick={onClose}
         >
           <motion.div
-            className="bg-gray-900 w-full ios-sheet-top overflow-hidden flex flex-col"
-            style={{ maxHeight: '65vh' }} // Approx 60-65% height
+            className="bg-gray-800 w-full ios-sheet-top overflow-hidden flex flex-col" // Changed bg-gray-900 to bg-gray-800
+            style={{ maxHeight: '65vh' }}
             variants={sheetVariants}
             initial="hidden"
             animate="visible"
             exit="hidden"
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            onClick={(e) => e.stopPropagation()} // Prevent backdrop click closing the sheet
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-700 sticky top-0 bg-gray-900 z-10">
+            <div className="flex items-center justify-between p-4 border-b border-gray-700 sticky top-0 bg-gray-800 z-10"> {/* Changed header bg too */}
               <button 
                 onClick={onClose}
                 className="text-blue-400 font-medium text-lg"
@@ -194,44 +201,47 @@ const ThemeSelectionSheet: React.FC<ThemeSelectionSheetProps> = ({
               </button>
             </div>
 
-            {/* Content Area */} 
+            {/* Content Area */}
             <div className="flex-grow overflow-y-auto p-4">
               {isLoading && (
-                <div className="flex justify-center items-center h-full">
+                <div className="flex justify-center items-center h-40"> {/* Added height for visibility */}
                   <p className="text-gray-400">Loading themes...</p>
-                  {/* Add a spinner here if desired */}
+                  {/* Spinner could go here */}
                 </div>
               )}
               {error && (
                  <div className="text-center text-red-500 p-4">{error}</div>
               )}
+              {/* Render themes only if not loading and no error */}
               {!isLoading && !error && (
                 <div className="space-y-6">
-                  {groupedAndSortedThemes.map(([category, categoryThemes]) => (
-                    <div key={category}>
-                      <h3 className="text-gray-400 font-medium mb-3 capitalize text-lg pl-1">{category}</h3>
-                      <div className="grid grid-cols-4 gap-4">
-                        {categoryThemes.map((theme) => (
-                          <ThemeSquare
-                            key={theme.id}
-                            id={theme.id}
-                            primaryColor={theme.primary_color!} // Already filtered for themes with primary_color
-                            isSelected={selectedThemeId === theme.id}
-                            onClick={handleThemeSelect}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                  {groupedAndSortedThemes.length === 0 && !isLoading && (
-                     <p className="text-gray-500 text-center pt-10">No themes found.</p>
+                  {groupedAndSortedThemes.length > 0 ? (
+                     groupedAndSortedThemes.map(([category, categoryThemes]) => (
+                        <div key={category}>
+                          <h3 className="text-gray-400 font-medium mb-3 capitalize text-lg pl-1">{category}</h3>
+                          <div className="grid grid-cols-4 gap-4">
+                            {categoryThemes.map((theme) => (
+                              <ThemeSquare
+                                key={theme.id}
+                                id={theme.id}
+                                primaryColor={theme.primary_color!} 
+                                isSelected={selectedThemeId === theme.id}
+                                onClick={handleThemeSelect}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                     // Explicit message when loading is done but no themes are displayable
+                     <p className="text-gray-500 text-center pt-10">No themes available to display.</p>
                   )}
                 </div>
               )}
             </div>
           </motion.div>
 
-          {/* Confirmation Dialog */} 
+          {/* Confirmation Dialog */}
           <ConfirmationDialog
              isOpen={showConfirmation}
              title="Confirm Theme Change"
