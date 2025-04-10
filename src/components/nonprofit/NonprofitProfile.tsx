@@ -42,12 +42,22 @@ const isLight = (hexColor: string): boolean => {
 };
 
 const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
-  organization
+  organization: initialOrganization
 }) => {
-  console.log("[DEBUG] NonprofitProfile rendering for org:", organization.id, organization.name);
+  console.log("[DEBUG] NonprofitProfile initial render for org:", initialOrganization.id, initialOrganization.name);
   
+  // State to manage organization data locally for updates (like theme)
+  const [organization, setOrganization] = useState<Organization>(initialOrganization);
+  
+  // Update local state if the initial prop changes (e.g., navigating between profiles)
+  useEffect(() => {
+    setOrganization(initialOrganization);
+    console.log("[DEBUG] NonprofitProfile updated with new initialOrganization:", initialOrganization.id);
+  }, [initialOrganization]);
+
   const router = useRouter();
   const { getTheme } = useTheme();
+  // Use the themeId from the local organization state
   const theme = organization.themeId ? getTheme(organization.themeId) : undefined;
   const [scrollOffset, setScrollOffset] = useState(0);
   const [showLinksSheet, setShowLinksSheet] = useState(false);
@@ -62,7 +72,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   const navbarRef = useRef<HTMLDivElement>(null);
   const navbarHeight = 40; // Height of the navbar in pixels
   
-  // Get user relationship with organization
+  // Get user relationship with organization (using ID from local state)
   const { 
     relationship,
     isUserMember, 
@@ -123,39 +133,47 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
       bodyElement.style.overflow = 'auto';
       
       // Hide scrollbars but keep scrolling functionality
-      htmlElement.style.scrollbarWidth = 'none';
-      bodyElement.style.scrollbarWidth = 'none';
+      htmlElement.style.scrollbarWidth = 'none'; // Firefox
+      bodyElement.style.scrollbarWidth = 'none'; // Firefox
+      
+      // For Webkit browsers (Chrome, Safari)
+      // Inject style to hide scrollbar globally when no modal is open
+      const styleId = 'hide-scrollbar-style';
+      let styleElement = document.getElementById(styleId);
+      if (!styleElement) {
+        styleElement = document.createElement('style');
+        styleElement.id = styleId;
+        document.head.appendChild(styleElement);
+      }
+      styleElement.textContent = `
+        ::-webkit-scrollbar { display: none; }
+        html, body { -ms-overflow-style: none; } 
+      `;
+      
     }
     
     return () => {
-      // Cleanup: reset overflow when component unmounts
+      // Cleanup: reset overflow and remove injected style
       htmlElement.style.overflow = '';
       bodyElement.style.overflow = '';
       htmlElement.style.scrollbarWidth = '';
       bodyElement.style.scrollbarWidth = '';
+      
+      const styleElement = document.getElementById('hide-scrollbar-style');
+      if (styleElement) {
+        styleElement.textContent = ''; // Clear the rule instead of removing element frequently
+      }
     };
   }, [showLinksSheet, showMissionSheet, showMembershipOptions, showFilterSheet, showLeaveConfirmation, showNavigationDrawer]);
   
   // Modal handlers
-  const handleShowLinks = () => {
-    setShowLinksSheet(true);
-  };
-  
-  const handleShowMission = () => {
-    setShowMissionSheet(true);
-  };
-  
-  const handleShowMembershipOptions = () => {
-    setShowMembershipOptions(true);
-  };
-  
-  const handleShowFilterSheet = () => {
-    setShowFilterSheet(true);
-  };
-  
-  const handleFilterChange = (filter: string) => {
-    setDisplayFilter(filter);
-  };
+  const handleShowLinks = () => setShowLinksSheet(true);
+  const handleShowMission = () => setShowMissionSheet(true);
+  const handleShowMembershipOptions = () => setShowMembershipOptions(true);
+  const handleShowFilterSheet = () => setShowFilterSheet(true);
+  const handleFilterChange = (filter: string) => setDisplayFilter(filter);
+  const handleOpenNavigationDrawer = () => setShowNavigationDrawer(true);
+  const handleCloseNavigationDrawer = () => setShowNavigationDrawer(false);
   
   const handleLeaveCommunity = async () => {
     console.log("[DEBUG] Leaving community for org:", organization.id);
@@ -163,14 +181,16 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
     setShowLeaveConfirmation(false);
   };
 
-  const handleOpenNavigationDrawer = () => {
-    setShowNavigationDrawer(true);
+  // Handler to update local organization state (passed to InfoBox)
+  const handleOrganizationUpdate = (updatedData: Partial<Organization>) => {
+    console.log("[NonprofitProfile] Updating local organization state:", updatedData);
+    setOrganization(prevOrg => ({
+      ...prevOrg,
+      ...updatedData
+    }));
+    // Re-fetching theme via useTheme hook happens automatically due to state change
   };
-  
-  const handleCloseNavigationDrawer = () => {
-    setShowNavigationDrawer(false);
-  };
-  
+
   // Calculate navbar background opacity based on scroll
   const navbarBgOpacity = Math.min(0.8, scrollOffset / 150);
   // Calculate blur intensity based on scroll
@@ -228,7 +248,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
         `}</style>
       </Head>
       
-      <div className="min-h-screen bg-black overflow-hidden" ref={contentRef}>
+      <div className="min-h-screen bg-black overflow-x-hidden" ref={contentRef}> {/* Prevent horizontal overflow */}
         {/* Navbar - either fixed or absolute */}
         <div 
           ref={navbarRef}
@@ -256,7 +276,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
               transition: 'opacity 0.3s ease'
             }}
           >
-            @{organization.username || organization.name.toLowerCase().replace(/\s/g, '')}
+            @{organization.username || organization.name?.toLowerCase().replace(/\s/g, '')}
           </p>
           
           {/* Right side buttons */}
@@ -288,13 +308,14 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
                     icon="photo-film"
                     size={16}
                     style={SVGIconStyle.SOLID}
-                    primaryColor={theme?.secondaryColor || '8BBEF9'} // Use secondary theme color
+                     // Use secondary theme color from local state's theme
+                    primaryColor={theme?.secondaryColor || '8BBEF9'}
                   />
                 </button>
               </>
             )}
 
-            {/* Existing Ellipsis menu button (Consider making this staff-only too or adjusting options inside) */}
+            {/* Existing Ellipsis menu button */}
             <button
               onClick={() => setShowLeaveConfirmation(true)}
               className="flex items-center justify-center overflow-hidden icon-shadow"
@@ -310,14 +331,14 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
           </div>
         </div>
         
-        {/* Media Section - separate from navbar */}
+        {/* Media Section - Pass local organization state */}
         <div className="w-full">
           <MediaSection organization={organization} navbarHeight={navbarHeight} />
         </div>
         
         {/* Content Sections */}
         <div className="pb-20 pt-1">
-          {/* Info Box */}
+          {/* Info Box - Pass local organization state and update handler */}
           <InfoBox 
             organization={organization}
             onShowLinks={handleShowLinks}
@@ -328,9 +349,10 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
             onToggleCommunity={toggleCommunity}
             hasRelationship={relationship !== null}
             isUserStaff={isUserStaff}
+            onOrganizationUpdate={handleOrganizationUpdate} // Pass the update handler
           />
           
-          {/* Collective Section */}
+          {/* Collective Section - Pass local organization state */}
           <div className="mt-1">
             <CollectiveSection
               organization={organization}
@@ -340,7 +362,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
             />
           </div>
           
-          {/* Posts Section */}
+          {/* Posts Section - Pass local organization state */}
           <div className="mt-1">
             <PostsSection
               organization={organization}
@@ -352,7 +374,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
           </div>
         </div>
         
-        {/* Modal components */}
+        {/* Modal components - Pass local organization state */}
         <LinksSheet 
           organization={organization}
           isOpen={showLinksSheet}
@@ -376,7 +398,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
           onFilterChange={handleFilterChange}
           isOpen={showFilterSheet}
           onClose={() => setShowFilterSheet(false)}
-          theme={theme}
+          theme={theme} // Pass theme derived from local state
         />
         
         {/* Text Post Creation Screen */}
@@ -390,7 +412,7 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
         
         {/* Leave confirmation dialog */}
         {showLeaveConfirmation && (
-          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 px-4">
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60] px-4"> {/* Ensure z-index is high but below sheet */}
             <div className="bg-gray-800 rounded-xl p-6 max-w-sm w-full">
               <h3 className="text-white text-lg font-semibold mb-4">
                 {isUserInCommunity ? "Leave Community" : "Options"}
@@ -458,4 +480,4 @@ const NonprofitProfile: React.FC<NonprofitProfileProps> = ({
   );
 };
 
-export default NonprofitProfile; 
+export default NonprofitProfile;

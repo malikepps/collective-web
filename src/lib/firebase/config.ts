@@ -1,4 +1,4 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
@@ -29,14 +29,23 @@ const validateConfig = () => {
 validateConfig();
 
 // Initialize Firebase with better error handling
-let app;
+let app: FirebaseApp;
 try {
   app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
   console.log('Firebase initialized successfully');
 } catch (error) {
   console.error('Error initializing Firebase:', error);
-  // Fallback config to prevent app crashes, but it won't work in production
-  app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  // Fallback or re-attempt initialization might be needed here depending on requirements
+  // Ensure 'app' is assigned even in error case if possible or handle accordingly
+  if (getApps().length > 0) {
+      app = getApp();
+  } else {
+    // Handle the case where initialization failed completely
+    console.error("Firebase app could not be initialized.");
+    // Depending on the app's needs, you might throw an error or use a dummy/null object
+    // For now, we'll re-throw to make the issue clear, adjust as needed:
+    throw new Error("Firebase initialization failed"); 
+  }
 }
 
 // Initialize Firebase services
