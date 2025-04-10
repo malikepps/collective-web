@@ -173,7 +173,7 @@ const ThemeSelectionSheet: React.FC<ThemeSelectionSheetProps> = ({
           onClick={onClose}
         >
           <motion.div
-            className="bg-card w-full ios-sheet-top overflow-hidden flex flex-col"
+            className="bg-gray-800 w-full ios-sheet-top overflow-hidden flex flex-col"
             style={{ maxHeight: '65vh' }}
             variants={sheetVariants}
             initial="hidden"
@@ -183,7 +183,7 @@ const ThemeSelectionSheet: React.FC<ThemeSelectionSheetProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-700 sticky top-0 bg-card z-10">
+            <div className="flex items-center justify-between p-4 border-b border-gray-700 sticky top-0 bg-gray-800 z-10">
               <button 
                 onClick={onClose}
                 className="text-blue-400 font-medium text-lg"
@@ -222,7 +222,7 @@ const ThemeSelectionSheet: React.FC<ThemeSelectionSheetProps> = ({
                               <ThemeSquare
                                 key={theme.id}
                                 id={theme.id}
-                                primaryColor={theme.primary_color!} 
+                                primaryColor={theme.primary_color!.replace('#', '')} 
                                 isSelected={selectedThemeId === theme.id}
                                 onClick={handleThemeSelect}
                               />
