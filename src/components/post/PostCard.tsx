@@ -352,7 +352,7 @@ export default function PostCard({
                   <DirectSVG
                     icon="comment"
                     size={20}
-                    style={SVGIconStyle.SOLID}
+                    style={SVGIconStyle.REGULAR}
                     primaryColor="9ca3af"
                   />
                 </span>
